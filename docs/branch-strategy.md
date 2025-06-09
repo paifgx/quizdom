@@ -35,7 +35,7 @@
 * **Regeln**
 
   * Keine dauerhaften *develop*, *release* Branches.
-  * Feature-Branch lebt max. 3 Tage.
+  * Feature-Branch lebt max. 6 Tage.
   * Rebase vor PR, keine Merge-Commits.
   * Code-Owner-Review Pflicht für Architektur- oder Security-Änderungen.
 
