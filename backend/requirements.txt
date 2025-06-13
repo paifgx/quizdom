@@ -1,0 +1,8 @@
+fastapi
+sqlmodel
+uvicorn
+pydantic
+pydantic-settings
+pytest
+httpx
+psycopg2-binary
