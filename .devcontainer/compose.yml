@@ -1,0 +1,97 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sleep infinity
+    ports:
+      - "8080:8000"
+      - "5173:5173"
+    depends_on:
+      - db
+      - redis
+      - pgadmin
+    networks:
+      - quizdom-network
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quizdom
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ..:/workspace
+    working_dir: /workspace
+    restart: unless-stopped
+
+  # PostgreSQL Database - shared between backend and frontend
+  db:
+    image: postgres:15-alpine
+    container_name: quizdom_dev_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=quizdom
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - quizdom_pgdata:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d  # Optional: for init scripts
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d quizdom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - quizdom-network
+
+  # Redis - for caching and session management (optional but useful)
+  redis:
+    image: redis:7-alpine
+    container_name: quizdom_dev_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - quizdom_redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - quizdom-network
+
+  # pgAdmin - Database management UI (optional but helpful for development)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: quizdom_dev_pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=dev@example.com
+      - PGADMIN_DEFAULT_PASSWORD=devpassword
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+    volumes:
+      - quizdom_pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - quizdom-network
+
+volumes:
+  quizdom_pgdata:
+    driver: local
+  quizdom_redis_data:
+    driver: local
+  quizdom_pgadmin_data:
+    driver: local
+
+networks:
+  quizdom-network:
+    driver: bridge
+    name: quizdom-dev-network 
