@@ -8,7 +8,7 @@ A single **devcontainer** is provided to work on both services. Open the reposit
 
 ```bash
 # in one terminal for the backend
-cd backend && uvicorn app.main:app --reload
+cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # in another terminal for the frontend
 cd frontend && pnpm dev
