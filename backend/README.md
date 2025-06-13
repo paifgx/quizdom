@@ -43,6 +43,13 @@ Alternatively, start everything with Docker:
 docker-compose up --build
 ```
 
+### Using a Dev Container
+
+This repository includes a **devcontainer** configuration to make development
+in VS Code or GitHub Codespaces easy. Open the repository in a compatible
+environment and the backend folder will be used as the workspace. Dependencies
+are installed automatically.
+
 ## Testing
 
 Run the test suite and lint checks with:
