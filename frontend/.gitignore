@@ -8,27 +8,33 @@ ehthumbs.db
 Thumbs.db
 
 # Dependencies
-/node_modules/
+node_modules/
 /.pnpm-store/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+/.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Production Build
+/build/
+/dist/
+/out/
+
+# Development
+.vite/
+vite.config.*.timestamp-*
+.cache/
 
 # React Router v7
 /.react-router/
-/build/
-/dist/
-
-# Vite
-.vite/
-vite.config.*.timestamp-*
 
 # TypeScript
 *.tsbuildinfo
 .tscache/
 
-# Environment variables
+# Environment Variables
 .env
 .env.local
 .env.development.local
@@ -36,40 +42,85 @@ vite.config.*.timestamp-*
 .env.production.local
 
 # Logs
-logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Runtime data
-pids
+# Runtime Data
+pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
+# Coverage Directory
 coverage/
 *.lcov
-.nyc_output
+.nyc_output/
 
-# ESLint cache
+# ESLint Cache
 .eslintcache
 
-# Prettier cache
+# Prettier Cache
 .prettiercache
 
-# IDE/Editor files
-.vscode/
+# Stylelint Cache
+.stylelintcache
+
+# Testing
+/cypress/videos/
+/cypress/screenshots/
+/playwright-report/
+/test-results/
+
+# IDE and Editor Files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
 .idea/
 *.swp
 *.swo
 *~
 
-# OS generated files
-Thumbs.db
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 ehthumbs.db
+Thumbs.db
+
+# Temporary Files
+.tmp/
+temp/
+*.tmp
+*.temp
+
+# Storybook
+/storybook-static/
+
+# Next.js (if used)
+.next/
+
+# Gatsby (if used)
+.gatsby/
+public/
+
+# SvelteKit (if used)
+.svelte-kit/
+
+# Tailwind (if used)
+.tailwindcss-*
+
+# Bundle Analyzer
+.bundlestats/
 
 # Docker
 .dockerignore
-
-# Temporary files
-.tmp/
-temp/
