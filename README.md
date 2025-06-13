@@ -7,7 +7,7 @@ This repository contains the backend skeleton for **QUIZDOM – Rise of the Wise
 ```
 app/
   core/
-    config.py        # Pydantic settings
+    config.py        # Pydantic settings (via pydantic-settings)
   db/
     models.py        # SQLModel models
     session.py       # Database engine and session
