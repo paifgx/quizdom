@@ -3,3 +3,4 @@ sqlmodel
 uvicorn
 pydantic
 pytest
+httpx
