@@ -82,6 +82,26 @@ Make sure to deploy the output of `npm run build`
 
 This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
 
----
+## QUIZDOM UI Guidelines
+
+Colors & Usage:
+
+BLUE SHADES:
+Darkest Blue: #061421
+└── Usage: App-Background, navbar-Background
+Dark Blue: #0b2e50
+└── Usage: background for buttons
+Slightly Less Dark Blue: #06223e
+└── Usage: alternative blue shade for accents or refinement
+
+GOLD SHADES:
+Light Gold: #fce9a5
+└── Usage: font-color for buttons
+Gold: #e4ab38
+└── Usage: quizdom logo large, quizdom logo small, all borders/ frames
+
+BROWN SHADES:
+Brown: #3a2f1b
+└── Usage: frames, frames for buttons
 
 Built with ❤️ using React Router.
