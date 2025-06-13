@@ -3,8 +3,7 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "workspaceFolder": "/workspace",
-  "postCreateCommand": "pip install -r backend/requirements.txt && corepack enable && pnpm install --dir frontend",
+  "postCreateCommand": "/usr/local/bin/setup.sh",
   "customizations": {
     "vscode": {
       "extensions": [

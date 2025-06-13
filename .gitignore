@@ -1,11 +1,76 @@
-__pycache__/
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# IDE and Editor Files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Environment Variables
 .env
 .env.*
 !.env.example
-*.pyc
-*.pyo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependency Directories
+node_modules/
+.pnpm-store/
+
+# Dev Container and Docker
+.devcontainer/.vscode/
+.devcontainer/tmp/
+
+# Coverage and Testing
+coverage/
+*.lcov
+.nyc_output/
+.pytest_cache/
+htmlcov/
+
+# Temporary Files
+.tmp/
+temp/
+*.tmp
+*.temp
+
+# Build Artifacts
+build/
+dist/
 *.egg-info/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
 ENV/
-.idea/
-.DS_Store
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Git
+*.orig
+*.rej
