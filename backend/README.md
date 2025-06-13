@@ -45,10 +45,10 @@ docker-compose up --build
 
 ### Using a Dev Container
 
-This repository includes a **devcontainer** configuration to make development
-in VS Code or GitHub Codespaces easy. Open the repository in a compatible
-environment and the backend folder will be used as the workspace. Dependencies
-are installed automatically.
+A single **devcontainer** at the repository root provides everything needed to
+work on the backend and frontend. Open the project in VS Code or GitHub
+Codespaces and the environment will be prepared automatically with all
+dependencies installed.
 
 ## Testing
 
