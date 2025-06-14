@@ -1,6 +1,6 @@
 ---
 description: 
-globs: *.ts,*.tsx,*.js,*.jsx
+globs: frontend/**
 alwaysApply: false
 ---
 ## General dependencies

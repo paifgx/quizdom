@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Base styles */
+body {
+    background-color: #061421;
+    font-family: 'Press Start 2P', monospace;
+    margin: 0;
+    padding: 20px;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+/* Quiz container */
+.quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 9-slice grid base */
+.nine-slice-grid {
+    display: grid;
+    grid-template-columns: 8px 1fr 8px;
+    grid-template-rows: 8px 1fr 8px;
+    width: 100%;
+    height: 100%;
+    min-height: 60px;
+}
+
+/* Corner styles */
+.corner {
+    width: 8px;
+    height: 8px;
+}
+
+.corner.top-left {
+    background: linear-gradient(135deg, #3a2f1b 0%, #3a2f1b 50%, #e4ab38 50%, #e4ab38 100%);
+    border-radius: 5px 0 0 0;
+}
+
+.corner.top-right {
+    background: linear-gradient(225deg, #3a2f1b 0%, #3a2f1b 50%, #e4ab38 50%, #e4ab38 100%);
+    border-radius: 0 5px 0 0;
+}
+
+.corner.bottom-left {
+    background: linear-gradient(45deg, #3a2f1b 0%, #3a2f1b 50%, #e4ab38 50%, #e4ab38 100%);
+    border-radius: 0 0 0 5px;
+}
+
+.corner.bottom-right {
+    background: linear-gradient(315deg, #3a2f1b 0%, #3a2f1b 50%, #e4ab38 50%, #e4ab38 100%);
+    border-radius: 0 0 5px 0;
+}
+
+/* Edge styles */
+.edge.top, .edge.bottom {
+    background: linear-gradient(to bottom, #3a2f1b 0%, #3a2f1b 40%, #e4ab38 40%, #e4ab38 60%, #3a2f1b 60%, #3a2f1b 100%);
+}
+
+.edge.left, .edge.right {
+    background: linear-gradient(to right, #3a2f1b 0%, #3a2f1b 40%, #e4ab38 40%, #e4ab38 60%, #3a2f1b 60%, #3a2f1b 100%);
+}
+
+/* Center content */
+.center {
+    background-color: #0b2e50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.center::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 0%, rgba(228, 171, 56, 0.1) 50%, transparent 100%);
+    pointer-events: none;
+}
+
+.center p {
+    color: #fce9a5;
+    font-size: 10px;
+    margin: 0;
+    padding: 8px;
+    text-align: center;
+    line-height: 1.4;
+    z-index: 1;
+    position: relative;
+}
+
+/* Question box styles */
+.pixel-question-9slice {
+    width: 100%;
+    min-height: 80px;
+    margin-bottom: 30px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.pixel-question-9slice:hover {
+    filter: brightness(1.1);
+}
+
+.pixel-question-9slice .center p {
+    font-size: 12px;
+    padding: 16px;
+}
+
+/* Button grid layout */
+.button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Button styles */
+.pixel-button-9slice {
+    width: 100%;
+    min-height: 60px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.pixel-button-9slice:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.pixel-button-9slice:active {
+    transform: translateY(1px);
+    filter: brightness(0.9);
+}
+
+.pixel-button-9slice .center p {
+    font-size: 10px;
+    padding: 12px;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    .button-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .pixel-question-9slice .center p {
+        font-size: 10px;
+        padding: 12px;
+    }
+    
+    .quiz-container {
+        padding: 10px;
+    }
+}
+
+/* Animation for button press */
+@keyframes buttonPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.98); }
+    100% { transform: scale(1); }
+}
+
+.pixel-button-9slice:active .nine-slice-grid {
+    animation: buttonPress 0.1s ease;
+}
+
+/* Enhanced pixel art styling */
+* {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+/* Accessibility improvements */
+.pixel-button-9slice:focus,
+.pixel-question-9slice:focus {
+    outline: 2px solid #fce9a5;
+    outline-offset: 2px;
+}
+
+/* Custom scrollbar for pixel theme */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #061421;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #0b2e50;
+    border: 1px solid #3a2f1b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #e4ab38;
+} 

@@ -1,5 +1,7 @@
+import type { QuizData } from "../../components/nine-slice-quiz";
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { useState } from "react";
+import { QuizContainer } from "../../components/nine-slice-quiz";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,5 +11,41 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <Welcome />;
+  const [selectedAnswer, setSelectedAnswer] = useState<string | undefined>();
+
+  const sampleQuizData: QuizData = {
+    question: "Which Quizsystem is the best?",
+    answers: [
+      { id: "quizdom", text: "Quizdom" },
+      { id: "quizduell", text: "Quizduell" },
+      { id: "quizpoker", text: "Quizpoker" },
+      { id: "quizster", text: "Quizster" },
+    ],
+  };
+
+  const handleAnswerSelect = (answerId: string) => {
+    setSelectedAnswer(answerId);
+    console.log(`Selected answer: ${answerId}`);
+  };
+
+  const handleQuestionClick = () => {
+    console.log("Question clicked - could show help or play sound");
+  };
+
+  return (
+    <div
+      style={{
+        backgroundColor: "#061421",
+        minHeight: "100vh",
+        padding: "20px",
+      }}
+    >
+      <QuizContainer
+        quizData={sampleQuizData}
+        selectedAnswer={selectedAnswer}
+        onAnswerSelect={handleAnswerSelect}
+        onQuestionClick={handleQuestionClick}
+      />
+    </div>
+  );
 }
