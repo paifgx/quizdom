@@ -25,14 +25,33 @@ async def send_verification_email(email: EmailStr, token: str, base_url: str):
         subject="Verify your email address",
         recipients=[email],
         body=f"""
-        Welcome to our platform!
+        Willkommen bei Quizdom - Rise of the Wise!
         
+        Deine Reise kann gleich beginnen.
+        Bitte bestätige deine E-Mail-Adresse, indem du auf den folgenden Link klickst:
+        {verification_link}
+        
+        Dieser Link läuft in 24 Stunden ab.
+        
+        Wenn du dieses Konto nicht angelegt hast, ignoriere diese E-Mail.
+
+        Wir sehen uns im Quizdom!
+        Patrik, Marina und Freddy
+        
+        --------------------------------
+        
+        Welcome to Quizdom - Rise of the Wise!
+        
+        Your journey is about to begin.
         Please verify your email address by clicking the link below:
         {verification_link}
         
         This link will expire in 24 hours.
         
         If you didn't create this account, please ignore this email.
+
+        See you in Quizdom!
+        Patrik, Marina and Freddy
         """,
         subtype="html"
     )
