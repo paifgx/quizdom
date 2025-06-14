@@ -84,6 +84,7 @@ This template comes with [Tailwind CSS](https://tailwindcss.com/) already config
 
 ## QUIZDOM UI Guidelines
 
+```
 Colors & Usage:
 
 BLUE SHADES:
@@ -103,5 +104,6 @@ Gold: #e4ab38
 BROWN SHADES:
 Brown: #3a2f1b
 └── Usage: frames, frames for buttons
+```
 
 Built with ❤️ using React Router.

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="/Users/frederikmartingasch/code/programming-playground/programming-playground/style.css">
+</head>
+<body>
+    <div class="pixel-question"><p>Which Quizsystem is the best?</p></div>
+
+    <table>
+        <tr>
+            <td><div class="pixel-button"><p>Quizdom</p></div></td>
+            <td><div class="pixel-button"><p>Quizduell</p></div></td>
+        </tr>
+        <tr>
+            <td><div class="pixel-button"><p>Quizpoker</p></div></td>
+            <td><div class="pixel-button"><p>Quizster</p></div></td>
+        </tr>
+    </table>
+
+</body>
+</html>
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    background-color: #061421;
+}
+
+table {
+  width: 50%;
+  height: 50%;
+  padding: 5%;
+}
+
+.pixel-question {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: #fce9a5;
+  background-color: #0b2e50;
+  border: 0;
+  border-radius: 5px;
+  padding: 2px 4px;
+  image-rendering: pixelated;
+  cursor: pointer;
+  box-shadow: 0 0 0 4px #3a2f1b, inset 0 0 0 2px #e4ab38;
+  outline: none;
+  width: 50%;
+  height: 5%;
+  text-align: center;
+  margin: 10px;
+}
+
+.pixel-button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: #fce9a5;
+  background-color: #0b2e50;
+  border: 0;
+  border-radius: 5px;
+  padding: 2px 4px;
+  image-rendering: pixelated;
+  cursor: pointer;
+  box-shadow: 0 0 0 4px #3a2f1b, inset 0 0 0 2px #e4ab38;
+  outline: none;
+  width: 90%;
+  height: 5%;
+  text-align: center;
+  margin: 10px;
+}
+
+.pixel-button:hover {
+  filter: brightness(1.1);
+}
+
+.pixel-button:active {
+  transform: translateY(1px);
+}
