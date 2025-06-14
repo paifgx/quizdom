@@ -6,3 +6,8 @@ pydantic-settings
 pytest
 httpx
 psycopg2-binary
+argon2-cffi
+fastapi-mail
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
