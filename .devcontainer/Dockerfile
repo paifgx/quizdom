@@ -9,7 +9,3 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 
 # Enable corepack (Node.js package manager)
 RUN corepack enable
-
-# Copy setup script
-COPY setup.sh /usr/local/bin/setup.sh
-RUN chmod +x /usr/local/bin/setup.sh

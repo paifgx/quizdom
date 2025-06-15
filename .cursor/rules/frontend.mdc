@@ -1,0 +1,62 @@
+---
+description: 
+globs: frontend/**
+alwaysApply: false
+---
+## General dependencies
+- Keep React, React DOM, React Router, Vite, Jest, and other core libs on their latest stable major version.
+- Upgrade soon after each stable release unless a breaking change blocks the project.
+
+## Folder structure
+
+```
+├── frontend/  
+│   ├── app/         # bootstrap: router, providers, error boundary
+│   ├── pages/       # route elements, one folder per route
+│   ├── layouts/     # layout components housing <Outlet>
+│   ├── components/  # shared UI pieces
+│   ├── features/    # domain modules with pages, logic, state
+│   ├── hooks/       # custom hooks
+│   ├── lib/         # helpers (fetch, zod, date)
+│   ├── services/    # API clients
+│   ├── types/       # exported TypeScript types
+│   └── styles/      # global CSS or Tailwind config
+```
+
+- Route files end with *Page.tsx* (e.g., `AboutPage.tsx` maps to `/about`).
+- Place loader/action files next to the route (`AboutPage.loader.ts`).
+- Keep tests beside code with `.test.tsx`.
+
+## Routing guidelines
+- Use **React Router v7**.
+- Keep the router in `src/app/router.tsx`. Export `createBrowserRouter`.
+- Add layout routes for shared UI (`RootLayout.tsx` in `src/layouts`).
+- Lazy-load routes with `React.lazy` and a local `<Suspense>` fallback.
+- Limit nesting to three `<Outlet>` levels.
+- Use `<NavLink>` for navigation, `<Link>` elsewhere.
+- Provide an app-wide `ErrorBoundary` in `src/app/ErrorBoundary.tsx`.
+
+## Data & state
+- Fetch initial data in loader functions, not `useEffect`.
+- Hold global state in React Context + `useReducer`. Switch to Redux only if scale demands it.
+- Store Zod schemas next to loaders for type-safe validation.
+
+## Styling & testing
+- Use Tailwind first; fall back to CSS Modules when needed.
+- Test every route with `@testing-library/react` and `MemoryRouter`.
+- Add snapshot tests only when markup must stay unchanged.
+
+## TypeScript rules
+- Forbid `any`.
+- Compile with `--strict` and `--noUncheckedIndexedAccess`.
+- Expose public types from `src/types`.
+
+## Build commands
+- `pnpm dev`  # start Vite  
+- `pnpm test` # run Jest  
+- `pnpm lint` # run ESLint + Prettier  
+
+## Templates available through @rule
+- **@router-template.tsx** – basic router skeleton  
+- **@page-template.tsx** – starter page with Suspense wrapper
+

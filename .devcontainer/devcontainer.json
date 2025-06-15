@@ -6,7 +6,7 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "overrideCommand": false,
-  "postCreateCommand": "/usr/local/bin/setup.sh",
+  "postCreateCommand": ".devcontainer/setup.sh",
   "shutdownAction": "stopCompose",
   "customizations": {
     "vscode": {

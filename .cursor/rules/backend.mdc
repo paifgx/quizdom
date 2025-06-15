@@ -1,0 +1,78 @@
+---
+description: 
+globs: backend/**
+alwaysApply: false
+---
+## General dependencies
+- FastAPI, Pydantic ≥ 2, SQLModel, Uvicorn[standard]
+- Poetry for packaging; ruff for lint + format; mypy for type checks
+
+## Folder structure
+
+```
+├── backend/  
+│   ├── app/            # config, routers, domain logic
+│   │   ├── core/       # settings, db, security, logging
+│   │   ├── api/        # versioned routers
+│   │   │   ├── deps.py # shared dependencies
+│   │   │   └── v1/  
+│   │   │       └── endpoints/  
+│   │   │           ├── users.py  
+│   │   │           └── auth.py  
+│   │   ├── models/     # SQLModel ORM classes
+│   │   ├── schemas/    # Pydantic request/response models
+│   │   ├── services/   # business logic & external APIs
+│   │   └── main.py     # FastAPI entry point
+│   ├── migrations/     # Alembic revisions
+│   └── tests/          # pytest suites
+```
+
+- Keep each endpoint file <200 LOC. Split when larger.
+- Place integration tests next to `tests/` mirror of source tree.
+
+## Routing guidelines
+- Define a `router = APIRouter(prefix="/users", tags=["Users"])` per endpoint file.  
+- Use HTTP verbs that match intent: `GET /items`, `POST /items`, `PUT /items/{id}`.  
+- Return typed models — never `dict` literals.  
+- Stick to `status_code` constants from `starlette.status`.  
+- Use dependency overrides in tests, not in prod code.
+
+## Business logic
+- Keep side-effect code out of endpoints. Call `services/*` instead.  
+- Make services stateless; inject DB session via FastAPI’s dependency system.  
+- Wrap third-party calls in `services` to isolate failures.
+
+## Data layer
+- Use async SQLModel with a single `sessionmaker` in `core/db.py`.  
+- Never expose ORM models in responses; convert to Pydantic schemas.  
+- Keep migrations in Alembic’s `migrations/`.
+
+## Validation & security
+- Validate all inbound data with Pydantic schemas.  
+- Centralise auth in `core/security.py`; use OAuth2 password flow with JWT.  
+- Rate-limit sensitive routes with `slowapi`.
+
+## Error handling & logging
+- Register a global `exception_handler` for `HTTPException` and `ValidationError`.  
+- Log JSON lines via `structlog`; never print.  
+- Return consistent error shape: `{ "detail": "…" }`.
+
+## Testing
+- Use pytest + `from fastapi.testclient import TestClient`.  
+- Mock external services with `respx`.  
+- Achieve ≥ 90 % branch coverage.
+
+## Type hints & style
+- Forbid `# type: ignore`.  
+- Run `mypy --strict`.  
+- Enforce ruff rules `E,F,I,N`. Auto-format on commit with pre-commit.
+
+## Build commands
+- `poetry run dev`  # uvicorn app.main:app --reload  
+- `poetry run test`  # pytest -q  
+- `poetry run lint`  # ruff check . && ruff format . && mypy  
+
+## Templates available through @rule
+- **@endpoint-template.py** router skeleton with CRUD stubs  
+- **@service-template.py**  async service class with repository pattern  
+
