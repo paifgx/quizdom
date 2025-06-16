@@ -1,18 +1,23 @@
+from ..core.config import settings
+from ..database import get_session
+from ..core.email import send_verification_email
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
-from typing import Optional
 from datetime import datetime, UTC
 
 from ..models.user import User, UserCreate, UserResponse
-from ..core.security import verify_password_strength, hash_password, generate_verification_token, get_token_expiry
-from ..core.email import send_verification_email
-from ..database import get_session
-from ..core.config import settings
+from ..core.security import verify_password_strength, hash_password
+from ..core.security import generate_verification_token, get_token_expiry
+from ..core.email import send_reset_password_email
+from ..core.security import verify_password
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserResponse,
+             status_code=status.HTTP_201_CREATED,
+             summary="Register a new user",
+             description="Register a new user with email and password")
 async def register(user_data: UserCreate, session: Session = Depends(get_session)):
     """Register a new user."""
     # Check if email already exists
