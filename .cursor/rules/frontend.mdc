@@ -3,60 +3,58 @@ description:
 globs: frontend/**
 alwaysApply: false
 ---
-## General dependencies
-- Keep React, React DOM, React Router, Vite, Jest, and other core libs on their latest stable major version.
-- Upgrade soon after each stable release unless a breaking change blocks the project.
+## Dependencies
+- Keep React, React DOM, React Router, Vite and Jest on their latest stable major version
+- Upgrade soon after each stable release, unless a breaking change blocks the project
 
 ## Folder structure
+- `frontend/app/` → app bootstrap: router, providers, ErrorBoundary  
+- `frontend/app/pages/` → route components (`*Page.tsx`)
+- `frontend/app/layouts/` → layout wrappers with `<Outlet>`
+- `frontend/app/components/` → shared UI pieces
+- `frontend/app/features/` → domain modules (pages, logic, state)
+- `frontend/app/hooks/` → custom hooks
+- `frontend/app/lib/` → helpers (fetch, Zod, date utilities)
+- `frontend/app/services/` → API clients
+- `frontend/app/types/` → exported TypeScript types
+- `frontend/app/styles/` → global CSS or Tailwind config
+- `frontend/tests/` → tests
 
-```
-├── frontend/  
-│   ├── app/         # bootstrap: router, providers, error boundary
-│   ├── pages/       # route elements, one folder per route
-│   ├── layouts/     # layout components housing <Outlet>
-│   ├── components/  # shared UI pieces
-│   ├── features/    # domain modules with pages, logic, state
-│   ├── hooks/       # custom hooks
-│   ├── lib/         # helpers (fetch, zod, date)
-│   ├── services/    # API clients
-│   ├── types/       # exported TypeScript types
-│   └── styles/      # global CSS or Tailwind config
-```
+## File naming
+- Route files end with `Page.tsx` (e.g. `AboutPage.tsx` → `/about`)
+- Place loader/action files next to the route (`AboutPage.loader.ts`)
+- Keep tests beside code with `.test.tsx`
 
-- Route files end with *Page.tsx* (e.g., `AboutPage.tsx` maps to `/about`).
-- Place loader/action files next to the route (`AboutPage.loader.ts`).
-- Keep tests beside code with `.test.tsx`.
-
-## Routing guidelines
-- Use **React Router v7**.
-- Keep the router in `src/app/router.tsx`. Export `createBrowserRouter`.
-- Add layout routes for shared UI (`RootLayout.tsx` in `src/layouts`).
-- Lazy-load routes with `React.lazy` and a local `<Suspense>` fallback.
-- Limit nesting to three `<Outlet>` levels.
-- Use `<NavLink>` for navigation, `<Link>` elsewhere.
-- Provide an app-wide `ErrorBoundary` in `src/app/ErrorBoundary.tsx`.
+## Routing
+- Use React Router v7
+- Define router in `frontend/app/router.tsx`, export `createBrowserRouter()`
+- Provide global `ErrorBoundary` in `frontend/app/ErrorBoundary.tsx`
+- Add layout routes in `frontend/app/layouts/`
+- Lazy-load routes with `React.lazy` + `<Suspense>` fallback
+- Limit nesting to three `<Outlet>` levels
+- Use `<NavLink>` for active links, `<Link>` elsewhere
 
 ## Data & state
-- Fetch initial data in loader functions, not `useEffect`.
-- Hold global state in React Context + `useReducer`. Switch to Redux only if scale demands it.
-- Store Zod schemas next to loaders for type-safe validation.
+- Fetch initial data in loader functions, not in `useEffect`
+- Hold global state in React Context + `useReducer`
+- Switch to Redux only if scale demands it
+- Store Zod schemas next to loaders for type-safe validation
 
 ## Styling & testing
-- Use Tailwind first; fall back to CSS Modules when needed.
-- Test every route with `@testing-library/react` and `MemoryRouter`.
-- Add snapshot tests only when markup must stay unchanged.
+- Use Tailwind first; fall back to CSS Modules when needed
+- Test every route with `@testing-library/react` + `MemoryRouter`
+- Add snapshot tests only when markup must stay unchanged
 
-## TypeScript rules
-- Forbid `any`.
-- Compile with `--strict` and `--noUncheckedIndexedAccess`.
-- Expose public types from `src/types`.
+## TypeScript
+- Forbid `any`
+- Compile with `--strict` and `--noUncheckedIndexedAccess`
+- Expose public types from `frontend/types/`
 
 ## Build commands
-- `pnpm dev`  # start Vite  
-- `pnpm test` # run Jest  
-- `pnpm lint` # run ESLint + Prettier  
+- `pnpm dev` - start Vite dev server
+- `pnpm test` - run Jest
+- `pnpm lint` - run ESLint + Prettier
 
-## Templates available through @rule
-- **@router-template.tsx** – basic router skeleton  
-- **@page-template.tsx** – starter page with Suspense wrapper
-
+## Templates (via @rule)
+- `@router-template.tsx` – basic router skeleton
+- `@page-template.tsx` – starter page with Suspense wrapper
