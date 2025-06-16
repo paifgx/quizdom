@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta, UTC
+import re
 import secrets
+from datetime import UTC, datetime, timedelta
+
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-import re
 
 ph = PasswordHasher()
 

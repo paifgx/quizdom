@@ -1,8 +1,9 @@
-from datetime import datetime, UTC
-from typing import Optional
-from sqlmodel import SQLModel, Field
-from pydantic import EmailStr, constr
 import uuid
+from datetime import UTC, datetime
+from typing import Optional
+
+from pydantic import EmailStr, constr
+from sqlmodel import Field, SQLModel
 
 
 class UserBase(SQLModel):

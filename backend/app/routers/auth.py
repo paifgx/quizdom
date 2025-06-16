@@ -1,15 +1,19 @@
-from ..core.config import settings
-from ..database import get_session
-from ..core.email import send_verification_email
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
-from datetime import datetime, UTC
 
+from ..core.config import settings
+from ..core.email import send_reset_password_email, send_verification_email
+from ..core.security import (
+    generate_verification_token,
+    get_token_expiry,
+    hash_password,
+    verify_password,
+    verify_password_strength,
+)
+from ..database import get_session
 from ..models.user import User, UserCreate, UserResponse
-from ..core.security import verify_password_strength, hash_password
-from ..core.security import generate_verification_token, get_token_expiry
-from ..core.email import send_reset_password_email
-from ..core.security import verify_password
 
 router = APIRouter()
 

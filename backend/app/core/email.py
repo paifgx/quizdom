@@ -1,7 +1,8 @@
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from pydantic import EmailStr
 import os
 from pathlib import Path
+
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
+from pydantic import EmailStr
 
 # Email configuration
 conf = ConnectionConfig(
