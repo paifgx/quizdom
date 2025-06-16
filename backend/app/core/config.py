@@ -25,7 +25,8 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
         if not self.SECRET_KEY:
             raise ValueError(
-                "SECRET_KEY must be set in environment variables for secure deployments.")
+                "SECRET_KEY must be set in"
+                "environment variables for secure deployments.")
 
     class Config:
         env_file = ".env"
