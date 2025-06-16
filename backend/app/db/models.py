@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+import uuid
+from datetime import UTC, datetime
 from enum import Enum, IntEnum
 from typing import Optional
 
-from sqlmodel import Field, SQLModel
-
-import uuid
-from datetime import UTC, datetime
 from pydantic import EmailStr, constr
 from sqlmodel import Field, SQLModel
 
@@ -78,7 +75,7 @@ class User(UserBase, table=True):
     password_hash: str
     nickname: str
     is_verified: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     deleted_at: Optional[datetime] = None
     role_id: Optional[int] = Field(default=None, foreign_key="role.id")
 
@@ -108,7 +105,7 @@ class GameSession(SQLModel, table=True):
     mode: GameMode
     status: GameStatus
     score: int = 0
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
 
@@ -129,7 +126,7 @@ class Question(SQLModel, table=True):
     difficulty: Difficulty
     content: str
     explanation: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class Answer(SQLModel, table=True):
@@ -150,7 +147,7 @@ class PlayerAnswer(SQLModel, table=True):
     selected_answer_id: int = Field(foreign_key="answer.id")
     is_correct: bool
     points_awarded: int
-    answered_at: datetime = Field(default_factory=datetime.utcnow)
+    answered_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class Badge(SQLModel, table=True):
@@ -168,7 +165,7 @@ class UserBadge(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     badge_id: int = Field(foreign_key="badge.id")
-    achieved_at: datetime = Field(default_factory=datetime.utcnow)
+    achieved_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class Leaderboard(SQLModel, table=True):
@@ -177,7 +174,7 @@ class Leaderboard(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     mode: GameMode
     period: LeaderboardPeriod
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class LeaderboardEntry(SQLModel, table=True):
@@ -196,6 +193,6 @@ class RefreshToken(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     token_hash: str
-    issued_at: datetime = Field(default_factory=datetime.utcnow)
+    issued_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     expires_at: datetime
     revoked_at: Optional[datetime] = None
