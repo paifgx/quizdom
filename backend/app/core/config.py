@@ -26,7 +26,8 @@ class Settings(BaseSettings):
         if not self.SECRET_KEY:
             raise ValueError(
                 "SECRET_KEY must be set in"
-                "environment variables for secure deployments.")
+                "environment variables for secure deployments."
+            )
 
     class Config:
         env_file = ".env"

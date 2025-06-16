@@ -14,33 +14,35 @@ from ..core.security import verify_password
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserResponse,
-             status_code=status.HTTP_201_CREATED,
-             summary="Register a new user",
-             description="Register a new user with email and password")
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user",
+    description="Register a new user with email and password",
+)
 async def register(user_data: UserCreate, session: Session = Depends(get_session)):
     """Register a new user."""
     # Check if email already exists
-    existing_user = session.exec(select(User).where(
-        User.email == user_data.email)).first()
+    existing_user = session.exec(
+        select(User).where(User.email == user_data.email)
+    ).first()
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
 
     # Verify password strength
     if not verify_password_strength(user_data.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password does not meet security requirements"
+            detail="Password does not meet security requirements",
         )
 
     # Verify passwords match
     if user_data.password != user_data.password_confirm:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Passwords do not match"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match"
         )
 
     # Create verification token
@@ -52,7 +54,7 @@ async def register(user_data: UserCreate, session: Session = Depends(get_session
         email=user_data.email,
         password_hash=hash_password(user_data.password),
         verification_token=verification_token,
-        verification_token_expires=token_expiry
+        verification_token_expires=token_expiry,
     )
 
     session.add(user)
@@ -61,16 +63,14 @@ async def register(user_data: UserCreate, session: Session = Depends(get_session
 
     # Send verification email
     await send_verification_email(
-        email=user.email,
-        token=verification_token,
-        base_url=settings.BASE_URL
+        email=user.email, token=verification_token, base_url=settings.BASE_URL
     )
 
     return UserResponse(
         id=user.id,
         email=user.email,
         is_verified=user.is_verified,
-        created_at=user.created_at
+        created_at=user.created_at,
     )
 
 
@@ -80,14 +80,14 @@ async def verify_email(token: str, session: Session = Depends(get_session)):
     user = session.exec(
         select(User).where(
             User.verification_token == token,
-            User.verification_token_expires > datetime.now(UTC)
+            User.verification_token_expires > datetime.now(UTC),
         )
     ).first()
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification token"
+            detail="Invalid or expired verification token",
         )
 
     user.is_verified = True
@@ -107,20 +107,19 @@ async def login(email: str, password: str, session: Session = Depends(get_sessio
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
 
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Please verify your email first"
+            detail="Please verify your email first",
         )
 
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account is locked. Please check your email for reset instructions"
+            detail="Account is locked. Please check your email for reset instructions",
         )
 
     if not verify_password(password, user.password_hash):
@@ -134,17 +133,14 @@ async def login(email: str, password: str, session: Session = Depends(get_sessio
             user.reset_token = reset_token
             user.reset_token_expires = get_token_expiry()
             await send_reset_password_email(
-                email=user.email,
-                token=reset_token,
-                base_url=settings.BASE_URL
+                email=user.email, token=reset_token, base_url=settings.BASE_URL
             )
 
         session.add(user)
         session.commit()
 
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
 
     # Reset failed login attempts on successful login

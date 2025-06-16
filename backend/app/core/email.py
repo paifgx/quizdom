@@ -13,7 +13,7 @@ conf = ConnectionConfig(
     MAIL_STARTTLS=True,
     MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
-    TEMPLATE_FOLDER=Path(__file__).parent.parent / 'templates'
+    TEMPLATE_FOLDER=Path(__file__).parent.parent / "templates",
 )
 
 # Send verification email to user
@@ -54,7 +54,7 @@ async def send_verification_email(email: EmailStr, token: str, base_url: str):
         See you in Quizdom!
         Patrik, Marina and Freddy
         """,
-        subtype="html"
+        subtype="html",
     )
 
     fm = FastMail(conf)
@@ -78,7 +78,7 @@ async def send_reset_password_email(email: EmailStr, token: str, base_url: str):
 
         If you didn't request this, please ignore this email.
         """,
-        subtype="html"
+        subtype="html",
     )
 
     fm = FastMail(conf)

@@ -12,9 +12,9 @@ def verify_password_strength(password: str) -> bool:
     if len(password) < 12:
         return False
 
-    has_upper = bool(re.search(r'[A-Z]', password))
-    has_lower = bool(re.search(r'[a-z]', password))
-    has_digit = bool(re.search(r'\d', password))
+    has_upper = bool(re.search(r"[A-Z]", password))
+    has_lower = bool(re.search(r"[a-z]", password))
+    has_digit = bool(re.search(r"\d", password))
     has_special = bool(re.search(r'[!@#$%^&*(),.?":{}|<>]', password))
 
     return all([has_upper, has_lower, has_digit, has_special])
