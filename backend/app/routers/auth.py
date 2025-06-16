@@ -12,8 +12,8 @@ from ..core.security import (
     verify_password,
     verify_password_strength,
 )
-from ..database import get_session
-from ..models.user import User, UserCreate, UserResponse
+from ..db.session import get_session
+from ..db.models import User, UserCreate, UserResponse
 
 router = APIRouter()
 

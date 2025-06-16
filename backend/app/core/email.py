@@ -1,20 +1,22 @@
 import os
-from pathlib import Path
 
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 from pydantic import EmailStr
 
 # Email configuration
 conf = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("MAIL_USERNAME", ""),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", ""),
-    MAIL_FROM=os.getenv("MAIL_FROM", ""),
+    # info: placeholder e-mail address
+    MAIL_USERNAME=os.getenv("MAIL_USERNAME", "no-reply@quizdom.com"),
+    # info: placeholder password
+    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", "test"),
+    # info: placeholder e-mail address
+    MAIL_FROM=os.getenv("MAIL_FROM", "no-reply@quizdom.com"),
     MAIL_PORT=int(os.getenv("MAIL_PORT", "587")),
-    MAIL_SERVER=os.getenv("MAIL_SERVER", ""),
+    # info: placeholder mail server
+    MAIL_SERVER=os.getenv("MAIL_SERVER", "smtp.gmail.com"),
     MAIL_STARTTLS=True,
     MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
-    TEMPLATE_FOLDER=Path(__file__).parent.parent / "templates",
 )
 
 # Send verification email to user

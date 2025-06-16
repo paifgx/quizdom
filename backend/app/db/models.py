@@ -8,6 +8,11 @@ from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
+import uuid
+from datetime import UTC, datetime
+from pydantic import EmailStr, constr
+from sqlmodel import Field, SQLModel
+
 
 class GameMode(str, Enum):
     """Game modes available in Quizdom."""
@@ -51,10 +56,24 @@ class Role(SQLModel, table=True):
     description: Optional[str] = None
 
 
-class User(SQLModel, table=True):
+class UserBase(SQLModel):
+    """Base user model."""
+
+    email: EmailStr = Field(unique=True, index=True)
+    is_verified: bool = Field(default=False)
+    is_active: bool = Field(default=True)
+    failed_login_attempts: int = Field(default=0)
+    last_failed_login: Optional[datetime] = None
+    verification_token: Optional[str] = None
+    verification_token_expires: Optional[datetime] = None
+    reset_token: Optional[str] = None
+    reset_token_expires: Optional[datetime] = None
+
+
+class User(UserBase, table=True):
     """Application users."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     email: str = Field(unique=True, index=True)
     password_hash: str
     nickname: str
@@ -62,6 +81,23 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = None
     role_id: Optional[int] = Field(default=None, foreign_key="role.id")
+
+
+class UserCreate(SQLModel):
+    """User creation model."""
+
+    email: EmailStr
+    password: constr(min_length=12)
+    password_confirm: str
+
+
+class UserResponse(SQLModel):
+    """User response model."""
+
+    id: uuid.UUID
+    email: EmailStr
+    is_verified: bool
+    created_at: datetime
 
 
 class GameSession(SQLModel, table=True):
