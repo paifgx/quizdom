@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 export type UserRole = 'player' | 'admin';
+export type ActiveRole = 'player' | 'admin';
 
 export interface User {
   id: string;
@@ -16,8 +17,12 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  activeRole: ActiveRole;
+  isViewingAsAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  switchToAdminView: (navigate?: (path: string) => void, currentPath?: string) => void;
+  switchToPlayerView: (navigate?: (path: string) => void, currentPath?: string) => void;
   loading: boolean;
 }
 
@@ -38,6 +43,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeRole, setActiveRole] = useState<ActiveRole>('player');
 
   // Mock authentication - replace with real API calls
   const login = async (email: string, password: string) => {
@@ -59,6 +65,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setUser(mockUser);
       localStorage.setItem('quizdom_user', JSON.stringify(mockUser));
+      
+      // Set initial active role: admin users start in admin view, players in player view
+      const initialRole: ActiveRole = mockUser.role === 'admin' ? 'admin' : 'player';
+      setActiveRole(initialRole);
+      localStorage.setItem('quizdom_active_role', initialRole);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -69,18 +80,57 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     setUser(null);
+    setActiveRole('player');
     localStorage.removeItem('quizdom_user');
+    localStorage.removeItem('quizdom_active_role');
+  };
+
+  const switchToAdminView = (navigate?: (path: string) => void, currentPath?: string) => {
+    if (user?.role === 'admin') {
+      setActiveRole('admin');
+      localStorage.setItem('quizdom_active_role', 'admin');
+      
+      // If navigation function is provided and we're not on an admin route, navigate to admin dashboard
+      if (navigate && currentPath && !currentPath.startsWith('/admin')) {
+        navigate('/admin/dashboard');
+      }
+    }
+  };
+
+  const switchToPlayerView = (navigate?: (path: string) => void, currentPath?: string) => {
+    if (user?.role === 'admin') {
+      setActiveRole('player');
+      localStorage.setItem('quizdom_active_role', 'player');
+      
+      // If navigation function is provided and we're on an admin route, navigate to home
+      if (navigate && currentPath && currentPath.startsWith('/admin')) {
+        navigate('/');
+      }
+    }
   };
 
   // Check for existing session on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('quizdom_user');
+    const savedActiveRole = localStorage.getItem('quizdom_active_role') as ActiveRole;
+    
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        
+        // Set active role from localStorage, or default based on user role
+        if (savedActiveRole && (savedActiveRole === 'admin' || savedActiveRole === 'player')) {
+          setActiveRole(savedActiveRole);
+        } else {
+          const defaultRole: ActiveRole = parsedUser.role === 'admin' ? 'admin' : 'player';
+          setActiveRole(defaultRole);
+          localStorage.setItem('quizdom_active_role', defaultRole);
+        }
       } catch (error) {
         console.error('Failed to parse saved user:', error);
         localStorage.removeItem('quizdom_user');
+        localStorage.removeItem('quizdom_active_role');
       }
     }
     setLoading(false);
@@ -90,8 +140,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
+    activeRole,
+    isViewingAsAdmin: activeRole === 'admin' && user?.role === 'admin',
     login,
     logout,
+    switchToAdminView,
+    switchToPlayerView,
     loading,
   };
 
