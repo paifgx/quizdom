@@ -1,6 +1,6 @@
 ---
 description: 
-globs: frontend/**
+globs: frontend/**/*
 alwaysApply: false
 ---
 ## Dependencies
