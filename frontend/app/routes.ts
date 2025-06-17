@@ -4,6 +4,7 @@ export default [
   // Main routes
   index("routes/home.tsx"),
   route("login", "routes/login.tsx"),
+  route("forgot-password", "routes/forgot-password.tsx"),
   
   // Player routes
   route("quizzes", "routes/quizzes.tsx"),
