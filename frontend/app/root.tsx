@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import { AuthProvider } from "./contexts/auth";
+import { useReturnMessage } from "./hooks/useReturnMessage";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -22,9 +23,15 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Tiny5:wght@400&display=swap",
   },
+  {
+    rel: "icon",
+    href: "/logo/favicon.ico",
+  }
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  useReturnMessage();
+
   return (
     <html lang="de">
       <head>
