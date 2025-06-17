@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { MainNav } from './main-nav'
+import { MainNav } from '../../app/components/navigation/main-nav'
 
 // Mock the auth context
-vi.mock('../../contexts/auth', () => ({
+vi.mock('../../app/contexts/auth', () => ({
   useAuth: () => ({
     user: { id: '1', username: 'testuser', email: 'test@example.com', role: 'player' },
     isAuthenticated: true,
@@ -16,6 +16,7 @@ vi.mock('../../contexts/auth', () => ({
 vi.mock('react-router', () => ({
   Link: ({ children, to, ...props }: any) => <a href={to} {...props}>{children}</a>,
   useLocation: () => ({ pathname: '/' }),
+  useNavigate: () => vi.fn(),
 }))
 
 describe('MainNav', () => {

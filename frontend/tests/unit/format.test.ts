@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDisplayName, capitalize, formatDate } from './format'
+import { formatDisplayName, capitalize, formatDate } from '../../app/utils/format'
 
 describe('formatDisplayName', () => {
   it('returns full name when both first and last name are provided', () => {
