@@ -1,192 +1,10 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Link, Navigate, useLocation } from 'react-router';
 import { useAuth } from '../contexts/auth';
-
-// Custom hook for form validation
-function useFormValidation() {
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validateEmail = useCallback((email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }, []);
-
-  const validatePassword = useCallback((password: string) => {
-    return password.length >= 6;
-  }, []);
-
-  const getPasswordStrength = useCallback((password: string) => {
-    if (password.length < 6) return { strength: 'weak', score: 0 };
-    if (password.length < 8) return { strength: 'fair', score: 1 };
-    if (password.length >= 8 && /(?=.*[a-z])(?=.*[A-Z])/.test(password)) {
-      return { strength: 'good', score: 2 };
-    }
-    if (password.length >= 8 && /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      return { strength: 'strong', score: 3 };
-    }
-    return { strength: 'fair', score: 1 };
-  }, []);
-
-  const validateField = useCallback((name: string, value: string, confirmValue?: string) => {
-    const newErrors = { ...errors };
-
-    switch (name) {
-      case 'email':
-        if (!value) {
-          newErrors.email = 'Email is required';
-        } else if (!validateEmail(value)) {
-          newErrors.email = 'Please enter a valid email address';
-        } else {
-          delete newErrors.email;
-        }
-        break;
-      case 'password':
-        if (!value) {
-          newErrors.password = 'Password is required';
-        } else if (!validatePassword(value)) {
-          newErrors.password = 'Password must be at least 6 characters';
-        } else {
-          delete newErrors.password;
-        }
-        break;
-      case 'confirmPassword':
-        if (!value) {
-          newErrors.confirmPassword = 'Please confirm your password';
-        } else if (value !== confirmValue) {
-          newErrors.confirmPassword = 'Passwords do not match';
-        } else {
-          delete newErrors.confirmPassword;
-        }
-        break;
-      case 'firstName':
-        if (!value) {
-          newErrors.firstName = 'First name is required';
-        } else if (value.length < 2) {
-          newErrors.firstName = 'First name must be at least 2 characters';
-        } else {
-          delete newErrors.firstName;
-        }
-        break;
-      case 'lastName':
-        if (!value) {
-          newErrors.lastName = 'Last name is required';
-        } else if (value.length < 2) {
-          newErrors.lastName = 'Last name must be at least 2 characters';
-        } else {
-          delete newErrors.lastName;
-        }
-        break;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [errors, validateEmail, validatePassword]);
-
-  return {
-    errors,
-    validateField,
-    getPasswordStrength,
-    clearErrors: () => setErrors({}),
-    hasError: (field: string) => !!errors[field],
-    getError: (field: string) => errors[field]
-  };
-}
-
-// Loading skeleton component
-function LoadingSkeleton() {
-  return (
-    <div className="animate-pulse space-y-4">
-      <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
-      <div className="space-y-3">
-        <div className="h-12 bg-gray-200 rounded"></div>
-        <div className="h-12 bg-gray-200 rounded"></div>
-        <div className="h-12 bg-gray-200 rounded"></div>
-        <div className="h-12 bg-gray-200 rounded"></div>
-      </div>
-    </div>
-  );
-}
-
-// Input field component with validation
-interface ValidatedInputProps {
-  id: string;
-  name: string;
-  type: string;
-  placeholder: string;
-  value: string;
-  onChange: (value: string) => void;
-  error?: string;
-  required?: boolean;
-  autoComplete?: string;
-  className?: string;
-}
-
-function ValidatedInput({ 
-  id, name, type, placeholder, value, onChange, error, required, autoComplete, className = '' 
-}: ValidatedInputProps) {
-  const hasError = !!error;
-  
-  return (
-    <div className="space-y-1">
-      <input
-        id={id}
-        name={name}
-        type={type}
-        autoComplete={autoComplete}
-        required={required}
-        className={`relative block w-full px-4 py-3 border ${
-          hasError 
-            ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-            : 'border-gray-300 focus:ring-[#FCC822] focus:border-transparent'
-        } placeholder-gray-500 text-gray-900 bg-white rounded-lg focus:outline-none focus:ring-2 focus:z-10 transition-all duration-300 ${className}`}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={hasError}
-        aria-describedby={hasError ? `${id}-error` : undefined}
-      />
-      {error && (
-        <p id={`${id}-error`} className="text-sm text-red-600 animate-fade-in" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-// Password strength indicator
-function PasswordStrengthIndicator({ password }: { password: string }) {
-  const { getPasswordStrength } = useFormValidation();
-  const { strength, score } = getPasswordStrength(password);
-  
-  if (!password) return null;
-
-  const colors = {
-    weak: 'bg-red-500',
-    fair: 'bg-yellow-500',
-    good: 'bg-blue-500',
-    strong: 'bg-green-500'
-  };
-
-  return (
-    <div className="mt-2 animate-fade-in">
-      <div className="flex space-x-1">
-        {[0, 1, 2, 3].map((index) => (
-          <div
-            key={index}
-            className={`h-1 flex-1 rounded ${
-              index <= score ? colors[strength as keyof typeof colors] : 'bg-gray-200'
-            } transition-colors duration-300`}
-          />
-        ))}
-      </div>
-      <p className="text-xs text-gray-600 mt-1 capitalize">
-        Password strength: {strength}
-      </p>
-    </div>
-  );
-}
+import { useFormValidation } from '../hooks/useFormValidation';
+import { ValidatedInput } from '../components/auth/validated-input';
+import { PasswordStrengthIndicator } from '../components/auth/password-strength-indicator';
+import { LoadingSkeleton } from '../components/ui/loading-skeleton';
 
 export function meta({ params }: { params?: any }) {
   const mode = params?.mode || 'login';
@@ -196,6 +14,10 @@ export function meta({ params }: { params?: any }) {
   ];
 }
 
+/**
+ * Login and signup page with smooth transitions and validation
+ * Handles both authentication modes with enhanced UX
+ */
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -213,7 +35,6 @@ export default function LoginPage() {
   const formRef = useRef<HTMLFormElement>(null);
   
   const { 
-    errors, 
     validateField, 
     getPasswordStrength, 
     clearErrors, 
@@ -221,7 +42,7 @@ export default function LoginPage() {
     getError 
   } = useFormValidation();
 
-  // Memoized values
+  // Memoized values for performance optimization
   const passwordStrength = useMemo(() => 
     isSignupMode ? getPasswordStrength(password) : null
   , [password, isSignupMode, getPasswordStrength]);
@@ -267,7 +88,7 @@ export default function LoginPage() {
     }
   }, [validateField, password, confirmPassword, isSignupMode]);
 
-  // Redirect logic after login
+  // Redirect logic after successful authentication
   if (isAuthenticated && user && !showSuccess) {
     const from = (location.state as any)?.from?.pathname;
     
@@ -282,7 +103,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate all fields
+    // Validate all fields before submission
     const emailValid = validateField('email', email);
     const passwordValid = validateField('password', password);
     let signupFieldsValid = true;
@@ -338,7 +159,7 @@ export default function LoginPage() {
     }, 100);
   }, [isSignupMode, clearErrors]);
 
-  // Handle keyboard navigation
+  // Keyboard navigation support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isSignupMode) {
@@ -350,6 +171,7 @@ export default function LoginPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isSignupMode, toggleMode]);
 
+  // Show loading skeleton during authentication
   if (loading && isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#061421] flex items-center justify-center">
