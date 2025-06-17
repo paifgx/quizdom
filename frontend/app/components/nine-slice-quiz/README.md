@@ -8,7 +8,7 @@ Reusable React components for creating pixel-art styled quiz interfaces using 9-
 Base component that renders a 9-slice scaled panel with pixel-art styling using Tailwind classes.
 
 ```tsx
-import { NineSlicePanel } from './components/nine-slice-quiz';
+import { NineSlicePanel } from '~/app/components/nine-slice-quiz';
 
 <NineSlicePanel onClick={() => console.log('clicked')}>
   <p>Your content here</p>
@@ -19,7 +19,7 @@ import { NineSlicePanel } from './components/nine-slice-quiz';
 Specialized component for displaying quiz questions with optimized styling.
 
 ```tsx
-import { QuizQuestion } from './components/nine-slice-quiz';
+import { QuizQuestion } from '~/app/components/nine-slice-quiz';
 
 <QuizQuestion 
   question="What is the capital of France?"
@@ -31,7 +31,7 @@ import { QuizQuestion } from './components/nine-slice-quiz';
 Interactive button component for quiz answers with hover and selection states.
 
 ```tsx
-import { QuizButton } from './components/nine-slice-quiz';
+import { QuizButton } from '~/app/components/nine-slice-quiz';
 
 <QuizButton
   text="Paris"
@@ -45,8 +45,8 @@ import { QuizButton } from './components/nine-slice-quiz';
 Main container that orchestrates the entire quiz interface with responsive grid.
 
 ```tsx
-import { QuizContainer } from './components/nine-slice-quiz';
-import type { QuizData } from './components/nine-slice-quiz';
+import { QuizContainer } from '~/app/components/nine-slice-quiz';
+import type { QuizData } from '~/app/components/nine-slice-quiz';
 
 const quizData: QuizData = {
   question: "What is the capital of France?",
