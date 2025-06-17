@@ -16,13 +16,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const location = useLocation();
 
-  // Redirect to intended page after login
-  const from = (location.state as any)?.from?.pathname || '/';
-
-  if (isAuthenticated) {
+  // Redirect logic after login
+  if (isAuthenticated && user) {
+    const from = (location.state as any)?.from?.pathname;
+    
+    // If no specific redirect requested, send admins to admin dashboard, players to home
+    if (!from) {
+      const defaultRoute = user.role === 'admin' ? '/admin/dashboard' : '/';
+      return <Navigate to={defaultRoute} replace />;
+    }
+    
     return <Navigate to={from} replace />;
   }
 

@@ -1,7 +1,7 @@
 import type { QuizData } from "../components/nine-slice-quiz";
 import type { Route } from "./+types/home";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import { QuizContainer } from "../components/nine-slice-quiz";
 import { MainNav } from "../components/navigation/main-nav";
 import { useAuth } from "../contexts/auth";
@@ -15,7 +15,12 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | undefined>();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isViewingAsAdmin } = useAuth();
+
+  // Redirect admins viewing as admin to admin dashboard
+  if (isAuthenticated && isViewingAsAdmin) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
   const sampleQuizData: QuizData = {
     question: "Which Quizsystem is the best?",

@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { isAuthenticated, isAdmin, isViewingAsAdmin, loading } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -31,6 +31,12 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   // Check admin access for admin routes
   if (requireAdmin && !isAdmin) {
     return <Navigate to="/403" replace />;
+  }
+
+  // Check if user is trying to access admin routes while not in admin view
+  // If an admin is on an admin route but switched to player view, redirect to home
+  if (requireAdmin && isAdmin && !isViewingAsAdmin) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
