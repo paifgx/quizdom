@@ -1,8 +1,8 @@
-import type { QuizData } from "../../components/nine-slice-quiz";
+import type { QuizData } from "../components/nine-slice-quiz";
 import type { Route } from "./+types/home";
 import { useState } from "react";
 import { Link } from "react-router";
-import { QuizContainer } from "../../components/nine-slice-quiz";
+import { QuizContainer } from "../components/nine-slice-quiz";
 import { MainNav } from "../components/navigation/main-nav";
 import { useAuth } from "../contexts/auth";
 
