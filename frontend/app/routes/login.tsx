@@ -33,29 +33,29 @@ export default function LoginPage() {
   const { login, isAuthenticated, user } = useAuth();
   const location = useLocation();
   const formRef = useRef<HTMLFormElement>(null);
-  
-  const { 
-    validateField, 
-    getPasswordStrength, 
-    clearErrors, 
-    hasError, 
-    getError 
+
+  const {
+    validateField,
+    getPasswordStrength,
+    clearErrors,
+    hasError,
+    getError
   } = useFormValidation();
 
   // Memoized values for performance optimization
-  const passwordStrength = useMemo(() => 
+  const passwordStrength = useMemo(() =>
     isSignupMode ? getPasswordStrength(password) : null
-  , [password, isSignupMode, getPasswordStrength]);
+    , [password, isSignupMode, getPasswordStrength]);
 
   const isFormValid = useMemo(() => {
     if (!email || !password) return false;
     if (hasError('email') || hasError('password')) return false;
-    
+
     if (isSignupMode) {
       if (!firstName || !lastName || !confirmPassword) return false;
       if (hasError('firstName') || hasError('lastName') || hasError('confirmPassword')) return false;
     }
-    
+
     return true;
   }, [email, password, firstName, lastName, confirmPassword, hasError, isSignupMode]);
 
@@ -88,33 +88,21 @@ export default function LoginPage() {
     }
   }, [validateField, password, confirmPassword, isSignupMode]);
 
-  // Redirect logic after successful authentication
-  if (isAuthenticated && user && !showSuccess) {
-    const from = (location.state as any)?.from?.pathname;
-    
-    if (!from) {
-      const defaultRoute = user.role === 'admin' ? '/admin/dashboard' : '/';
-      return <Navigate to={defaultRoute} replace />;
-    }
-    
-    return <Navigate to={from} replace />;
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate all fields before submission
     const emailValid = validateField('email', email);
     const passwordValid = validateField('password', password);
     let signupFieldsValid = true;
-    
+
     if (isSignupMode) {
       const firstNameValid = validateField('firstName', firstName);
       const lastNameValid = validateField('lastName', lastName);
       const confirmPasswordValid = validateField('confirmPassword', confirmPassword, password);
       signupFieldsValid = firstNameValid && lastNameValid && confirmPasswordValid;
     }
-    
+
     if (!emailValid || !passwordValid || !signupFieldsValid) {
       return;
     }
@@ -151,7 +139,7 @@ export default function LoginPage() {
     setLastName('');
     clearErrors();
     setShowSuccess(false);
-    
+
     // Focus management for accessibility
     setTimeout(() => {
       const firstInput = formRef.current?.querySelector('input');
@@ -171,6 +159,12 @@ export default function LoginPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isSignupMode, toggleMode]);
 
+  // Handle redirect after successful authentication
+  if (isAuthenticated && user && !showSuccess) {
+    const from = location.state?.from?.pathname || (user.role === 'admin' ? '/admin/dashboard' : '/');
+    return <Navigate to={from} replace />;
+  }
+
   // Show loading skeleton during authentication
   if (loading && isAuthenticated) {
     return (
@@ -183,9 +177,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#061421] flex overflow-hidden relative">
       {/* Form Container - slides left/right based on mode */}
-      <div className={`flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white transition-all duration-700 ease-out transform ${
-        isSignupMode ? 'translate-x-full' : 'translate-x-0'
-      }`}>
+      <div className={`flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white transition-all duration-700 ease-out transform ${isSignupMode ? 'translate-x-full' : 'translate-x-0'
+        }`}>
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
@@ -238,7 +231,7 @@ export default function LoginPage() {
                   />
                 </div>
               )}
-              
+
               <ValidatedInput
                 id="email"
                 name="email"
@@ -250,7 +243,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 required
               />
-              
+
               <div>
                 <ValidatedInput
                   id="password"
@@ -265,7 +258,7 @@ export default function LoginPage() {
                 />
                 {isSignupMode && <PasswordStrengthIndicator password={password} />}
               </div>
-              
+
               {isSignupMode && (
                 <div className="animate-slide-down">
                   <ValidatedInput
@@ -358,9 +351,8 @@ export default function LoginPage() {
       </div>
 
       {/* Logo Container - slides right/left based on mode */}
-      <div className={`hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-[#061421] to-gray-900 transition-all duration-700 ease-out transform ${
-        isSignupMode ? '-translate-x-full' : 'translate-x-0'
-      }`}>
+      <div className={`hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-[#061421] to-gray-900 transition-all duration-700 ease-out transform ${isSignupMode ? '-translate-x-full' : 'translate-x-0'
+        }`}>
         <div className="text-center transition-all duration-700 ease-in-out">
           <img
             src="/logo/Logo_Quizdom_transparent.png"
