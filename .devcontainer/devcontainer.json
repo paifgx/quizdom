@@ -8,6 +8,17 @@
   "overrideCommand": false,
   "postCreateCommand": ".devcontainer/setup.sh",
   "shutdownAction": "stopCompose",
+  "forwardPorts": [5173, 8000],
+  "portsAttributes": {
+    "5173": {
+      "label": "Frontend Dev Server",
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "Backend API Server", 
+      "onAutoForward": "notify"
+    }
+  },
   "customizations": {
     "vscode": {
       "extensions": [
