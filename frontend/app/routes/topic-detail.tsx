@@ -123,15 +123,26 @@ export default function TopicDetailPage() {
   return (
     <ProtectedRoute>
       <div>
-        {/* Header Section */}
-        <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-600 backdrop-blur-sm mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-[#FCC822]">{topic.title}</h1>
-            <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
-              <img src="/buttons/Delete.png" alt="Delete" className="h-6 w-6" />
-            </button>
+        {/* Title Tile */}
+        <div className="mb-6 lg:mb-8">
+          <div className="relative">
+            <div className="w-full px-4 sm:px-6 py-2.5 sm:py-3.5 bg-gray-800/80 border border-gray-600 rounded-xl backdrop-blur-sm flex items-center justify-between">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#FCC822]">
+                {topic.title}
+              </h1>
+              <button className="p-1 hover:bg-gray-700 rounded-lg transition-colors">
+                <img
+                  src="/buttons/Delete.png"
+                  alt="Delete"
+                  className="h-5 w-5"
+                />
+              </button>
+            </div>
           </div>
+        </div>
 
+        {/* Stats Section */}
+        <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-600 backdrop-blur-sm mb-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-6">
               {/* Progress */}
