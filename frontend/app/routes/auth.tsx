@@ -7,8 +7,8 @@ import { SlidingAuthContainer, LoadingSkeleton } from '../components';
 
 export function meta() {
   return [
-    { title: 'Authentication | Quizdom' },
-    { name: 'description', content: 'Login or create your Quizdom account.' },
+    { title: 'Authentifizierung | Quizdom' },
+    { name: 'description', content: 'Melden Sie sich an oder erstellen Sie Ihr Quizdom-Konto.' },
   ];
 }
 
@@ -54,15 +54,15 @@ export default function AuthPage() {
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
-      setError('Signup functionality coming soon!');
+      setError('Registrierungsfunktion kommt bald!');
     }, 2000);
   };
 
   const handleAuthError = (isSignup: boolean) => {
     setError(
       isSignup
-        ? 'Signup failed. Please try again.'
-        : 'Login failed. Please check your credentials.'
+        ? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+        : 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.'
     );
   };
 

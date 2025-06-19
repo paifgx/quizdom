@@ -21,7 +21,7 @@ export function ForgotPasswordSuccess({
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
-          aria-label="Email sent"
+          aria-label="E-Mail gesendet"
         >
           <path
             strokeLinecap="round"
@@ -33,9 +33,9 @@ export function ForgotPasswordSuccess({
       </div>
 
       <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg">
-        <p className="font-medium">Email sent successfully!</p>
+        <p className="font-medium">E-Mail erfolgreich gesendet!</p>
         <p className="text-sm mt-1">
-          We've sent password reset instructions to <strong>{email}</strong>
+          Wir haben Anweisungen zum Zurücksetzen des Passworts an <strong>{email}</strong> gesendet
         </p>
       </div>
 
@@ -44,14 +44,14 @@ export function ForgotPasswordSuccess({
           onClick={onSendAnother}
           className="w-full py-3 px-4 border border-gray-300 text-gray-700 bg-white rounded-lg text-base font-medium hover:bg-gray-50 transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
         >
-          Send Another Email
+          Weitere E-Mail senden
         </button>
 
         <Link
           to="/login"
           className="block w-full py-3 px-4 text-center text-[#FCC822] hover:text-[#FFCD2E] transition-colors duration-200 font-medium"
         >
-          Back to Login
+          Zurück zur Anmeldung
         </Link>
       </div>
     </div>

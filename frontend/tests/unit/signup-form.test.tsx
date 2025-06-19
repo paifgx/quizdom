@@ -24,19 +24,18 @@ describe('SignupForm', () => {
   it('renders all required form fields', () => {
     render(<SignupForm {...defaultProps} />);
 
-    expect(screen.getByPlaceholderText('First Name')).toBeDefined();
-    expect(screen.getByPlaceholderText('Last Name')).toBeDefined();
+    expect(screen.getByPlaceholderText('Vorname')).toBeDefined();
+    expect(screen.getByPlaceholderText('Nachname')).toBeDefined();
     expect(screen.getByPlaceholderText('test@mail.com')).toBeDefined();
-    expect(screen.getByPlaceholderText('Your password')).toBeDefined();
-    expect(screen.getByPlaceholderText('Confirm password')).toBeDefined();
+    expect(screen.getByPlaceholderText('Ihr Passwort')).toBeDefined();
+    expect(screen.getByPlaceholderText('Passwort bestätigen')).toBeDefined();
   });
 
   it('displays password strength indicator', () => {
-    render(<SignupForm {...defaultProps} password="test123" />);
+    render(<SignupForm {...defaultProps} />);
 
     // The PasswordStrengthIndicator should be rendered when password has value
-    // This tests the integration with the password strength component
-    expect(screen.getByPlaceholderText('Your password')).toBeDefined();
+    expect(screen.getByPlaceholderText('Ihr Passwort')).toBeDefined();
   });
 
   it('calls getError for field validation', () => {
@@ -56,9 +55,9 @@ describe('SignupForm', () => {
     render(<SignupForm {...defaultProps} />);
 
     const emailInput = screen.getByPlaceholderText('test@mail.com');
-    const passwordInput = screen.getByPlaceholderText('Your password');
+    const passwordInput = screen.getByPlaceholderText('Ihr Passwort');
     const confirmPasswordInput =
-      screen.getByPlaceholderText('Confirm password');
+      screen.getByPlaceholderText('Passwort bestätigen');
 
     expect(emailInput.getAttribute('autocomplete')).toBe('email');
     expect(passwordInput.getAttribute('autocomplete')).toBe('new-password');

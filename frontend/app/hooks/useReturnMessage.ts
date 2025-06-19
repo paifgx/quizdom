@@ -6,7 +6,7 @@ export function useReturnMessage() {
 
     const onChange = () => {
       if (document.hidden) {
-        document.title = 'Ohne dich ist’s still – hüpf zurück!';
+        document.title = 'Ohne dich ist\'s still – komm zurück!';
       } else {
         document.title = originalTitle;
       }

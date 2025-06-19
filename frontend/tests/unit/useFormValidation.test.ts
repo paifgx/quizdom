@@ -10,13 +10,13 @@ describe('useFormValidation', () => {
       act(() => {
         result.current.validateField('email', '');
       });
-      expect(result.current.getError('email')).toBe('Email is required');
+      expect(result.current.getError('email')).toBe('E-Mail ist erforderlich');
 
       act(() => {
         result.current.validateField('email', 'invalid-email');
       });
       expect(result.current.getError('email')).toBe(
-        'Please enter a valid email address'
+        'Bitte geben Sie eine gültige E-Mail-Adresse ein'
       );
 
       act(() => {
@@ -31,13 +31,13 @@ describe('useFormValidation', () => {
       act(() => {
         result.current.validateField('password', '');
       });
-      expect(result.current.getError('password')).toBe('Password is required');
+      expect(result.current.getError('password')).toBe('Passwort ist erforderlich');
 
       act(() => {
         result.current.validateField('password', '12345');
       });
       expect(result.current.getError('password')).toBe(
-        'Password must be at least 6 characters'
+        'Passwort muss mindestens 6 Zeichen lang sein'
       );
 
       act(() => {
@@ -53,7 +53,7 @@ describe('useFormValidation', () => {
         result.current.validateField('confirmPassword', '');
       });
       expect(result.current.getError('confirmPassword')).toBe(
-        'Please confirm your password'
+        'Bitte bestätigen Sie Ihr Passwort'
       );
 
       act(() => {
@@ -64,7 +64,7 @@ describe('useFormValidation', () => {
         );
       });
       expect(result.current.getError('confirmPassword')).toBe(
-        'Passwords do not match'
+        'Passwörter stimmen nicht überein'
       );
 
       act(() => {
@@ -83,9 +83,7 @@ describe('useFormValidation', () => {
       act(() => {
         result.current.validateField('firstName', '');
       });
-      expect(result.current.getError('firstName')).toBe(
-        'First name is required'
-      );
+      expect(result.current.getError('firstName')).toBe('Vorname ist erforderlich');
 
       act(() => {
         result.current.validateField('firstName', 'J');
@@ -106,7 +104,7 @@ describe('useFormValidation', () => {
       act(() => {
         result.current.validateField('lastName', '');
       });
-      expect(result.current.getError('lastName')).toBe('Last name is required');
+      expect(result.current.getError('lastName')).toBe('Nachname ist erforderlich');
 
       act(() => {
         result.current.validateField('lastName', 'D');

@@ -31,7 +31,7 @@ export function Dashboard({
         <div className="relative">
           <input
             type="text"
-            placeholder="Suche nach einem Thema..."
+            placeholder="Suche nach deinem Thema..."
             value={searchTerm}
             onChange={e => onSearchChange(e.target.value)}
             className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-800/80 border border-gray-600 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent text-base sm:text-lg backdrop-blur-sm"

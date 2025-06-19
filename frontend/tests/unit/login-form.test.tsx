@@ -24,7 +24,7 @@ describe('LoginForm', () => {
     render(<LoginForm {...defaultProps} />);
 
     expect(screen.getByPlaceholderText('test@mail.com')).toBeDefined();
-    expect(screen.getByPlaceholderText('Your password')).toBeDefined();
+    expect(screen.getByPlaceholderText('Ihr Passwort')).toBeDefined();
   });
 
   it('calls onEmailChange when email input changes', () => {
@@ -43,7 +43,7 @@ describe('LoginForm', () => {
       <LoginForm {...defaultProps} onPasswordChange={mockOnPasswordChange} />
     );
 
-    const passwordInput = screen.getByPlaceholderText('Your password');
+    const passwordInput = screen.getByPlaceholderText('Ihr Passwort');
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
     expect(mockOnPasswordChange).toHaveBeenCalledWith('password123');

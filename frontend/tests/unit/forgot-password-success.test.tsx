@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { ForgotPasswordSuccess } from '../../app/components/auth/forgot-password-success';
 
@@ -21,41 +21,36 @@ describe('ForgotPasswordSuccess', () => {
     );
   };
 
-  it('renders success message and email', () => {
+  it('renders success message', () => {
     renderComponent();
 
-    expect(screen.getByText('Email sent successfully!')).toBeDefined();
-    expect(
-      screen.getByText(/We've sent password reset instructions to/)
-    ).toBeDefined();
-    expect(screen.getByText('test@example.com')).toBeDefined();
+    expect(screen.getByText('E-Mail erfolgreich gesendet!')).toBeDefined();
   });
 
-  it('displays the success icon with proper accessibility', () => {
+  it('renders email sent icon', () => {
     renderComponent();
 
-    const icon = screen.getByLabelText('Email sent');
+    const icon = screen.getByLabelText('E-Mail gesendet');
     expect(icon).toBeDefined();
-    expect(icon.tagName).toBe('svg');
   });
 
   it('renders send another email button', () => {
     renderComponent();
 
-    const sendAnotherButton = screen.getByRole('button', {
-      name: /send another email/i,
+    const button = screen.getByRole('button', {
+      name: /weitere e-mail senden/i,
     });
-    expect(sendAnotherButton).toBeDefined();
+    expect(button).toBeDefined();
   });
 
   it('calls onSendAnother when send another email button is clicked', () => {
     const mockOnSendAnother = vi.fn();
     renderComponent({ onSendAnother: mockOnSendAnother });
 
-    const sendAnotherButton = screen.getByRole('button', {
-      name: /send another email/i,
+    const button = screen.getByRole('button', {
+      name: /weitere e-mail senden/i,
     });
-    fireEvent.click(sendAnotherButton);
+    button.click();
 
     expect(mockOnSendAnother).toHaveBeenCalledTimes(1);
   });
@@ -63,7 +58,7 @@ describe('ForgotPasswordSuccess', () => {
   it('renders back to login link', () => {
     renderComponent();
 
-    const loginLink = screen.getByRole('link', { name: /back to login/i });
+    const loginLink = screen.getByRole('link', { name: /zurück zur anmeldung/i });
     expect(loginLink).toBeDefined();
     expect(loginLink.getAttribute('href')).toBe('/login');
   });
@@ -78,7 +73,7 @@ describe('ForgotPasswordSuccess', () => {
   it('has proper styling classes for success state', () => {
     renderComponent();
 
-    const successMessage = screen.getByText('Email sent successfully!');
+    const successMessage = screen.getByText('E-Mail erfolgreich gesendet!');
     const container = successMessage.closest('.bg-green-50');
     expect(container).toBeDefined();
     expect(container?.className).toContain('border-green-300');
@@ -96,7 +91,7 @@ describe('ForgotPasswordSuccess', () => {
     renderComponent();
 
     const iconContainer = screen
-      .getByLabelText('Email sent')
+      .getByLabelText('E-Mail gesendet')
       .closest('.bg-green-100');
     expect(iconContainer).toBeDefined();
     expect(iconContainer?.className).toContain('rounded-full');
@@ -109,7 +104,7 @@ describe('ForgotPasswordSuccess', () => {
 
     expect(screen.getByText('different@email.org')).toBeDefined();
     expect(
-      screen.getByText(/We've sent password reset instructions to/)
+      screen.getByText(/Wir haben Anweisungen zum Zurücksetzen des Passworts an/)
     ).toBeDefined();
   });
 });

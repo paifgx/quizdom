@@ -40,10 +40,10 @@ export function AuthPanel({
   getError,
 }: AuthPanelProps) {
   const isSignupMode = mode === 'signup';
-  const title = isSignupMode ? 'Create Account!' : 'Welcome back!';
+  const title = isSignupMode ? 'Konto erstellen!' : 'Willkommen zurück!';
   const subtitle = isSignupMode
-    ? 'Please fill in your details to signup.'
-    : 'Please login to your account.';
+    ? 'Bitte füllen Sie Ihre Daten aus, um sich zu registrieren.'
+    : 'Bitte melden Sie sich in Ihrem Konto an.';
 
   return (
     <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
@@ -60,7 +60,7 @@ export function AuthPanel({
 
         {showSuccess && (
           <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg mb-6">
-            Account created successfully! Redirecting...
+            Konto erfolgreich erstellt! Weiterleitung...
           </div>
         )}
 
@@ -117,11 +117,11 @@ export function AuthPanel({
 
         {!isSignupMode && (
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-700 mb-2">Demo Accounts:</p>
+            <p className="text-sm text-gray-700 mb-2">Demo-Konten:</p>
             <div className="space-y-1 text-xs text-gray-600">
-              <p>Player: player@quizdom.com</p>
+              <p>Spieler: player@quizdom.com</p>
               <p>Admin: admin@quizdom.com</p>
-              <p>Password: any</p>
+              <p>Passwort: beliebig</p>
             </div>
           </div>
         )}

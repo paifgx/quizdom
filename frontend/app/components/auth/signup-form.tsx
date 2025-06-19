@@ -37,7 +37,7 @@ export function SignupForm({
           id="firstName"
           name="firstName"
           type="text"
-          placeholder="First Name"
+          placeholder="Vorname"
           value={firstName}
           onChange={value => onFieldChange('firstName', value)}
           error={getError('firstName')}
@@ -47,7 +47,7 @@ export function SignupForm({
           id="lastName"
           name="lastName"
           type="text"
-          placeholder="Last Name"
+          placeholder="Nachname"
           value={lastName}
           onChange={value => onFieldChange('lastName', value)}
           error={getError('lastName')}
@@ -72,7 +72,7 @@ export function SignupForm({
           id="password"
           name="password"
           type="password"
-          placeholder="Your password"
+          placeholder="Ihr Passwort"
           value={password}
           onChange={value => onFieldChange('password', value)}
           error={getError('password')}
@@ -86,7 +86,7 @@ export function SignupForm({
         id="confirmPassword"
         name="confirmPassword"
         type="password"
-        placeholder="Confirm password"
+        placeholder="Passwort bestätigen"
         value={confirmPassword}
         onChange={value => onFieldChange('confirmPassword', value)}
         error={getError('confirmPassword')}

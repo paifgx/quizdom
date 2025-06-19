@@ -6,8 +6,8 @@ import { ForgotPasswordSuccess } from '../components/auth/forgot-password-succes
 
 export function meta() {
   return [
-    { title: 'Forgot Password | Quizdom' },
-    { name: 'description', content: 'Reset your Quizdom password.' },
+    { title: 'Passwort vergessen | Quizdom' },
+    { name: 'description', content: 'Setzen Sie Ihr Quizdom-Passwort zurück.' },
   ];
 }
 
@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
 
       setSuccess(true);
     } catch {
-      setError('Failed to send reset email. Please try again.');
+      setError('E-Mail zum Zurücksetzen konnte nicht gesendet werden. Bitte versuchen Sie es erneut.');
     } finally {
       setLoading(false);
     }
@@ -71,12 +71,12 @@ export default function ForgotPasswordPage() {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Forgot Password?
+          Passwort vergessen?
         </h1>
         <p className="text-gray-600">
           {success
-            ? 'Check your email for reset instructions.'
-            : "Enter your email address and we'll send you a link to reset your password."}
+            ? 'Überprüfen Sie Ihre E-Mail für Anweisungen zum Zurücksetzen.'
+            : 'Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.'}
         </p>
       </div>
 

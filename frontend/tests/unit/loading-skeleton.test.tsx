@@ -8,13 +8,13 @@ describe('LoadingSkeleton', () => {
 
     const skeleton = screen.getByRole('status');
     expect(skeleton).toBeDefined();
-    expect(skeleton.getAttribute('aria-label')).toBe('Loading');
+    expect(skeleton.getAttribute('aria-label')).toBe('Laden');
   });
 
   it('includes screen reader text', () => {
     render(<LoadingSkeleton />);
 
-    const screenReaderText = screen.getByText('Loading content...');
+    const screenReaderText = screen.getByText('Inhalt wird geladen...');
     expect(screenReaderText).toBeDefined();
     expect(screenReaderText.className).toContain('sr-only');
   });

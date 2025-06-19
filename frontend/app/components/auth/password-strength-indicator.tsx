@@ -24,10 +24,10 @@ export function PasswordStrengthIndicator({
   } as const;
 
   const strengthLabels = {
-    weak: 'Weak',
-    fair: 'Fair',
-    good: 'Good',
-    strong: 'Strong',
+    weak: 'Schwach',
+    fair: 'Ausreichend',
+    good: 'Gut',
+    strong: 'Stark',
   } as const;
 
   return (
@@ -48,7 +48,7 @@ export function PasswordStrengthIndicator({
         ))}
       </div>
       <p className="text-xs text-gray-600 mt-1" aria-live="polite">
-        Password strength: {strengthLabels[strength]}
+        Passwortstärke: {strengthLabels[strength]}
       </p>
     </div>
   );

@@ -62,18 +62,18 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = 'Oops!';
-  let details = 'An unexpected error occurred.';
+  let message = 'Ups!';
+  let details = 'Ein unerwarteter Fehler ist aufgetreten.';
   let stack: string | undefined;
 
   if (
     isRouteErrorResponse(error) ||
     (error && typeof (error as { status?: number }).status === 'number')
   ) {
-    message = (error as { status: number }).status === 404 ? '404' : 'Error';
+    message = (error as { status: number }).status === 404 ? '404' : 'Fehler';
     details =
       (error as { status: number }).status === 404
-        ? 'The requested page could not be found.'
+        ? 'Die angeforderte Seite konnte nicht gefunden werden.'
         : (error as { statusText?: string }).statusText || details;
   } else if (
     (process.env.NODE_ENV === 'development' ||

@@ -53,10 +53,10 @@ export function useFormValidation() {
         switch (name) {
           case 'email':
             if (!value) {
-              newErrors.email = 'Email is required';
+              newErrors.email = 'E-Mail ist erforderlich';
               isValid = false;
             } else if (!validateEmail(value)) {
-              newErrors.email = 'Please enter a valid email address';
+              newErrors.email = 'Bitte geben Sie eine gültige E-Mail-Adresse ein';
               isValid = false;
             } else {
               delete newErrors.email;
@@ -65,10 +65,10 @@ export function useFormValidation() {
 
           case 'password':
             if (!value) {
-              newErrors.password = 'Password is required';
+              newErrors.password = 'Passwort ist erforderlich';
               isValid = false;
             } else if (!validatePassword(value)) {
-              newErrors.password = 'Password must be at least 6 characters';
+              newErrors.password = 'Passwort muss mindestens 6 Zeichen lang sein';
               isValid = false;
             } else {
               delete newErrors.password;
@@ -77,10 +77,10 @@ export function useFormValidation() {
 
           case 'confirmPassword':
             if (!value) {
-              newErrors.confirmPassword = 'Please confirm your password';
+              newErrors.confirmPassword = 'Bitte bestätigen Sie Ihr Passwort';
               isValid = false;
             } else if (value !== confirmValue) {
-              newErrors.confirmPassword = 'Passwords do not match';
+              newErrors.confirmPassword = 'Passwörter stimmen nicht überein';
               isValid = false;
             } else {
               delete newErrors.confirmPassword;
@@ -89,10 +89,10 @@ export function useFormValidation() {
 
           case 'firstName':
             if (!value) {
-              newErrors.firstName = 'First name is required';
+              newErrors.firstName = 'Vorname ist erforderlich';
               isValid = false;
             } else if (value.length < 2) {
-              newErrors.firstName = 'First name must be at least 2 characters';
+              newErrors.firstName = 'Vorname muss mindestens 2 Zeichen lang sein';
               isValid = false;
             } else {
               delete newErrors.firstName;
@@ -101,10 +101,10 @@ export function useFormValidation() {
 
           case 'lastName':
             if (!value) {
-              newErrors.lastName = 'Last name is required';
+              newErrors.lastName = 'Nachname ist erforderlich';
               isValid = false;
             } else if (value.length < 2) {
-              newErrors.lastName = 'Last name must be at least 2 characters';
+              newErrors.lastName = 'Nachname muss mindestens 2 Zeichen lang sein';
               isValid = false;
             } else {
               delete newErrors.lastName;

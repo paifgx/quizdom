@@ -44,7 +44,7 @@ export function LoginForm({
         id="password"
         name="password"
         type="password"
-        placeholder="Your password"
+        placeholder="Ihr Passwort"
         value={password}
         onChange={onPasswordChange}
         error={getError('password')}

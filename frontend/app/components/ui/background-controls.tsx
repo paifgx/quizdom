@@ -16,17 +16,17 @@ export function BackgroundControls({
     useBackgroundImage();
 
   const backgroundOptions = [
-    { name: 'Default', action: setToRouteDefault },
-    { name: 'Pink', image: '/background/background_pink.png' },
+    { name: 'Standard', action: setToRouteDefault },
+    { name: 'Rosa', image: '/background/background_pink.png' },
     { name: 'Orange', image: '/background/background_orange.png' },
-    { name: 'Day', image: '/background/background_day.png' },
-    { name: 'Night', image: '/background/backgroud_night.png' },
+    { name: 'Tag', image: '/background/background_day.png' },
+    { name: 'Nacht', image: '/background/backgroud_night.png' },
   ];
 
   return (
     <div className={`p-4 bg-white/90 rounded-lg shadow-lg ${className}`}>
       <h3 className="text-sm font-semibold mb-3 text-gray-800">
-        Change Background
+        Hintergrund ändern
       </h3>
       <div className="flex flex-wrap gap-2">
         {backgroundOptions.map(option => (
@@ -44,7 +44,7 @@ export function BackgroundControls({
         ))}
       </div>
       <p className="text-xs text-gray-500 mt-2">
-        Current: {backgroundImage.split('/').pop()}
+        Aktuell: {backgroundImage.split('/').pop()}
       </p>
     </div>
   );

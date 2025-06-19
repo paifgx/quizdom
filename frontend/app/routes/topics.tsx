@@ -18,12 +18,10 @@ interface Topic {
   title: string;
   description: string;
   category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
   totalQuestions: number;
   completedQuestions: number;
   image: string;
   stars: number;
-  maxStars: number;
   popularity: number;
   wisecoinReward: number;
   isCompleted: boolean;
@@ -49,6 +47,26 @@ export default function TopicsPage() {
     'Mathematik',
   ];
 
+  // Fantasy-themed difficulty names based on star ratings
+  const getDifficultyName = (stars: number): string => {
+    switch (stars) {
+      case 1:
+        return 'Anfänger';
+      case 2:
+        return 'Lehrling';
+      case 3:
+        return 'Geselle';
+      case 4:
+        return 'Meister';
+      case 5:
+        return 'Großmeister';
+      default:
+        return 'Anfänger';
+    }
+  };
+
+  const difficultyNames = ['Anfänger', 'Lehrling', 'Geselle', 'Meister', 'Großmeister'];
+
   // Initialize topics data with useEffect or direct initialization
   React.useEffect(() => {
     setTopics([
@@ -58,12 +76,10 @@ export default function TopicsPage() {
         description:
           'Comprehensive questions about IT project management, methodologies, and best practices.',
         category: 'Technologie',
-        difficulty: 'medium',
         totalQuestions: 150,
         completedQuestions: 10,
-        image: '/topics/it-projectmanagement.png',
-        stars: 1,
-        maxStars: 4,
+        image: '/topics/it-project-management.png',
+        stars: 2, // Medium difficulty
         popularity: 85,
         wisecoinReward: 200,
         isCompleted: false,
@@ -75,12 +91,10 @@ export default function TopicsPage() {
         description:
           'Mathematische Grundlagen und fortgeschrittene Konzepte für alle Lernstufen.',
         category: 'Mathematik',
-        difficulty: 'hard',
         totalQuestions: 100,
         completedQuestions: 0,
         image: '/topics/math.png',
-        stars: 0,
-        maxStars: 4,
+        stars: 4, // Hard difficulty
         popularity: 92,
         wisecoinReward: 250,
         isCompleted: false,
@@ -91,12 +105,10 @@ export default function TopicsPage() {
         title: 'Physik',
         description: 'Grundlagen der Physik - von Mechanik bis Quantenphysik.',
         category: 'Wissenschaft',
-        difficulty: 'medium',
         totalQuestions: 120,
         completedQuestions: 85,
         image: '/topics/physics.png',
-        stars: 3,
-        maxStars: 4,
+        stars: 3, // Medium difficulty
         popularity: 88,
         wisecoinReward: 180,
         isCompleted: false,
@@ -108,12 +120,10 @@ export default function TopicsPage() {
         description:
           'Wichtige Ereignisse und Persönlichkeiten der Weltgeschichte.',
         category: 'Geschichte',
-        difficulty: 'medium',
         totalQuestions: 200,
         completedQuestions: 200,
         image: '/topics/history.png',
-        stars: 4,
-        maxStars: 4,
+        stars: 2, // Medium difficulty
         popularity: 90,
         wisecoinReward: 300,
         isCompleted: true,
@@ -125,12 +135,10 @@ export default function TopicsPage() {
         description:
           'Länder, Hauptstädte, Flüsse und geografische Besonderheiten.',
         category: 'Geographie',
-        difficulty: 'easy',
         totalQuestions: 80,
         completedQuestions: 45,
         image: '/topics/geography.png',
-        stars: 2,
-        maxStars: 4,
+        stars: 1, // Easy difficulty
         popularity: 95,
         wisecoinReward: 150,
         isCompleted: false,
@@ -142,12 +150,10 @@ export default function TopicsPage() {
         description:
           'Meisterwerke der Kunstgeschichte und kulturelle Entwicklungen.',
         category: 'Kunst & Kultur',
-        difficulty: 'hard',
         totalQuestions: 90,
         completedQuestions: 15,
         image: '/topics/art.png',
-        stars: 1,
-        maxStars: 4,
+        stars: 5, // Hard difficulty
         popularity: 71,
         wisecoinReward: 220,
         isCompleted: false,
@@ -172,7 +178,7 @@ export default function TopicsPage() {
     const matchesCategory =
       selectedCategory === 'all' || topic.category === selectedCategory;
     const matchesDifficulty =
-      selectedDifficulty === 'all' || topic.difficulty === selectedDifficulty;
+      selectedDifficulty === 'all' || getDifficultyName(topic.stars) === selectedDifficulty;
     const matchesSearch =
       topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       topic.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -185,10 +191,8 @@ export default function TopicsPage() {
     switch (sortBy) {
       case 'popularity':
         return b.popularity - a.popularity;
-      case 'difficulty': {
-        const difficultyOrder = { easy: 1, medium: 2, hard: 3 };
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
-      }
+      case 'difficulty':
+        return a.stars - b.stars;
       case 'title':
         return a.title.localeCompare(b.title);
       case 'progress':
@@ -201,30 +205,25 @@ export default function TopicsPage() {
     }
   });
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
+  const getDifficultyColor = (stars: number) => {
+    switch (stars) {
+      case 1:
         return 'bg-green-600 text-green-100';
-      case 'medium':
+      case 2:
+        return 'bg-blue-600 text-blue-100';
+      case 3:
         return 'bg-yellow-600 text-yellow-100';
-      case 'hard':
+      case 4:
+        return 'bg-orange-600 text-orange-100';
+      case 5:
         return 'bg-red-600 text-red-100';
       default:
         return 'bg-gray-600 text-gray-100';
     }
   };
 
-  const getDifficultyLabel = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'Einfach';
-      case 'medium':
-        return 'Mittel';
-      case 'hard':
-        return 'Schwer';
-      default:
-        return difficulty;
-    }
+  const getDifficultyLabel = (stars: number) => {
+    return getDifficultyName(stars);
   };
 
   const getCompletedTopicsCount = () => {
@@ -364,9 +363,11 @@ export default function TopicsPage() {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
               >
                 <option value="all">Alle Schwierigkeiten</option>
-                <option value="easy">Einfach</option>
-                <option value="medium">Mittel</option>
-                <option value="hard">Schwer</option>
+                {difficultyNames.map(difficulty => (
+                  <option key={difficulty} value={difficulty}>
+                    {difficulty}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -419,9 +420,9 @@ export default function TopicsPage() {
                 {/* Difficulty Badge - Positioned over banner */}
                 <div className="absolute top-3 left-3">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(topic.difficulty)}`}
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(topic.stars)}`}
                   >
-                    {getDifficultyLabel(topic.difficulty)}
+                    {getDifficultyLabel(topic.stars)}
                   </span>
                 </div>
                 {/* Favorite Button - Positioned over banner */}
@@ -430,8 +431,8 @@ export default function TopicsPage() {
                   className="absolute top-3 right-3 p-2 bg-gray-900 bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200"
                   title={
                     topic.isFavorite
-                      ? 'Remove from favorites'
-                      : 'Add to favorites'
+                      ? 'Von Favoriten entfernen'
+                      : 'Zu Favoriten hinzufügen'
                   }
                 >
                   <svg
@@ -508,9 +509,9 @@ export default function TopicsPage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Sterne:</span>
+                    <span>Schwierigkeit:</span>
                     <div className="flex items-center space-x-1">
-                      {[...Array(topic.maxStars)].map((_, index) => (
+                      {[...Array(5)].map((_, index) => (
                         <img
                           key={index}
                           src={

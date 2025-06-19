@@ -28,15 +28,25 @@ describe('AuthActions', () => {
   it('shows remember me checkbox in login mode', () => {
     renderComponent({ isSignupMode: false });
 
-    expect(screen.getByLabelText('Remember Me')).toBeDefined();
-    expect(screen.getByText('Forgot Password?')).toBeDefined();
+    expect(screen.getByLabelText('Angemeldet bleiben')).toBeDefined();
   });
 
   it('hides remember me checkbox in signup mode', () => {
     renderComponent({ isSignupMode: true });
 
-    expect(screen.queryByLabelText('Remember Me')).toBeNull();
-    expect(screen.queryByText('Forgot Password?')).toBeNull();
+    expect(screen.queryByLabelText('Angemeldet bleiben')).toBeNull();
+  });
+
+  it('shows forgot password link in login mode', () => {
+    renderComponent({ isSignupMode: false });
+
+    expect(screen.getByText('Passwort vergessen?')).toBeDefined();
+  });
+
+  it('hides forgot password link in signup mode', () => {
+    renderComponent({ isSignupMode: true });
+
+    expect(screen.queryByText('Passwort vergessen?')).toBeNull();
   });
 
   it('shows correct submit button text for login', () => {
@@ -49,8 +59,8 @@ describe('AuthActions', () => {
   it('shows correct submit button text for signup', () => {
     renderComponent({ isSignupMode: true });
 
-    expect(screen.getByText('Create Account')).toBeDefined();
-    expect(screen.getByText('Back to Login')).toBeDefined();
+    expect(screen.getByText('Konto erstellen')).toBeDefined();
+    expect(screen.getByText('Zurück zur Anmeldung')).toBeDefined();
   });
 
   it('disables submit button when form is invalid', () => {

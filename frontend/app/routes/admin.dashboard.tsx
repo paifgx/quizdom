@@ -206,7 +206,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-300 text-sm font-medium">
-                  System Uptime
+                  System-Verfügbarkeit
                 </p>
                 <p className="text-3xl font-bold text-[#FCC822]">
                   {dashboardStats.systemUptime}
@@ -272,12 +272,12 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Schnellaktionen */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
           <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
             <img
               src="/buttons/Add.png"
-              alt="Add"
+              alt="Hinzufügen"
               className="h-6 w-6 mx-auto mb-2"
             />
             Neue Frage hinzufügen
@@ -285,7 +285,7 @@ export default function AdminDashboardPage() {
           <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
             <img
               src="/avatars/ai_assistant_wizard.png"
-              alt="Users"
+              alt="Benutzer"
               className="h-6 w-6 mx-auto mb-2"
             />
             Benutzer verwalten
@@ -293,7 +293,7 @@ export default function AdminDashboardPage() {
           <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
             <img
               src="/buttons/Settings.png"
-              alt="Settings"
+              alt="Einstellungen"
               className="h-6 w-6 mx-auto mb-2"
             />
             System-Einstellungen
@@ -301,7 +301,7 @@ export default function AdminDashboardPage() {
           <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
             <img
               src="/buttons/Filter.png"
-              alt="Reports"
+              alt="Berichte"
               className="h-6 w-6 mx-auto mb-2"
             />
             Berichte erstellen

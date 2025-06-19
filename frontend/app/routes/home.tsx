@@ -10,7 +10,7 @@ export function meta(_args: Route.MetaArgs) {
     { title: 'Quizdom - Rise of the Wise' },
     {
       name: 'description',
-      content: 'Welcome to Quizdom - Das ultimative Quiz-Erlebnis!',
+      content: 'Willkommen bei Quizdom - Das ultimative Quiz-Erlebnis!',
     },
   ];
 }
@@ -20,7 +20,7 @@ const availableTopics = [
   {
     id: 'it-project-management',
     title: 'IT Project Management',
-    image: '/topics/it-projectmanagement.png',
+    image: '/topics/it-project-management.png',
     description: 'Projektmanagement in der IT-Welt',
   },
   {

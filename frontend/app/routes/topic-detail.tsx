@@ -30,10 +30,28 @@ interface TopicData {
   completedQuestions: number;
   bookmarkedQuestions: number;
   stars: number;
-  maxStars: number;
   questions: TopicQuestion[];
   isFavorite: boolean;
+  wisecoinReward: number;
 }
+
+// Fantasy-themed difficulty names based on star ratings
+const getDifficultyName = (stars: number): string => {
+  switch (stars) {
+    case 1:
+      return 'Anfänger';
+    case 2:
+      return 'Lehrling';
+    case 3:
+      return 'Geselle';
+    case 4:
+      return 'Meister';
+    case 5:
+      return 'Großmeister';
+    default:
+      return 'Anfänger';
+  }
+};
 
 // Mock data - replace with actual API call
 const getTopicData = (topicId: string): TopicData => {
@@ -43,13 +61,11 @@ const getTopicData = (topicId: string): TopicData => {
       title: 'IT-Projektmanagement',
       description:
         'Comprehensive questions about IT project management, methodologies, and best practices.',
-      image: '/topics/it-projectmanagement.png',
+      image: '/topics/it-project-management.png',
       totalQuestions: 150,
       completedQuestions: 10,
       bookmarkedQuestions: 2,
-      stars: 1,
-      maxStars: 4,
-      isFavorite: true,
+      stars: 2, // Medium difficulty (1-3 stars for easy, 2-4 for medium, 3-5 for hard)
       questions: [
         {
           id: '1',
@@ -66,6 +82,8 @@ const getTopicData = (topicId: string): TopicData => {
           difficulty: 'medium',
         },
       ],
+      isFavorite: true,
+      wisecoinReward: 200,
     },
     math: {
       id: 'math',
@@ -75,10 +93,10 @@ const getTopicData = (topicId: string): TopicData => {
       totalQuestions: 100,
       completedQuestions: 0,
       bookmarkedQuestions: 0,
-      stars: 0,
-      maxStars: 4,
-      isFavorite: false,
+      stars: 4, // Hard difficulty
       questions: [],
+      isFavorite: false,
+      wisecoinReward: 250,
     },
   };
 
@@ -129,8 +147,8 @@ export default function TopicDetailPage() {
                   className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
                   title={
                     topic.isFavorite
-                      ? 'Remove from favorites'
-                      : 'Add to favorites'
+                      ? 'Von Favoriten entfernen'
+                      : 'Zu Favoriten hinzufügen'
                   }
                 >
                   <svg
@@ -185,7 +203,7 @@ export default function TopicDetailPage() {
               {/* Progress */}
               <div className="flex flex-col items-start lg:items-end space-y-2">
                 <div className="flex items-center space-x-1">
-                  {[...Array(topic.maxStars)].map((_, index) => (
+                  {[...Array(5)].map((_, index) => (
                     <img
                       key={index}
                       src={
@@ -199,7 +217,20 @@ export default function TopicDetailPage() {
                   ))}
                 </div>
                 <div className="text-sm text-gray-400">
+                  Schwierigkeit: {getDifficultyName(topic.stars)}
+                </div>
+                <div className="text-sm text-gray-400">
                   {topic.completedQuestions}/{topic.totalQuestions} Questions
+                </div>
+                <div className="flex items-center space-x-2 text-sm">
+                  <img
+                    src="/wisecoin/wisecoin.png"
+                    alt="Wisecoins"
+                    className="h-4 w-4"
+                  />
+                  <span className="text-[#FCC822] font-medium">
+                    {topic.wisecoinReward} Reward
+                  </span>
                 </div>
               </div>
             </div>

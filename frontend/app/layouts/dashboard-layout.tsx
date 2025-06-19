@@ -58,42 +58,10 @@ export default function DashboardLayout() {
 
       {/* Shared Sidebar */}
       <div className="w-full lg:w-80 space-y-4 sm:space-y-6 order-2">
-        {/* Online Users */}
-        <div className="bg-gray-800/80 rounded-xl p-4 sm:p-6 border border-gray-600 backdrop-blur-sm">
-          <h3 className="text-[#FCC822] font-bold text-base sm:text-lg mb-3 sm:mb-4">
-            Other Users Online
-          </h3>
-          <div className="space-y-2 sm:space-y-3">
-            {onlineUsers.slice(0, 6).map(onlineUser => (
-              <div
-                key={onlineUser.id}
-                className="flex items-center space-x-2 sm:space-x-3"
-              >
-                <img
-                  src={onlineUser.avatar}
-                  alt={onlineUser.username}
-                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 border-green-400"
-                />
-                <span className="text-white text-xs sm:text-sm font-medium flex-1 truncate">
-                  {onlineUser.username}
-                </span>
-                <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
-              </div>
-            ))}
-            {onlineUsers.length > 6 && (
-              <div className="text-center pt-2">
-                <span className="text-[#FCC822] text-xs sm:text-sm font-medium">
-                  20+
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Achievements */}
         <div className="bg-gray-800/80 rounded-xl p-4 sm:p-6 border border-gray-600 backdrop-blur-sm">
           <h3 className="text-[#FCC822] font-bold text-base sm:text-lg mb-3 sm:mb-4">
-            Achievements
+            Erfolge
           </h3>
           <div className="flex justify-center space-x-2 sm:space-x-3">
             {achievements.map(achievement => (
@@ -122,6 +90,38 @@ export default function DashboardLayout() {
             <span className="text-[#FCC822] text-lg sm:text-2xl font-bold">
               {user?.wisecoins || 0} Wisecoins
             </span>
+          </div>
+        </div>
+
+        {/* Online Users */}
+        <div className="bg-gray-800/80 rounded-xl p-4 sm:p-6 border border-gray-600 backdrop-blur-sm">
+          <h3 className="text-[#FCC822] font-bold text-base sm:text-lg mb-3 sm:mb-4">
+            Andere Benutzer online
+          </h3>
+          <div className="space-y-2 sm:space-y-3">
+            {onlineUsers.slice(0, 6).map(onlineUser => (
+              <div
+                key={onlineUser.id}
+                className="flex items-center space-x-2 sm:space-x-3"
+              >
+                <img
+                  src={onlineUser.avatar}
+                  alt={onlineUser.username}
+                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 border-green-400"
+                />
+                <span className="text-white text-xs sm:text-sm font-medium flex-1 truncate">
+                  {onlineUser.username}
+                </span>
+                <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
+              </div>
+            ))}
+            {onlineUsers.length > 6 && (
+              <div className="text-center pt-2">
+                <span className="text-[#FCC822] text-xs sm:text-sm font-medium">
+                  20+
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

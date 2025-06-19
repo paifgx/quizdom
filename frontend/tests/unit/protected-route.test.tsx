@@ -68,7 +68,7 @@ describe('ProtectedRoute', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Loading...')).toBeDefined();
+    expect(screen.getByText('Laden...')).toBeDefined();
     expect(screen.queryByTestId('protected-content')).toBeNull();
   });
 

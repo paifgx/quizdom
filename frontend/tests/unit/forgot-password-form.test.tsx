@@ -132,15 +132,22 @@ describe('ForgotPasswordForm', () => {
   it('shows help text', () => {
     renderComponent();
 
-    expect(screen.getByText(/Need help\?/)).toBeDefined();
-    expect(screen.getByText(/check your spam folder/)).toBeDefined();
+    expect(screen.getByText(/Brauchen Sie Hilfe\?/)).toBeDefined();
   });
 
-  it('renders back to login link with correct href', () => {
+  it('renders back to login link', () => {
     renderComponent();
 
-    const loginLink = screen.getByRole('link', { name: /back to login/i });
-    expect(loginLink.getAttribute('href')).toBe('/login');
+    expect(screen.getByRole('link', { name: /zurück zur anmeldung/i })).toBeDefined();
+  });
+
+  it('renders email input with correct placeholder', () => {
+    renderComponent();
+
+    const emailInput = screen.getByPlaceholderText(
+      'Geben Sie Ihre E-Mail-Adresse ein'
+    );
+    expect(emailInput).toBeDefined();
   });
 
   it('enables submit button when email is provided and no errors', () => {
@@ -161,5 +168,12 @@ describe('ForgotPasswordForm', () => {
 
     const form = container.querySelector('form');
     expect(form?.getAttribute('novalidate')).toBe('');
+  });
+
+  it('renders back to login link with correct href', () => {
+    renderComponent();
+
+    const loginLink = screen.getByRole('link', { name: /zurück zur anmeldung/i });
+    expect(loginLink.getAttribute('href')).toBe('/login');
   });
 });
