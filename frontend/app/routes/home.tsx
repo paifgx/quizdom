@@ -43,7 +43,19 @@ const recentAchievements = [
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { isAuthenticated, isViewingAsAdmin, user, logout } = useAuth();
+  const { isAuthenticated, isViewingAsAdmin, user, logout, loading } = useAuth();
+
+  // Show loading state while auth is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#061421] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
+          <p className="text-gray-300 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Redirect admins viewing as admin to admin dashboard
   if (isAuthenticated && isViewingAsAdmin) {
