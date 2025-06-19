@@ -42,7 +42,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeRole, setActiveRole] = useState<ActiveRole>('player');
 
   // Mock authentication - replace with real API calls

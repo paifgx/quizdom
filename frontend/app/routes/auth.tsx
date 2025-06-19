@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Navigate, useLocation } from "react-router";
 import { useAuth } from "../contexts/auth";
+import { useAuthUI } from "../contexts/auth-ui";
 import { useAuthForm } from "../hooks/useAuthForm";
 import { SlidingAuthContainer, LoadingSkeleton } from "../components";
 
@@ -17,14 +18,12 @@ export function meta() {
  */
 export default function AuthPage() {
   const { login, isAuthenticated, user } = useAuth();
+  const { isSignupMode, setSignupMode } = useAuthUI();
   const location = useLocation();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [isSignupMode, setIsSignupMode] = useState(
-    location.pathname === "/signup"
-  );
 
   const { formState, handleFieldChange, isFormValid, resetForm, getError } =
     useAuthForm(isSignupMode);
@@ -74,8 +73,8 @@ export default function AuthPage() {
 
   // Sync with URL changes
   useEffect(() => {
-    setIsSignupMode(location.pathname === "/signup");
-  }, [location.pathname]);
+    setSignupMode(location.pathname === "/signup");
+  }, [location.pathname, setSignupMode]);
 
   // Reset form when mode changes
   useEffect(() => {

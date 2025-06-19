@@ -40,7 +40,9 @@ export function AuthPanel({
     <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2" aria-live="polite">
+            {title}
+          </h1>
           <p className="text-gray-600">{subtitle}</p>
         </div>
 
