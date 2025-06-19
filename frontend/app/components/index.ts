@@ -1,8 +1,11 @@
 // Auth components
+export * from './auth/auth-actions';
 export * from './auth/forgot-password-form';
 export * from './auth/forgot-password-success';
+export * from './auth/login-form';
 export * from './auth/password-strength-indicator';
 export * from './auth/protected-route';
+export * from './auth/signup-form';
 export * from './auth/validated-input';
 
 // Navigation components

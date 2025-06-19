@@ -43,7 +43,7 @@ export function LandingPage({}: LandingPageProps) {
 
           {/* CTA Button */}
           <Link
-            to="/login"
+            to="/signup"
             className="btn-gradient inline-block px-8 py-4 rounded-xl text-xl font-bold transition-all duration-300 hover:scale-110 shadow-2xl"
           >
             Start playing

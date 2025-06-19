@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/auth';
 
 interface NavLink {
@@ -88,9 +88,15 @@ export function MainNav() {
             <div className="flex items-center space-x-4">
               <Link
                 to="/login"
-                className="btn-gradient px-4 py-2 rounded text-sm font-medium transition-all duration-200"
+                className="text-gray-300 hover:text-[#FCC822] transition-colors duration-200"
               >
                 Login
+              </Link>
+              <Link
+                to="/signup"
+                className="btn-gradient px-4 py-2 rounded text-sm font-medium transition-all duration-200"
+              >
+                Sign Up
               </Link>
             </div>
           </div>

@@ -3,7 +3,8 @@ import { type RouteConfig, index, route, layout } from "@react-router/dev/routes
 export default [
   // Authentication routes (no main nav)
   layout("layouts/auth-layout.tsx", [
-    route("login", "routes/login.tsx"),
+    route("login", "routes/auth.tsx"),
+    route("signup", "routes/auth.tsx", { id: "signup" }),
     route("forgot-password", "routes/forgot-password.tsx"),
   ]),
   
