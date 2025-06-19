@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
@@ -52,8 +51,8 @@ describe('AuthActions', () => {
   it('shows correct submit button text for login', () => {
     renderComponent({ isSignupMode: false });
 
-    expect(screen.getByText('Login')).toBeDefined();
-    expect(screen.getByText('Sign Up')).toBeDefined();
+    expect(screen.getByText('Anmelden')).toBeDefined();
+    expect(screen.getByText('Registrieren')).toBeDefined();
   });
 
   it('shows correct submit button text for signup', () => {
@@ -66,7 +65,7 @@ describe('AuthActions', () => {
   it('disables submit button when form is invalid', () => {
     renderComponent({ isFormValid: false });
 
-    const submitButton = screen.getByText('Login');
+    const submitButton = screen.getByText('Anmelden');
     expect(submitButton.getAttribute('disabled')).toBe('');
   });
 });
