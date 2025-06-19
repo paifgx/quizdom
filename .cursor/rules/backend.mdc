@@ -64,7 +64,3 @@ alwaysApply: false
 - `uv run dev` – `uvicorn app.main:app --reload`
 - `uv run test` – `pytest -q`
 - `uv run lint` – `ruff check . && ruff format . && mypy`
-
-## Templates (via @rule)
-- `@endpoint-template.py` – router skeleton with CRUD stubs
-- `@service-template.py` – async service class with repository pattern

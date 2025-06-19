@@ -1,10 +1,10 @@
 ---
 description: 
-globs: frontend/**
+globs: frontend/**/*
 alwaysApply: false
 ---
 ## Dependencies
-- Keep React, React DOM, React Router, Vite and Jest on their latest stable major version
+- Keep React, React DOM, React Router, Vite and Jest on latest stable major
 - Upgrade soon after each stable release, unless a breaking change blocks the project
 
 ## Folder structure
@@ -18,12 +18,8 @@ alwaysApply: false
 - `frontend/app/services/` → API clients
 - `frontend/app/types/` → exported TypeScript types
 - `frontend/app/styles/` → global CSS or Tailwind config
-- `frontend/tests/` → tests
-
-## File naming
-- Route files end with `Page.tsx` (e.g. `AboutPage.tsx` → `/about`)
-- Place loader/action files next to the route (`AboutPage.loader.ts`)
-- Keep tests beside code with `.test.tsx`
+- Name files to reflect their sole responsibility
+- Keep each file <200 lines where possible
 
 ## Routing
 - Use React Router v7
@@ -33,28 +29,53 @@ alwaysApply: false
 - Lazy-load routes with `React.lazy` + `<Suspense>` fallback
 - Limit nesting to three `<Outlet>` levels
 - Use `<NavLink>` for active links, `<Link>` elsewhere
+- Group related routes in same folder
 
 ## Data & state
 - Fetch initial data in loader functions, not in `useEffect`
+- Store Zod schemas next to loaders for validation
 - Hold global state in React Context + `useReducer`
 - Switch to Redux only if scale demands it
-- Store Zod schemas next to loaders for type-safe validation
+- Keep hooks pure and side-effect free
+- Name state and dispatch actions clearly
 
 ## Styling & testing
 - Use Tailwind first; fall back to CSS Modules when needed
+- Write minimal comments—explain "why", not "how"
 - Test every route with `@testing-library/react` + `MemoryRouter`
+- Use Vitest for unit/integration tests
+  - `pnpm test:unit` → unit
+  - `pnpm test:integration` → integration
+- Use Playwright for end-to-end
+  - `pnpm test:e2e` → run all
+  - `pnpm test:e2e:ui` → test UI
 - Add snapshot tests only when markup must stay unchanged
+- Enforce formatting with ESLint and Prettier
 
 ## TypeScript
 - Forbid `any`
 - Compile with `--strict` and `--noUncheckedIndexedAccess`
-- Expose public types from `frontend/types/`
+- Expose public types from `frontend/app/types/`
+- Document public APIs with TSDoc
 
-## Build commands
-- `pnpm dev` - start Vite dev server
-- `pnpm test` - run Jest
-- `pnpm lint` - run ESLint + Prettier
+## Clean code & best practices
+- Name functions, variables and components to reveal intent
+- Keep functions small (ideally <20 lines)
+- Apply single responsibility per module/component
+- Eliminate duplication (DRY across hooks, utils, components)
+- Favor pure functions and minimize hidden side-effects
+- Write declarative code: use `map`, `filter`, `reduce` over loops
+- Review code via PR checklist:
+  - Naming
+  - Error handling
+  - Edge cases
+  - Test coverage
+  - Accessibility
+- Refactor when patterns emerge; extract abstractions early
 
-## Templates (via @rule)
-- `@router-template.tsx` – basic router skeleton
-- `@page-template.tsx` – starter page with Suspense wrapper
+## Build & scripts
+- `pnpm dev` → start Vite dev server
+- `pnpm build` → build app
+- `pnpm start` → serve production build
+- `pnpm typecheck` → React Router typegen + `tsc`
+- `pnpm lint` → run ESLint + Prettier

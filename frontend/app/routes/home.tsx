@@ -1,51 +1,86 @@
-import type { QuizData } from "../../components/nine-slice-quiz";
 import type { Route } from "./+types/home";
 import { useState } from "react";
-import { QuizContainer } from "../../components/nine-slice-quiz";
+import { Navigate } from "react-router";
+import { useAuth } from "../contexts/auth";
+import { LandingPage } from "../components/landing-page";
+import { Dashboard } from "../components/dashboard";
+import { HomeLoading } from "../components/ui/home-loading";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Quizdom - Rise of the Wise" },
+    { name: "description", content: "Welcome to Quizdom - Das ultimative Quiz-Erlebnis!" },
   ];
 }
 
+// Mock data for topics
+const availableTopics = [
+  {
+    id: "it-project-management",
+    title: "IT-PROJEKT-MANAGEMENT",
+    image: "/topics/IT-projectmanagement.png",
+    description: "Projektmanagement in der IT-Welt"
+  },
+  {
+    id: "math",
+    title: "MATHE",
+    image: "/topics/Math.png",
+    description: "Mathematische Grundlagen und fortgeschrittene Konzepte"
+  }
+];
+
+// Mock data for online users
+const onlineUsers = [
+  { id: "1", username: "Player1", avatar: "/avatars/player_male_with_greataxe.png" },
+  { id: "2", username: "WizardMaster", avatar: "/avatars/ai_assistant_wizard.png" },
+  { id: "3", username: "SwordQueen", avatar: "/avatars/player_female_sword_magic.png" },
+  { id: "4", username: "Player4", avatar: "/avatars/player_male_with_greataxe.png" },
+  { id: "5", username: "Player5", avatar: "/avatars/player_female_sword_magic.png" }
+];
+
+// Mock data for recent achievements
+const recentAchievements = [
+  { id: "1", title: "First Quiz", badge: "/badges/badge_book_1.png" },
+  { id: "2", title: "Quiz Master", badge: "/badges/badge_book_2.png" }
+];
+
+/**
+ * Home route component that renders different views based on authentication state
+ * Acts as a container component managing data and logic
+ */
 export default function Home() {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | undefined>();
+  const { isAuthenticated, isViewingAsAdmin, user, loading } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const sampleQuizData: QuizData = {
-    question: "Which Quizsystem is the best?",
-    answers: [
-      { id: "quizdom", text: "Quizdom" },
-      { id: "quizduell", text: "Quizduell" },
-      { id: "quizpoker", text: "Quizpoker" },
-      { id: "quizster", text: "Quizster" },
-    ],
-  };
+  if (loading) {
+    return <HomeLoading />;
+  }
 
-  const handleAnswerSelect = (answerId: string) => {
-    setSelectedAnswer(answerId);
-    console.log(`Selected answer: ${answerId}`);
-  };
+  if (isAuthenticated && isViewingAsAdmin) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
-  const handleQuestionClick = () => {
-    console.log("Question clicked - could show help or play sound");
-  };
-
-  return (
-    <div
-      style={{
-        backgroundColor: "#061421",
-        minHeight: "100vh",
-        padding: "20px",
-      }}
-    >
-      <QuizContainer
-        quizData={sampleQuizData}
-        selectedAnswer={selectedAnswer}
-        onAnswerSelect={handleAnswerSelect}
-        onQuestionClick={handleQuestionClick}
-      />
-    </div>
+  const filteredTopics = availableTopics.filter(topic =>
+    topic.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  if (isAuthenticated) {
+    return (
+      <Dashboard
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        topics={availableTopics}
+        filteredTopics={filteredTopics}
+        onlineUsers={onlineUsers}
+        achievements={recentAchievements}
+        user={user}
+      />
+    );
+  }
+
+  return <LandingPage />;
 }

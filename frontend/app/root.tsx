@@ -8,6 +8,9 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { AuthProvider } from "./contexts/auth";
+import { BackgroundProvider } from "./contexts/background";
+import { useReturnMessage } from "./hooks/useReturnMessage";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -19,13 +22,19 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+    href: "https://fonts.googleapis.com/css2?family=Tiny5:wght@400&display=swap",
   },
+  {
+    rel: "icon",
+    href: "/logo/favicon.ico",
+  }
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  useReturnMessage();
+
   return (
-    <html lang="en">
+    <html lang="de">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -42,7 +51,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <AuthProvider>
+      <BackgroundProvider>
+        <Outlet />
+      </BackgroundProvider>
+    </AuthProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
@@ -50,26 +65,44 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
 
-  if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
+  if (
+    isRouteErrorResponse(error) ||
+    (error && typeof (error as any).status === 'number')
+  ) {
+    message = (error as any).status === 404 ? "404" : "Error";
     details =
-      error.status === 404
+      (error as any).status === 404
         ? "The requested page could not be found."
-        : error.statusText || details;
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
+        : (error as any).statusText || details;
+  } else if ((process.env.NODE_ENV === "development" || (import.meta as any).env?.DEV) && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
-      )}
-    </main>
+    <div className="min-h-screen bg-[#061421] flex items-center justify-center px-4">
+      <div className="max-w-md w-full text-center">
+        <div className="mb-8">
+          <img
+            src="/logo/Logo_Quizdom_transparent.png"
+            alt="Quizdom Logo"
+            className="h-32 w-32 mx-auto opacity-80"
+          />
+        </div>
+        <h1 className="text-4xl font-bold text-[#FCC822] mb-4">{message}</h1>
+        <p className="text-gray-300 text-lg mb-8">{details}</p>
+        {stack && (
+          <pre className="w-full p-4 overflow-x-auto bg-gray-800 rounded-lg text-left text-sm">
+            <code className="text-gray-300">{stack}</code>
+          </pre>
+        )}
+        <a
+          href="/"
+          className="btn-gradient inline-block px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 mt-4"
+        >
+          Zur Startseite
+        </a>
+      </div>
+    </div>
   );
 }
