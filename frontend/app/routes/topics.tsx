@@ -274,8 +274,49 @@ export default function TopicsPage() {
           </p>
         </div>
 
+        {/* Statistics - More subtle design */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-6 text-sm">
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="text-xl font-semibold text-[#FCC822]">
+              {topics.length}
+            </div>
+            <div className="text-gray-400">Verfügbare Themen</div>
+          </div>
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="text-xl font-semibold text-red-400">
+              {getFavoriteTopicsCount()}
+            </div>
+            <div className="text-gray-400">Meine Favoriten</div>
+          </div>
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="text-xl font-semibold text-green-400">
+              {getCompletedTopicsCount()}
+            </div>
+            <div className="text-gray-400">Abgeschlossen</div>
+          </div>
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="text-xl font-semibold text-[#FCC822]">
+              {getTotalProgress()}%
+            </div>
+            <div className="text-gray-400">Gesamtfortschritt</div>
+          </div>
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="flex items-center justify-center gap-1">
+              <img
+                src="/wisecoin/wisecoin.png"
+                alt="Wisecoins"
+                className="h-5 w-5"
+              />
+              <div className="text-xl font-semibold text-[#FCC822]">
+                {user?.wisecoins || 0}
+              </div>
+            </div>
+            <div className="text-gray-400">Ihre Wisecoins</div>
+          </div>
+        </div>
+
         {/* Filters */}
-        <div className="bg-gray-800 bg-opacity-30 rounded-xl p-4 mb-6 border border-gray-700/50">
+        <div className="bg-gray-800 bg-opacity-30 rounded-xl p-4 mb-8 border border-gray-700/50">
           <div className="flex flex-col gap-4">
             {/* Search Bar with Toggle Button - Full Width */}
             <div className="flex gap-2">
@@ -388,47 +429,6 @@ export default function TopicsPage() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Statistics - More subtle design */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-8 text-sm">
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="text-xl font-semibold text-[#FCC822]">
-              {topics.length}
-            </div>
-            <div className="text-gray-400">Verfügbare Themen</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="text-xl font-semibold text-red-400">
-              {getFavoriteTopicsCount()}
-            </div>
-            <div className="text-gray-400">Meine Favoriten</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="text-xl font-semibold text-green-400">
-              {getCompletedTopicsCount()}
-            </div>
-            <div className="text-gray-400">Abgeschlossen</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="text-xl font-semibold text-[#FCC822]">
-              {getTotalProgress()}%
-            </div>
-            <div className="text-gray-400">Gesamtfortschritt</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="flex items-center justify-center gap-1">
-              <img
-                src="/wisecoin/wisecoin.png"
-                alt="Wisecoins"
-                className="h-5 w-5"
-              />
-              <div className="text-xl font-semibold text-[#FCC822]">
-                {user?.wisecoins || 0}
-              </div>
-            </div>
-            <div className="text-gray-400">Ihre Wisecoins</div>
           </div>
         </div>
 
