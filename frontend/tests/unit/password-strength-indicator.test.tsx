@@ -31,7 +31,7 @@ describe('PasswordStrengthIndicator', () => {
   it('shows weak strength for short passwords', () => {
     render(<PasswordStrengthIndicator password="123" />);
 
-    expect(screen.getByText('Password strength: Weak')).toBeDefined();
+    expect(screen.getByText('Passwortstärke: Schwach')).toBeDefined();
     const progressbar = screen.getByRole('progressbar');
     expect(progressbar.getAttribute('aria-valuenow')).toBe('0');
     expect(progressbar.getAttribute('aria-valuemax')).toBe('3');
@@ -40,7 +40,7 @@ describe('PasswordStrengthIndicator', () => {
   it('shows fair strength for medium passwords', () => {
     render(<PasswordStrengthIndicator password="123456" />);
 
-    expect(screen.getByText('Password strength: Fair')).toBeDefined();
+    expect(screen.getByText('Passwortstärke: Ausreichend')).toBeDefined();
     const progressbar = screen.getByRole('progressbar');
     expect(progressbar.getAttribute('aria-valuenow')).toBe('1');
   });
@@ -48,7 +48,7 @@ describe('PasswordStrengthIndicator', () => {
   it('shows good strength for strong passwords', () => {
     render(<PasswordStrengthIndicator password="Password" />);
 
-    expect(screen.getByText('Password strength: Good')).toBeDefined();
+    expect(screen.getByText('Passwortstärke: Gut')).toBeDefined();
     const progressbar = screen.getByRole('progressbar');
     expect(progressbar.getAttribute('aria-valuenow')).toBe('2');
   });
@@ -56,7 +56,7 @@ describe('PasswordStrengthIndicator', () => {
   it('shows strong strength for very strong passwords', () => {
     render(<PasswordStrengthIndicator password="Password123" />);
 
-    expect(screen.getByText('Password strength: Strong')).toBeDefined();
+    expect(screen.getByText('Passwortstärke: Stark')).toBeDefined();
     const progressbar = screen.getByRole('progressbar');
     expect(progressbar.getAttribute('aria-valuenow')).toBe('3');
   });
@@ -72,7 +72,7 @@ describe('PasswordStrengthIndicator', () => {
   it('has proper accessibility attributes', () => {
     render(<PasswordStrengthIndicator password="test123" />);
 
-    const strengthText = screen.getByText(/Password strength:/);
+    const strengthText = screen.getByText(/Passwortstärke:/);
     expect(strengthText.getAttribute('aria-live')).toBe('polite');
 
     const progressbar = screen.getByRole('progressbar');
