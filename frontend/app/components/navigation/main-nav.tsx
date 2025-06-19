@@ -11,7 +11,7 @@ interface NavigationLink {
 
 const playerNavLinks: NavigationLink[] = [
   { label: 'Start', path: '/', role: 'player' },
-  { label: 'Quizübersicht', path: '/quizzes', role: 'player' },
+  { label: 'Themen', path: '/topics', role: 'player' },
   { label: 'Spielmodi', path: '/game-modes', role: 'player' },
   { label: 'Fortschritt', path: '/progress', role: 'player' },
   { label: 'Profil', path: '/profile', role: 'player' },

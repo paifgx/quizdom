@@ -19,14 +19,14 @@ export function meta(_args: Route.MetaArgs) {
 const availableTopics = [
   {
     id: 'it-project-management',
-    title: 'IT-PROJEKT-MANAGEMENT',
-    image: '/topics/IT-projectmanagement.png',
+    title: 'IT Project Management',
+    image: '/topics/it-projectmanagement.png',
     description: 'Projektmanagement in der IT-Welt',
   },
   {
     id: 'math',
-    title: 'MATHE',
-    image: '/topics/Math.png',
+    title: 'Mathematics',
+    image: '/topics/math.png',
     description: 'Mathematische Grundlagen und fortgeschrittene Konzepte',
   },
 ];
