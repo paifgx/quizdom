@@ -58,7 +58,9 @@ describe('ForgotPasswordSuccess', () => {
   it('renders back to login link', () => {
     renderComponent();
 
-    const loginLink = screen.getByRole('link', { name: /zurück zur anmeldung/i });
+    const loginLink = screen.getByRole('link', {
+      name: /zurück zur anmeldung/i,
+    });
     expect(loginLink).toBeDefined();
     expect(loginLink.getAttribute('href')).toBe('/login');
   });
@@ -104,7 +106,9 @@ describe('ForgotPasswordSuccess', () => {
 
     expect(screen.getByText('different@email.org')).toBeDefined();
     expect(
-      screen.getByText(/Wir haben Anweisungen zum Zurücksetzen des Passworts an/)
+      screen.getByText(
+        /Wir haben Anweisungen zum Zurücksetzen des Passworts an/
+      )
     ).toBeDefined();
   });
 });

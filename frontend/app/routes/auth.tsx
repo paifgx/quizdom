@@ -8,7 +8,10 @@ import { SlidingAuthContainer, LoadingSkeleton } from '../components';
 export function meta() {
   return [
     { title: 'Authentifizierung | Quizdom' },
-    { name: 'description', content: 'Melden Sie sich an oder erstellen Sie Ihr Quizdom-Konto.' },
+    {
+      name: 'description',
+      content: 'Melden Sie sich an oder erstellen Sie Ihr Quizdom-Konto.',
+    },
   ];
 }
 

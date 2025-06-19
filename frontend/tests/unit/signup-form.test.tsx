@@ -56,8 +56,9 @@ describe('SignupForm', () => {
 
     const emailInput = screen.getByPlaceholderText('test@mail.com');
     const passwordInput = screen.getByPlaceholderText('Ihr Passwort');
-    const confirmPasswordInput =
-      screen.getByPlaceholderText('Passwort bestätigen');
+    const confirmPasswordInput = screen.getByPlaceholderText(
+      'Passwort bestätigen'
+    );
 
     expect(emailInput.getAttribute('autocomplete')).toBe('email');
     expect(passwordInput.getAttribute('autocomplete')).toBe('new-password');

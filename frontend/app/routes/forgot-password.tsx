@@ -54,7 +54,9 @@ export default function ForgotPasswordPage() {
 
       setSuccess(true);
     } catch {
-      setError('E-Mail zum Zurücksetzen konnte nicht gesendet werden. Bitte versuchen Sie es erneut.');
+      setError(
+        'E-Mail zum Zurücksetzen konnte nicht gesendet werden. Bitte versuchen Sie es erneut.'
+      );
     } finally {
       setLoading(false);
     }

@@ -138,7 +138,9 @@ describe('ForgotPasswordForm', () => {
   it('renders back to login link', () => {
     renderComponent();
 
-    expect(screen.getByRole('link', { name: /zurück zur anmeldung/i })).toBeDefined();
+    expect(
+      screen.getByRole('link', { name: /zurück zur anmeldung/i })
+    ).toBeDefined();
   });
 
   it('renders email input with correct placeholder', () => {
@@ -173,7 +175,9 @@ describe('ForgotPasswordForm', () => {
   it('renders back to login link with correct href', () => {
     renderComponent();
 
-    const loginLink = screen.getByRole('link', { name: /zurück zur anmeldung/i });
+    const loginLink = screen.getByRole('link', {
+      name: /zurück zur anmeldung/i,
+    });
     expect(loginLink.getAttribute('href')).toBe('/login');
   });
 });

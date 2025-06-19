@@ -31,7 +31,9 @@ describe('useFormValidation', () => {
       act(() => {
         result.current.validateField('password', '');
       });
-      expect(result.current.getError('password')).toBe('Passwort ist erforderlich');
+      expect(result.current.getError('password')).toBe(
+        'Passwort ist erforderlich'
+      );
 
       act(() => {
         result.current.validateField('password', '12345');
@@ -83,7 +85,9 @@ describe('useFormValidation', () => {
       act(() => {
         result.current.validateField('firstName', '');
       });
-      expect(result.current.getError('firstName')).toBe('Vorname ist erforderlich');
+      expect(result.current.getError('firstName')).toBe(
+        'Vorname ist erforderlich'
+      );
 
       act(() => {
         result.current.validateField('firstName', 'J');
@@ -104,7 +108,9 @@ describe('useFormValidation', () => {
       act(() => {
         result.current.validateField('lastName', '');
       });
-      expect(result.current.getError('lastName')).toBe('Nachname ist erforderlich');
+      expect(result.current.getError('lastName')).toBe(
+        'Nachname ist erforderlich'
+      );
 
       act(() => {
         result.current.validateField('lastName', 'D');

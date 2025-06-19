@@ -98,7 +98,9 @@ export function ForgotPasswordForm({
       {/* Help Text */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>Brauchen Sie Hilfe?</strong> Falls Sie die E-Mail innerhalb weniger Minuten nicht erhalten, überprüfen Sie Ihren Spam-Ordner oder versuchen Sie es mit einer anderen E-Mail-Adresse.
+          <strong>Brauchen Sie Hilfe?</strong> Falls Sie die E-Mail innerhalb
+          weniger Minuten nicht erhalten, überprüfen Sie Ihren Spam-Ordner oder
+          versuchen Sie es mit einer anderen E-Mail-Adresse.
         </p>
       </div>
     </>

@@ -56,7 +56,8 @@ export function useFormValidation() {
               newErrors.email = 'E-Mail ist erforderlich';
               isValid = false;
             } else if (!validateEmail(value)) {
-              newErrors.email = 'Bitte geben Sie eine gültige E-Mail-Adresse ein';
+              newErrors.email =
+                'Bitte geben Sie eine gültige E-Mail-Adresse ein';
               isValid = false;
             } else {
               delete newErrors.email;
@@ -68,7 +69,8 @@ export function useFormValidation() {
               newErrors.password = 'Passwort ist erforderlich';
               isValid = false;
             } else if (!validatePassword(value)) {
-              newErrors.password = 'Passwort muss mindestens 6 Zeichen lang sein';
+              newErrors.password =
+                'Passwort muss mindestens 6 Zeichen lang sein';
               isValid = false;
             } else {
               delete newErrors.password;
@@ -92,7 +94,8 @@ export function useFormValidation() {
               newErrors.firstName = 'Vorname ist erforderlich';
               isValid = false;
             } else if (value.length < 2) {
-              newErrors.firstName = 'Vorname muss mindestens 2 Zeichen lang sein';
+              newErrors.firstName =
+                'Vorname muss mindestens 2 Zeichen lang sein';
               isValid = false;
             } else {
               delete newErrors.firstName;
@@ -104,7 +107,8 @@ export function useFormValidation() {
               newErrors.lastName = 'Nachname ist erforderlich';
               isValid = false;
             } else if (value.length < 2) {
-              newErrors.lastName = 'Nachname muss mindestens 2 Zeichen lang sein';
+              newErrors.lastName =
+                'Nachname muss mindestens 2 Zeichen lang sein';
               isValid = false;
             } else {
               delete newErrors.lastName;

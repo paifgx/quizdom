@@ -35,7 +35,8 @@ export function ForgotPasswordSuccess({
       <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg">
         <p className="font-medium">E-Mail erfolgreich gesendet!</p>
         <p className="text-sm mt-1">
-          Wir haben Anweisungen zum Zurücksetzen des Passworts an <strong>{email}</strong> gesendet
+          Wir haben Anweisungen zum Zurücksetzen des Passworts an{' '}
+          <strong>{email}</strong> gesendet
         </p>
       </div>
 

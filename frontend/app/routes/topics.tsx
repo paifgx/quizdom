@@ -65,7 +65,13 @@ export default function TopicsPage() {
     }
   };
 
-  const difficultyNames = ['Anfänger', 'Lehrling', 'Geselle', 'Meister', 'Großmeister'];
+  const difficultyNames = [
+    'Anfänger',
+    'Lehrling',
+    'Geselle',
+    'Meister',
+    'Großmeister',
+  ];
 
   // Initialize topics data with useEffect or direct initialization
   React.useEffect(() => {
@@ -178,7 +184,8 @@ export default function TopicsPage() {
     const matchesCategory =
       selectedCategory === 'all' || topic.category === selectedCategory;
     const matchesDifficulty =
-      selectedDifficulty === 'all' || getDifficultyName(topic.stars) === selectedDifficulty;
+      selectedDifficulty === 'all' ||
+      getDifficultyName(topic.stars) === selectedDifficulty;
     const matchesSearch =
       topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       topic.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
