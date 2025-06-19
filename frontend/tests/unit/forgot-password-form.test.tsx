@@ -29,9 +29,13 @@ describe('ForgotPasswordForm', () => {
 
     expect(screen.getByRole('textbox')).toBeDefined();
     expect(
-      screen.getByRole('button', { name: /send reset email/i })
+      screen.getByRole('button', {
+        name: /e-mail zum zurücksetzen senden/i,
+      })
     ).toBeDefined();
-    expect(screen.getByRole('link', { name: /back to login/i })).toBeDefined();
+    expect(
+      screen.getByRole('link', { name: /zurück zur anmeldung/i })
+    ).toBeDefined();
   });
 
   it('displays the email input with correct attributes', () => {
@@ -40,7 +44,7 @@ describe('ForgotPasswordForm', () => {
     const emailInput = screen.getByRole('textbox');
     expect(emailInput.getAttribute('type')).toBe('email');
     expect(emailInput.getAttribute('placeholder')).toBe(
-      'Enter your email address'
+      'Geben Sie Ihre E-Mail-Adresse ein'
     );
     expect(emailInput.getAttribute('autocomplete')).toBe('email');
     expect(emailInput.getAttribute('required')).toBe('');
@@ -73,7 +77,7 @@ describe('ForgotPasswordForm', () => {
     renderComponent({ email: '' });
 
     const submitButton = screen.getByRole('button', {
-      name: /send reset email/i,
+      name: /e-mail zum zurücksetzen senden/i,
     });
     expect(submitButton.getAttribute('disabled')).toBe('');
   });
@@ -85,7 +89,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     const submitButton = screen.getByRole('button', {
-      name: /send reset email/i,
+      name: /e-mail zum zurücksetzen senden/i,
     });
     expect(submitButton.getAttribute('disabled')).toBe('');
   });
@@ -97,7 +101,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     const submitButton = screen.getByRole('button', {
-      name: /sending reset email/i,
+      name: /e-mail zum zurücksetzen senden/i,
     });
     expect(submitButton.getAttribute('disabled')).toBe('');
   });
@@ -105,10 +109,10 @@ describe('ForgotPasswordForm', () => {
   it('shows loading state with spinner when loading is true', () => {
     renderComponent({ loading: true });
 
-    expect(screen.getByText('Sending Reset Email...')).toBeDefined();
+    expect(screen.getByText('E-Mail zum Zurücksetzen senden...')).toBeDefined();
     expect(
       screen
-        .getByText('Sending Reset Email...')
+        .getByText('E-Mail zum Zurücksetzen senden...')
         .closest('button')
         ?.querySelector('svg')
     ).toBeDefined();
@@ -124,9 +128,9 @@ describe('ForgotPasswordForm', () => {
   });
 
   it('displays email validation error when emailError prop is provided', () => {
-    renderComponent({ emailError: 'Invalid email format' });
+    renderComponent({ emailError: 'Ungültiges E-Mail-Format' });
 
-    expect(screen.getByText('Invalid email format')).toBeDefined();
+    expect(screen.getByText('Ungültiges E-Mail-Format')).toBeDefined();
   });
 
   it('shows help text', () => {
@@ -160,7 +164,7 @@ describe('ForgotPasswordForm', () => {
     });
 
     const submitButton = screen.getByRole('button', {
-      name: /send reset email/i,
+      name: /e-mail zum zurücksetzen senden/i,
     });
     expect(submitButton.getAttribute('disabled')).toBeNull();
   });
