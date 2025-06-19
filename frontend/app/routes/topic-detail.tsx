@@ -220,7 +220,7 @@ export default function TopicDetailPage() {
                   Schwierigkeit: {getDifficultyName(topic.stars)}
                 </div>
                 <div className="text-sm text-gray-400">
-                  {topic.completedQuestions}/{topic.totalQuestions} Questions
+                  {topic.completedQuestions}/{topic.totalQuestions} Fragen
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
                   <img
@@ -229,7 +229,7 @@ export default function TopicDetailPage() {
                     className="h-4 w-4"
                   />
                   <span className="text-[#FCC822] font-medium">
-                    {topic.wisecoinReward} Reward
+                    {topic.wisecoinReward} Wisecoin
                   </span>
                 </div>
               </div>
@@ -239,9 +239,7 @@ export default function TopicDetailPage() {
             <div className="mt-auto flex flex-col lg:flex-row lg:justify-between lg:items-end space-y-4 lg:space-y-0">
               {/* Achievements */}
               <div className="flex flex-col space-y-2">
-                <h3 className="text-sm font-semibold text-gray-400">
-                  Achievements
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-400">Erfolge</h3>
                 <div className="flex items-center space-x-2 lg:space-x-3 flex-wrap gap-2">
                   <img
                     src="/badges/badge_1_64x64.png"
@@ -280,7 +278,10 @@ export default function TopicDetailPage() {
               <div className="w-full lg:w-32">
                 <NineSlicePanel
                   className="cursor-pointer hover:scale-105 transition-all duration-200"
-                  onClick={() => {}}
+                  onClick={() => {
+                    // Navigate to game modes with topic context
+                    navigate(`/game-modes?topic=${topic.id}`);
+                  }}
                 >
                   <span className="text-base lg:text-lg font-bold">PLAY</span>
                 </NineSlicePanel>
@@ -299,7 +300,7 @@ export default function TopicDetailPage() {
               to={`/quizzes?topic=${topic.id}&bookmarked=true`}
               className="text-[#FCC822] hover:text-[#FFCD2E] text-sm font-medium transition-colors"
             >
-              View All
+              Alle anzeigen
             </Link>
           </div>
 

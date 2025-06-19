@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router';
 import { ProtectedRoute } from '../components/auth/protected-route';
 
 export function meta() {
@@ -11,6 +12,9 @@ export function meta() {
 }
 
 export default function GameModesPage() {
+  const [searchParams] = useSearchParams();
+  const topicId = searchParams.get('topic');
+
   const gameModes = [
     {
       id: 'classic',
@@ -55,6 +59,11 @@ export default function GameModesPage() {
           <p className="text-gray-300 text-lg max-w-2xl mx-auto">
             Wählen Sie aus verschiedenen spannenden Spielmodi und stellen Sie
             Ihr Wissen unter Beweis.
+            {topicId && (
+              <span className="block mt-2 text-sm text-[#FCC822]">
+                Thema ausgewählt: {topicId.replace('-', ' ').toUpperCase()}
+              </span>
+            )}
           </p>
         </div>
 

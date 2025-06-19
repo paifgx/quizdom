@@ -36,7 +36,7 @@ const availableTopics = [
  * Acts as a container component managing data and logic
  */
 export default function HomePage() {
-  const { isAuthenticated, isViewingAsAdmin } = useAuth();
+  const { isAuthenticated, isViewingAsAdmin, loading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -54,6 +54,15 @@ export default function HomePage() {
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
   };
+
+  // Show loading state to prevent content flicker during authentication check
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822]"></div>
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return (
