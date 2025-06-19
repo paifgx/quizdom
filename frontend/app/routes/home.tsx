@@ -52,27 +52,22 @@ export default function Home() {
   const { isAuthenticated, isViewingAsAdmin, user, loading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Show loading state while auth is being determined
   if (loading) {
     return <HomeLoading />;
   }
 
-  // Redirect admins viewing as admin to admin dashboard
   if (isAuthenticated && isViewingAsAdmin) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
-  // Filter topics based on search term
   const filteredTopics = availableTopics.filter(topic =>
     topic.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle search input change
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
   };
 
-  // Render appropriate component based on authentication state
   if (isAuthenticated) {
     return (
       <Dashboard
