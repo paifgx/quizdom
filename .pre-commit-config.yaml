@@ -27,7 +27,6 @@ repos:
     hooks:
       - id: isort
         files: ^backend/
-        args: ["--profile", "black"]
 
   - repo: https://github.com/pycqa/flake8
     rev: 7.1.1
@@ -58,6 +57,13 @@ repos:
         entry: bash -c 'cd frontend && npm run typecheck'
         language: system
         files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+
+      - id: frontend-unit-tests
+        name: Frontend Unit Tests
+        entry: bash -c 'cd frontend && npm run test:unit'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx)$
         pass_filenames: false
 
   # Backend Python testing
