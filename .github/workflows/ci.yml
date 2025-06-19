@@ -129,7 +129,7 @@ jobs:
 
       - name: Lint
         working-directory: frontend
-        run: pnpm exec eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0
+        run: pnpm exec eslint . --report-unused-disable-directives --max-warnings 0
 
       - name: Check code formatting
         working-directory: frontend
