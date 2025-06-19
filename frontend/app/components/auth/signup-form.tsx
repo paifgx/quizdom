@@ -27,7 +27,7 @@ export function SignupForm({
   password,
   confirmPassword,
   onFieldChange,
-  onSubmit,
+  onSubmit: _onSubmit,
   getError,
 }: SignupFormProps) {
   return (

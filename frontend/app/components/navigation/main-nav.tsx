@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/auth';
 
-interface NavLink {
+interface NavigationLink {
   label: string;
   path: string;
   role?: 'player' | 'admin';
   icon?: string;
 }
 
-const playerNavLinks: NavLink[] = [
+const playerNavLinks: NavigationLink[] = [
   { label: 'Start', path: '/', role: 'player' },
   { label: 'Quizübersicht', path: '/quizzes', role: 'player' },
   { label: 'Spielmodi', path: '/game-modes', role: 'player' },
@@ -17,7 +17,7 @@ const playerNavLinks: NavLink[] = [
   { label: 'Profil', path: '/profile', role: 'player' },
 ];
 
-const adminNavLinks: NavLink[] = [
+const adminNavLinks: NavigationLink[] = [
   { label: 'Dashboard', path: '/admin/dashboard', role: 'admin' },
   { label: 'Fragen', path: '/admin/questions', role: 'admin' },
   { label: 'Users', path: '/admin/users', role: 'admin' },
@@ -30,7 +30,7 @@ export function MainNav() {
     user, 
     isAuthenticated, 
     isAdmin, 
-    activeRole, 
+    activeRole: _activeRole, 
     isViewingAsAdmin, 
     logout, 
     switchToAdminView, 

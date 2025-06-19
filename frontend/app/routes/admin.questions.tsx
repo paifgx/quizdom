@@ -25,7 +25,7 @@ export default function AdminQuestionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [_showAddModal, setShowAddModal] = useState(false);
 
   const categories = [
     'Wissenschaft',

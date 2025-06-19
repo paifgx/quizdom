@@ -4,7 +4,7 @@ import { LogoPanel } from './logo-panel';
 
 export interface SlidingAuthContainerProps {
   isSignupMode: boolean;
-  formState: any;
+  formState: Record<string, any>;
   loading: boolean;
   error: string;
   showSuccess: boolean;

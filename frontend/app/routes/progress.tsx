@@ -9,7 +9,7 @@ export function meta() {
 }
 
 export default function ProgressPage() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
 
   const achievements = [
     {

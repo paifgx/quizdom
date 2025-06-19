@@ -40,7 +40,7 @@ export default function AuthPage() {
         } else {
           await login(formState.email, formState.password);
         }
-      } catch (err) {
+      } catch {
         handleAuthError(isSignupMode);
       } finally {
         setLoading(false);
@@ -50,7 +50,7 @@ export default function AuthPage() {
   );
 
   const handleSignup = async () => {
-    console.log("Signup:", formState);
+    // TODO: Implement actual signup logic
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
@@ -111,7 +111,7 @@ export default function AuthPage() {
 /**
  * Determines redirect path based on location state and user role
  */
-function getRedirectPath(location: any, user: any): string {
+function getRedirectPath(location: { state?: { from?: { pathname?: string } } }, user: { role: string }): string {
   return (
     location.state?.from?.pathname ||
     (user.role === "admin" ? "/admin/dashboard" : "/")

@@ -5,7 +5,7 @@ import { AuthActions } from './auth-actions';
 
 export interface AuthPanelProps {
   mode: 'login' | 'signup';
-  formState: any;
+  formState: Record<string, any>;
   loading: boolean;
   error: string;
   showSuccess: boolean;
@@ -64,7 +64,11 @@ export function AuthPanel({
 
           {isSignupMode ? (
             <SignupForm
-              {...formState}
+              firstName={formState.firstName || ''}
+              lastName={formState.lastName || ''}
+              email={formState.email || ''}
+              password={formState.password || ''}
+              confirmPassword={formState.confirmPassword || ''}
               loading={loading}
               error={error}
               isFormValid={isFormValid}

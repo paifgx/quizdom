@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useFormValidation } from '../hooks/useFormValidation';
 import { AuthPageLayout } from '../components/ui/page-layout';
 import { ForgotPasswordForm } from '../components/auth/forgot-password-form';
@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       setSuccess(true);
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to send reset email. Please try again.');
     } finally {
       setLoading(false);

@@ -46,7 +46,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [activeRole, setActiveRole] = useState<ActiveRole>('player');
 
   // Mock authentication - replace with real API calls
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, _password: string) => {
     setLoading(true);
     try {
       // Simulate API call
@@ -71,7 +71,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setActiveRole(initialRole);
       localStorage.setItem('quizdom_active_role', initialRole);
     } catch (error) {
-      console.error('Login failed:', error);
+      // Log error in development only
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Login failed:', error);
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -128,7 +131,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           localStorage.setItem('quizdom_active_role', defaultRole);
         }
       } catch (error) {
-        console.error('Failed to parse saved user:', error);
+        // Log error in development only
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to parse saved user:', error);
+        }
         localStorage.removeItem('quizdom_user');
         localStorage.removeItem('quizdom_active_role');
       }

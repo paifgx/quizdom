@@ -40,7 +40,7 @@ interface DashboardProps {
 export function Dashboard({
   searchTerm,
   onSearchChange,
-  topics,
+  topics: _topics,
   filteredTopics,
   onlineUsers,
   achievements,

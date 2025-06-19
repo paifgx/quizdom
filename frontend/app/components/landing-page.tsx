@@ -8,7 +8,7 @@ interface LandingPageProps {
  * Presentational landing page component for unauthenticated users
  * Displays hero section with features and call-to-action
  */
-export function LandingPage({}: LandingPageProps) {
+export function LandingPage(_props: LandingPageProps) {
   return (
     <div className="min-h-screen bg-[#061421]">
       {/* Hero Section */}

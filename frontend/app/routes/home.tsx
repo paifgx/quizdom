@@ -6,7 +6,7 @@ import { LandingPage } from "../components/landing-page";
 import { Dashboard } from "../components/dashboard";
 import { HomeLoading } from "../components/ui/home-loading";
 
-export function meta({ }: Route.MetaArgs) {
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: "Quizdom - Rise of the Wise" },
     { name: "description", content: "Welcome to Quizdom - Das ultimative Quiz-Erlebnis!" },
@@ -48,7 +48,7 @@ const recentAchievements = [
  * Home route component that renders different views based on authentication state
  * Acts as a container component managing data and logic
  */
-export default function Home() {
+export default function HomePage() {
   const { isAuthenticated, isViewingAsAdmin, user, loading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
