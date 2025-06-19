@@ -93,7 +93,7 @@ describe('useFormValidation', () => {
         result.current.validateField('firstName', 'J');
       });
       expect(result.current.getError('firstName')).toBe(
-        'First name must be at least 2 characters'
+        'Vorname muss mindestens 2 Zeichen lang sein'
       );
 
       act(() => {
@@ -116,7 +116,7 @@ describe('useFormValidation', () => {
         result.current.validateField('lastName', 'D');
       });
       expect(result.current.getError('lastName')).toBe(
-        'Last name must be at least 2 characters'
+        'Nachname muss mindestens 2 Zeichen lang sein'
       );
 
       act(() => {
