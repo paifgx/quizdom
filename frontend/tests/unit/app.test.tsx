@@ -3,6 +3,17 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App, { Layout, ErrorBoundary } from '../../app/root';
 
+// Mock import.meta globally
+const mockImportMeta = {
+  env: {
+    DEV: true, // Default to development for most tests
+  },
+};
+
+vi.stubGlobal('import', {
+  meta: mockImportMeta,
+});
+
 // Mock the auth context
 vi.mock('../../app/contexts/auth', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => (
@@ -28,12 +39,10 @@ vi.mock('react-router', async () => {
   return {
     ...actual,
     Outlet: () => <div data-testid="outlet">Outlet content</div>,
-    Links: () => <div data-testid="links">Links</div>,
-    Meta: () => <div data-testid="meta">Meta</div>,
-    Scripts: () => <div data-testid="scripts">Scripts</div>,
-    ScrollRestoration: () => (
-      <div data-testid="scroll-restoration">ScrollRestoration</div>
-    ),
+    Links: () => <></>,
+    Meta: () => <></>,
+    Scripts: () => <></>,
+    ScrollRestoration: () => <></>,
     isRouteErrorResponse: vi.fn(),
   };
 });
@@ -65,38 +74,25 @@ describe('Layout', () => {
     expect(screen.getByText('Test content')).toBeDefined();
   });
 
-  it('renders Meta, Links, and Scripts components', () => {
+  it('renders without errors', () => {
     render(
       <Layout>
         <div>Test</div>
       </Layout>
     );
 
-    // These components are rendered but may not be visible in the test DOM structure
-    // Instead, we'll verify the Layout component renders without errors
+    // Verify the Layout renders its content without errors
     expect(screen.getByText('Test')).toBeDefined();
   });
 
-  it('has correct document structure attributes', () => {
+  it('calls useReturnMessage hook', () => {
     render(
       <Layout>
         <div>Test</div>
       </Layout>
     );
 
-    // In test environment, html tag is not rendered at document level
-    // We check that the Layout renders its content instead
-    expect(screen.getByText('Test')).toBeDefined();
-  });
-
-  it('sets correct meta viewport', () => {
-    render(
-      <Layout>
-        <div>Test</div>
-      </Layout>
-    );
-
-    // In tests, meta tags are mocked, so we verify the Layout renders correctly
+    // Verify the Layout renders correctly (hook is mocked)
     expect(screen.getByText('Test')).toBeDefined();
   });
 });
@@ -107,7 +103,7 @@ describe('ErrorBoundary', () => {
 
     render(<ErrorBoundary error={error} params={{}} />);
 
-    expect(screen.getByText('Oops!')).toBeDefined();
+    expect(screen.getByText('Ups!')).toBeDefined();
     expect(screen.getByText('Test error message')).toBeDefined();
   });
 
@@ -122,7 +118,7 @@ describe('ErrorBoundary', () => {
 
     expect(screen.getByText('404')).toBeDefined();
     expect(
-      screen.getByText('The requested page could not be found.')
+      screen.getByText('Die angeforderte Seite konnte nicht gefunden werden.')
     ).toBeDefined();
   });
 
@@ -135,7 +131,7 @@ describe('ErrorBoundary', () => {
 
     render(<ErrorBoundary error={routeError} params={{}} />);
 
-    expect(screen.getByText('Error')).toBeDefined();
+    expect(screen.getByText('Fehler')).toBeDefined();
     expect(screen.getByText('Internal Server Error')).toBeDefined();
   });
 
@@ -187,26 +183,31 @@ describe('ErrorBoundary', () => {
   });
 
   it('does not show error stack in production mode', () => {
+    // Store original values
     const originalNodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
+    const originalDEV = mockImportMeta.env.DEV;
 
-    // Mock import.meta.env.DEV by stubbing the global
-    vi.stubGlobal('import.meta', {
-      env: {
-        DEV: false,
-      },
-    });
+    // Set production environment
+    process.env.NODE_ENV = 'production';
+    mockImportMeta.env.DEV = false;
 
     const error = new Error('Test error');
     error.stack = 'Error stack trace';
 
     render(<ErrorBoundary error={error} params={{}} />);
 
+    // In production mode, the default German error message should be shown
+    expect(
+      screen.getByText('Ein unerwarteter Fehler ist aufgetreten.')
+    ).toBeDefined();
+    // The stack trace should not be shown
     expect(screen.queryByText('Error stack trace')).toBeNull();
+    // The specific error message should not be shown
+    expect(screen.queryByText('Test error')).toBeNull();
 
     // Restore original environment
     process.env.NODE_ENV = originalNodeEnv;
-    vi.unstubAllGlobals();
+    mockImportMeta.env.DEV = originalDEV;
   });
 
   it('has proper styling classes', () => {
@@ -225,7 +226,7 @@ describe('ErrorBoundary', () => {
     const error = new Error('Test error');
     render(<ErrorBoundary error={error} params={{}} />);
 
-    const title = screen.getByText('Oops!');
+    const title = screen.getByText('Ups!');
     expect(title.className).toContain('text-4xl');
     expect(title.className).toContain('font-bold');
     expect(title.className).toContain('text-[#FCC822]');

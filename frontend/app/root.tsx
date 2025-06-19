@@ -76,8 +76,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
         ? 'Die angeforderte Seite konnte nicht gefunden werden.'
         : (error as { statusText?: string }).statusText || details;
   } else if (
-    (process.env.NODE_ENV === 'development' ||
-      (import.meta as { env?: { DEV?: boolean } }).env?.DEV) &&
+    process.env.NODE_ENV !== 'production' &&
     error &&
     error instanceof Error
   ) {

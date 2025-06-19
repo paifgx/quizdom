@@ -297,7 +297,9 @@ export default function TopicsPage() {
                       ? 'bg-[#FCC822] border-[#FCC822] text-gray-900'
                       : 'bg-gray-700/50 border-gray-600/50 text-gray-300 hover:border-[#FCC822] hover:text-[#FCC822]'
                   }`}
-                  title={showFilters ? 'Filter ausblenden' : 'Filter einblenden'}
+                  title={
+                    showFilters ? 'Filter ausblenden' : 'Filter einblenden'
+                  }
                 >
                   <div className="flex items-center gap-2">
                     <svg
