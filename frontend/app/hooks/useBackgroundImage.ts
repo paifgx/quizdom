@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 const routeBackgrounds: Record<string, string> = {
   '/': '/background/background_pink.png',
   '/quizzes': '/background/background_orange.png',
+  '/topics': '/background/background_day.png',
   '/game-modes': '/background/background_day.png',
   '/progress': '/background/background_pink.png',
   '/profile': '/background/background_orange.png',

@@ -1,10 +1,9 @@
 import type { Route } from './+types/home';
-import { useState } from 'react';
-import { Navigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/auth';
 import { LandingPage } from '../components/landing-page';
 import { Dashboard } from '../components/dashboard';
-import { HomeLoading } from '../components/ui/home-loading';
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -32,56 +31,21 @@ const availableTopics = [
   },
 ];
 
-// Mock data for online users
-const onlineUsers = [
-  {
-    id: '1',
-    username: 'Player1',
-    avatar: '/avatars/player_male_with_greataxe.png',
-  },
-  {
-    id: '2',
-    username: 'WizardMaster',
-    avatar: '/avatars/ai_assistant_wizard.png',
-  },
-  {
-    id: '3',
-    username: 'SwordQueen',
-    avatar: '/avatars/player_female_sword_magic.png',
-  },
-  {
-    id: '4',
-    username: 'Player4',
-    avatar: '/avatars/player_male_with_greataxe.png',
-  },
-  {
-    id: '5',
-    username: 'Player5',
-    avatar: '/avatars/player_female_sword_magic.png',
-  },
-];
-
-// Mock data for recent achievements
-const recentAchievements = [
-  { id: '1', title: 'First Quiz', badge: '/badges/badge_book_1.png' },
-  { id: '2', title: 'Quiz Master', badge: '/badges/badge_book_2.png' },
-];
-
 /**
  * Home route component that renders different views based on authentication state
  * Acts as a container component managing data and logic
  */
 export default function HomePage() {
-  const { isAuthenticated, isViewingAsAdmin, user, loading } = useAuth();
+  const { isAuthenticated, isViewingAsAdmin } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
-  if (loading) {
-    return <HomeLoading />;
-  }
-
-  if (isAuthenticated && isViewingAsAdmin) {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
+  // Redirect admins viewing as admin to admin dashboard
+  useEffect(() => {
+    if (isAuthenticated && isViewingAsAdmin) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, isViewingAsAdmin, navigate]);
 
   const filteredTopics = availableTopics.filter(topic =>
     topic.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -98,9 +62,6 @@ export default function HomePage() {
         onSearchChange={handleSearchChange}
         topics={availableTopics}
         filteredTopics={filteredTopics}
-        onlineUsers={onlineUsers}
-        achievements={recentAchievements}
-        user={user}
       />
     );
   }
