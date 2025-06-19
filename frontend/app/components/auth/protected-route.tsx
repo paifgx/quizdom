@@ -7,6 +7,10 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean;
 }
 
+/**
+ * Protected route wrapper that enforces authentication and authorization
+ * Redirects unauthenticated users and handles admin access control
+ */
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
   const { isAuthenticated, isAdmin, isViewingAsAdmin, loading } = useAuth();
   const location = useLocation();

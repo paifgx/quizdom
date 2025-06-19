@@ -16,6 +16,10 @@ export interface SignupFormProps {
   getError: (field: string) => string | undefined;
 }
 
+/**
+ * Signup form component with all required user registration fields
+ * Includes name, email, password, and confirmation with validation
+ */
 export function SignupForm({
   firstName,
   lastName,

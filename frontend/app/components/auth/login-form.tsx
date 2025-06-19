@@ -15,6 +15,10 @@ export interface LoginFormProps {
   getError: (field: string) => string | undefined;
 }
 
+/**
+ * Login form component with email and password inputs
+ * Provides validation and consistent styling for authentication
+ */
 export function LoginForm({
   email,
   password,
