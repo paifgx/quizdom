@@ -1,9 +1,8 @@
 from collections.abc import Iterator
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.main import app
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture()
