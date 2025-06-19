@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/auth';
 
 export function meta() {
   return [
-    { title: 'Topics Overview | Quizdom' },
+    { title: 'Themenübersicht | Quizdom' },
     {
       name: 'description',
       content: 'Übersicht aller verfügbaren Quiz-Themen.',
@@ -35,6 +35,7 @@ export default function TopicsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('popularity');
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   const categories = [
     'Wissenschaft',
@@ -273,130 +274,159 @@ export default function TopicsPage() {
           </p>
         </div>
 
-        {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 text-center border border-gray-700">
-            <div className="text-3xl font-bold text-[#FCC822] mb-2">
-              {topics.length}
-            </div>
-            <div className="text-gray-300">Verfügbare Themen</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 text-center border border-gray-700">
-            <div className="text-3xl font-bold text-red-400 mb-2">
-              {getFavoriteTopicsCount()}
-            </div>
-            <div className="text-gray-300">Meine Favoriten</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 text-center border border-gray-700">
-            <div className="text-3xl font-bold text-green-400 mb-2">
-              {getCompletedTopicsCount()}
-            </div>
-            <div className="text-gray-300">Abgeschlossen</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 text-center border border-gray-700">
-            <div className="text-3xl font-bold text-[#FCC822] mb-2">
-              {getTotalProgress()}%
-            </div>
-            <div className="text-gray-300">Gesamtfortschritt</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 text-center border border-gray-700">
-            <div className="flex items-center justify-center space-x-2">
-              <img
-                src="/wisecoin/wisecoin.png"
-                alt="Wisecoins"
-                className="h-6 w-6"
-              />
-              <div className="text-3xl font-bold text-[#FCC822]">
-                {user?.wisecoins || 0}
+        {/* Filters */}
+        <div className="bg-gray-800 bg-opacity-30 rounded-xl p-4 mb-6 border border-gray-700/50">
+          <div className="flex flex-col gap-4">
+            {/* Search Bar with Toggle Button - Full Width */}
+            <div className="flex gap-2">
+              <div className="flex-grow">
+                <input
+                  type="text"
+                  id="search"
+                  placeholder="Thema suchen..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+                />
+              </div>
+              <div className="flex items-center">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`px-3 py-2.5 rounded-lg border transition-colors duration-200 ${
+                    showFilters
+                      ? 'bg-[#FCC822] border-[#FCC822] text-gray-900'
+                      : 'bg-gray-700/50 border-gray-600/50 text-gray-300 hover:border-[#FCC822] hover:text-[#FCC822]'
+                  }`}
+                  title={showFilters ? 'Filter ausblenden' : 'Filter einblenden'}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="hidden sm:inline">Filter</span>
+                  </div>
+                </button>
               </div>
             </div>
-            <div className="text-gray-300">Ihre Wisecoins</div>
+
+            {/* Select Boxes - Row */}
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                <div>
+                  <label
+                    htmlFor="category"
+                    className="block text-gray-300 font-medium mb-2"
+                  >
+                    Kategorie
+                  </label>
+                  <select
+                    id="category"
+                    value={selectedCategory}
+                    onChange={e => setSelectedCategory(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+                  >
+                    <option value="all">Alle Kategorien</option>
+                    {categories.map(category => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="difficulty"
+                    className="block text-gray-300 font-medium mb-2"
+                  >
+                    Schwierigkeit
+                  </label>
+                  <select
+                    id="difficulty"
+                    value={selectedDifficulty}
+                    onChange={e => setSelectedDifficulty(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+                  >
+                    <option value="all">Alle Schwierigkeiten</option>
+                    {difficultyNames.map(difficulty => (
+                      <option key={difficulty} value={difficulty}>
+                        {difficulty}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="sort"
+                    className="block text-gray-300 font-medium mb-2"
+                  >
+                    Sortieren nach
+                  </label>
+                  <select
+                    id="sort"
+                    value={sortBy}
+                    onChange={e => setSortBy(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+                  >
+                    <option value="popularity">Beliebtheit</option>
+                    <option value="difficulty">Schwierigkeit</option>
+                    <option value="title">Titel</option>
+                    <option value="progress">Fortschritt</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 mb-8 border border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label
-                htmlFor="search"
-                className="block text-gray-300 font-medium mb-2"
-              >
-                Suchen
-              </label>
-              <input
-                type="text"
-                id="search"
-                placeholder="Thema suchen..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+        {/* Statistics - More subtle design */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-8 text-sm">
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="text-xl font-semibold text-[#FCC822]">
+              {topics.length}
+            </div>
+            <div className="text-gray-400">Verfügbare Themen</div>
+          </div>
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="text-xl font-semibold text-red-400">
+              {getFavoriteTopicsCount()}
+            </div>
+            <div className="text-gray-400">Meine Favoriten</div>
+          </div>
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="text-xl font-semibold text-green-400">
+              {getCompletedTopicsCount()}
+            </div>
+            <div className="text-gray-400">Abgeschlossen</div>
+          </div>
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="text-xl font-semibold text-[#FCC822]">
+              {getTotalProgress()}%
+            </div>
+            <div className="text-gray-400">Gesamtfortschritt</div>
+          </div>
+          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
+            <div className="flex items-center justify-center gap-1">
+              <img
+                src="/wisecoin/wisecoin.png"
+                alt="Wisecoins"
+                className="h-5 w-5"
               />
+              <div className="text-xl font-semibold text-[#FCC822]">
+                {user?.wisecoins || 0}
+              </div>
             </div>
-
-            <div>
-              <label
-                htmlFor="category"
-                className="block text-gray-300 font-medium mb-2"
-              >
-                Kategorie
-              </label>
-              <select
-                id="category"
-                value={selectedCategory}
-                onChange={e => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-              >
-                <option value="all">Alle Kategorien</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="difficulty"
-                className="block text-gray-300 font-medium mb-2"
-              >
-                Schwierigkeit
-              </label>
-              <select
-                id="difficulty"
-                value={selectedDifficulty}
-                onChange={e => setSelectedDifficulty(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-              >
-                <option value="all">Alle Schwierigkeiten</option>
-                {difficultyNames.map(difficulty => (
-                  <option key={difficulty} value={difficulty}>
-                    {difficulty}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="sort"
-                className="block text-gray-300 font-medium mb-2"
-              >
-                Sortieren nach
-              </label>
-              <select
-                id="sort"
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-              >
-                <option value="popularity">Beliebtheit</option>
-                <option value="difficulty">Schwierigkeit</option>
-                <option value="title">Titel</option>
-                <option value="progress">Fortschritt</option>
-              </select>
-            </div>
+            <div className="text-gray-400">Ihre Wisecoins</div>
           </div>
         </div>
 
