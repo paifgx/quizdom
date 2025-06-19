@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ProtectedRoute } from '../components/auth/protected-route';
-import { MainNav } from '../components/navigation/main-nav';
 
 export function meta() {
   return [
@@ -141,9 +140,7 @@ export default function AdminUsersPage() {
 
   return (
     <ProtectedRoute requireAdmin={true}>
-      <MainNav />
-      <div className="min-h-screen bg-[#061421]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -370,7 +367,6 @@ export default function AdminUsersPage() {
             )}
           </div>
         </div>
-      </div>
     </ProtectedRoute>
   );
 } 

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ProtectedRoute } from '../components/auth/protected-route';
-import { MainNav } from '../components/navigation/main-nav';
 import { useAuth } from '../contexts/auth';
 
 export function meta() {
@@ -52,7 +51,7 @@ export default function QuizzesPage() {
       difficulty: 'medium',
       questions: 15,
       duration: '10 Min',
-      icon: '/topics/physics.png',
+      icon: '/badges/badge_book_1.png',
       completed: true,
       score: 85,
       popularity: 92,
@@ -66,7 +65,7 @@ export default function QuizzesPage() {
       difficulty: 'hard',
       questions: 20,
       duration: '15 Min',
-      icon: '/topics/history.png',
+      icon: '/badges/badge_book_2.png',
       completed: false,
       popularity: 88,
       wisecoinReward: 35,
@@ -79,7 +78,7 @@ export default function QuizzesPage() {
       difficulty: 'easy',
       questions: 12,
       duration: '8 Min',
-      icon: '/topics/geography.png',
+      icon: '/badges/badge_book_1.png',
       completed: true,
       score: 100,
       popularity: 95,
@@ -93,7 +92,7 @@ export default function QuizzesPage() {
       difficulty: 'medium',
       questions: 18,
       duration: '12 Min',
-      icon: '/topics/sports.png',
+      icon: '/badges/badge_book_1.png',
       completed: false,
       popularity: 78,
       wisecoinReward: 30,
@@ -106,7 +105,7 @@ export default function QuizzesPage() {
       difficulty: 'hard',
       questions: 16,
       duration: '11 Min',
-      icon: '/topics/art.png',
+      icon: '/badges/badge_book_2.png',
       completed: false,
       popularity: 71,
       wisecoinReward: 40,
@@ -119,7 +118,7 @@ export default function QuizzesPage() {
       difficulty: 'easy',
       questions: 14,
       duration: '9 Min',
-      icon: '/topics/technology.png',
+      icon: '/badges/badge_book_1.png',
       completed: true,
       score: 78,
       popularity: 85,
@@ -192,9 +191,7 @@ export default function QuizzesPage() {
 
   return (
     <ProtectedRoute>
-      <MainNav />
-      <div className="min-h-screen bg-[#061421]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
@@ -408,7 +405,6 @@ export default function QuizzesPage() {
             </div>
           )}
         </div>
-      </div>
     </ProtectedRoute>
   );
 } 

@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import { AuthProvider } from "./contexts/auth";
+import { BackgroundProvider } from "./contexts/background";
 import { useReturnMessage } from "./hooks/useReturnMessage";
 import "./app.css";
 
@@ -52,7 +53,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
-      <Outlet />
+      <BackgroundProvider>
+        <Outlet />
+      </BackgroundProvider>
     </AuthProvider>
   );
 }

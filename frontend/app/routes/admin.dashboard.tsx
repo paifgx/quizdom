@@ -1,5 +1,4 @@
 import { ProtectedRoute } from '../components/auth/protected-route';
-import { MainNav } from '../components/navigation/main-nav';
 import { useAuth } from '../contexts/auth';
 
 export function meta() {
@@ -88,9 +87,7 @@ export default function AdminDashboardPage() {
 
   return (
     <ProtectedRoute requireAdmin={true}>
-      <MainNav />
-      <div className="min-h-screen bg-[#061421]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
@@ -260,7 +257,6 @@ export default function AdminDashboardPage() {
             </button>
           </div>
         </div>
-      </div>
     </ProtectedRoute>
   );
 } 

@@ -1,5 +1,4 @@
 import { ProtectedRoute } from '../components/auth/protected-route';
-import { MainNav } from '../components/navigation/main-nav';
 
 export function meta() {
   return [
@@ -46,9 +45,7 @@ export default function GameModesPage() {
 
   return (
     <ProtectedRoute>
-      <MainNav />
-      <div className="min-h-screen bg-[#061421]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
@@ -106,7 +103,6 @@ export default function GameModesPage() {
             ))}
           </div>
         </div>
-      </div>
     </ProtectedRoute>
   );
 } 
