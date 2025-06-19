@@ -3,16 +3,20 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { ProtectedRoute } from '../../app/components/auth/protected-route';
 
-// Mock the Navigate component
+// Mock react-router hooks that are used inside the component
 const mockNavigate = vi.fn();
+
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
+
   return {
     ...actual,
-    Navigate: ({ to, state, replace }: any) => {
-      mockNavigate(to, state, replace);
-      return <div data-testid="navigate" data-to={to} />;
+    // Provide a stub for useNavigate that captures calls without performing real navigation
+    useNavigate: () => (to: any, options?: any) => {
+      mockNavigate(to, options?.state, options?.replace);
     },
+
+    // Ensure a deterministic location in tests
     useLocation: () => ({ pathname: '/test' }),
   };
 });
