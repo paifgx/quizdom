@@ -63,6 +63,10 @@ jobs:
         working-directory: backend
         run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
+      - name: Check imports with isort
+        working-directory: backend
+        run: isort --check --diff .
+
       - name: Check code formatting
         working-directory: backend
         run: |

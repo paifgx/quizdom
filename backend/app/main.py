@@ -1,6 +1,7 @@
+from fastapi import FastAPI
+
 from app.db.session import init_db
 from app.routers import auth, quiz, user
-from fastapi import FastAPI
 
 app = FastAPI(title="QUIZDOM Backend")
 
