@@ -1,6 +1,6 @@
-import React from "react";
-import { ValidatedInput } from "./validated-input";
-import { PasswordStrengthIndicator } from "./password-strength-indicator";
+import React from 'react';
+import { ValidatedInput } from './validated-input';
+import { PasswordStrengthIndicator } from './password-strength-indicator';
 
 export interface SignupFormProps {
   firstName: string;
@@ -39,8 +39,8 @@ export function SignupForm({
           type="text"
           placeholder="First Name"
           value={firstName}
-          onChange={(value) => onFieldChange("firstName", value)}
-          error={getError("firstName")}
+          onChange={value => onFieldChange('firstName', value)}
+          error={getError('firstName')}
           required
         />
         <ValidatedInput
@@ -49,8 +49,8 @@ export function SignupForm({
           type="text"
           placeholder="Last Name"
           value={lastName}
-          onChange={(value) => onFieldChange("lastName", value)}
-          error={getError("lastName")}
+          onChange={value => onFieldChange('lastName', value)}
+          error={getError('lastName')}
           required
         />
       </div>
@@ -61,8 +61,8 @@ export function SignupForm({
         type="email"
         placeholder="test@mail.com"
         value={email}
-        onChange={(value) => onFieldChange("email", value)}
-        error={getError("email")}
+        onChange={value => onFieldChange('email', value)}
+        error={getError('email')}
         autoComplete="email"
         required
       />
@@ -74,8 +74,8 @@ export function SignupForm({
           type="password"
           placeholder="Your password"
           value={password}
-          onChange={(value) => onFieldChange("password", value)}
-          error={getError("password")}
+          onChange={value => onFieldChange('password', value)}
+          error={getError('password')}
           autoComplete="new-password"
           required
         />
@@ -88,8 +88,8 @@ export function SignupForm({
         type="password"
         placeholder="Confirm password"
         value={confirmPassword}
-        onChange={(value) => onFieldChange("confirmPassword", value)}
-        error={getError("confirmPassword")}
+        onChange={value => onFieldChange('confirmPassword', value)}
+        error={getError('confirmPassword')}
         autoComplete="new-password"
         required
       />

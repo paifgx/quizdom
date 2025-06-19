@@ -8,7 +8,14 @@ import importPlugin from 'eslint-plugin-import';
 
 export default [
   {
-    ignores: ['dist', 'node_modules', '.react-router', 'coverage', 'test-results', 'playwright-report']
+    ignores: [
+      'dist',
+      'node_modules',
+      '.react-router',
+      'coverage',
+      'test-results',
+      'playwright-report',
+    ],
   },
   {
     files: ['**/*.{ts,tsx}'],
@@ -18,9 +25,9 @@ export default [
       parser: tsParser,
       parserOptions: {
         ecmaFeatures: {
-          jsx: true
+          jsx: true,
         },
-        project: './tsconfig.json'
+        project: './tsconfig.json',
       },
       globals: {
         console: 'readonly',
@@ -37,53 +44,56 @@ export default [
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         setInterval: 'readonly',
-        clearInterval: 'readonly'
-      }
+        clearInterval: 'readonly',
+      },
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'react': reactPlugin,
+      react: reactPlugin,
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y,
-      'import': importPlugin
+      import: importPlugin,
     },
     rules: {
       // Base JavaScript rules
       ...js.configs.recommended.rules,
-      
+
       // TypeScript rules
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        ignoreRestSiblings: true,
-        args: 'after-used'
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          args: 'after-used',
+        },
+      ],
       'no-unused-vars': 'off', // Turn off base rule as it conflicts with TypeScript rule
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
-      
+
       // React rules
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
       'react/prop-types': 'off', // We use TypeScript for type checking
-      
+
       // React Hooks rules
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      
+
       // General rules
       'prefer-const': 'error',
       'no-var': 'error',
-      'no-console': 'warn'
+      'no-console': 'warn',
     },
     settings: {
       react: {
-        version: 'detect'
+        version: 'detect',
       },
       'import/resolver': {
-        typescript: {}
-      }
-    }
+        typescript: {},
+      },
+    },
   },
   {
     files: ['**/*.{js,jsx}'],
@@ -105,37 +115,37 @@ export default [
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         setInterval: 'readonly',
-        clearInterval: 'readonly'
-      }
+        clearInterval: 'readonly',
+      },
     },
     plugins: {
-      'react': reactPlugin,
+      react: reactPlugin,
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y,
-      'import': importPlugin
+      import: importPlugin,
     },
     rules: {
       // Base JavaScript rules
       ...js.configs.recommended.rules,
-      
+
       // React rules
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      
+
       // React Hooks rules
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      
+
       // General rules
       'prefer-const': 'error',
       'no-var': 'error',
-      'no-console': 'warn'
+      'no-console': 'warn',
     },
     settings: {
       react: {
-        version: 'detect'
-      }
-    }
+        version: 'detect',
+      },
+    },
   },
   {
     files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
@@ -150,12 +160,12 @@ export default [
         beforeAll: 'readonly',
         afterAll: 'readonly',
         vi: 'readonly',
-        vitest: 'readonly'
-      }
+        vitest: 'readonly',
+      },
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-      'no-console': 'off'
-    }
-  }
-]; 
+      'no-console': 'off',
+    },
+  },
+];

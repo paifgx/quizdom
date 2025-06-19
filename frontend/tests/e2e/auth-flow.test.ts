@@ -29,8 +29,6 @@ test.describe('Authentication Flow', () => {
   });
 
   test('user sees error message for invalid credentials', async ({ page }) => {
-    const auth = new AuthHelper(page);
-
     await page.goto('/login');
 
     // Try to login with invalid credentials
@@ -45,7 +43,9 @@ test.describe('Authentication Flow', () => {
     expect(page.url()).toContain('/login');
   });
 
-  test('protected routes redirect to login when not authenticated', async ({ page }) => {
+  test('protected routes redirect to login when not authenticated', async ({
+    page,
+  }) => {
     // Try to access a protected route without being logged in
     await page.goto('/profile');
 
@@ -53,7 +53,9 @@ test.describe('Authentication Flow', () => {
     await expect(page.url()).toContain('/login');
 
     // Should see login form
-    await expect(page.getByRole('button', { name: /login|anmelden/i })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /login|anmelden/i })
+    ).toBeVisible();
   });
 
   test('user can access protected routes after login', async ({ page }) => {
@@ -69,4 +71,4 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByText(/profile|profil/i)).toBeVisible();
     expect(page.url()).toContain('/profile');
   });
-}); 
+});

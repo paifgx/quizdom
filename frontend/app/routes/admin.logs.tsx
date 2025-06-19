@@ -4,7 +4,10 @@ import { ProtectedRoute } from '../components/auth/protected-route';
 export function meta() {
   return [
     { title: 'System Logs | Quizdom Admin' },
-    { name: 'description', content: 'Überwachen Sie Systemaktivitäten und Logs.' },
+    {
+      name: 'description',
+      content: 'Überwachen Sie Systemaktivitäten und Logs.',
+    },
   ];
 }
 
@@ -85,10 +88,13 @@ export default function AdminLogsPage() {
 
   const filteredLogs = sampleLogs.filter(log => {
     const matchesLevel = selectedLevel === 'all' || log.level === selectedLevel;
-    const matchesCategory = selectedCategory === 'all' || log.category === selectedCategory;
-    const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (log.details && log.details.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+    const matchesCategory =
+      selectedCategory === 'all' || log.category === selectedCategory;
+    const matchesSearch =
+      log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (log.details &&
+        log.details.toLowerCase().includes(searchTerm.toLowerCase()));
+
     return matchesLevel && matchesCategory && matchesSearch;
   });
 
@@ -148,7 +154,7 @@ export default function AdminLogsPage() {
     const errors = sampleLogs.filter(log => log.level === 'error').length;
     const warnings = sampleLogs.filter(log => log.level === 'warning').length;
     const info = sampleLogs.filter(log => log.level === 'info').length;
-    
+
     return { total, errors, warnings, info };
   };
 
@@ -157,253 +163,298 @@ export default function AdminLogsPage() {
   return (
     <ProtectedRoute requireAdmin={true}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
-                System Logs
-              </h1>
-              <p className="text-gray-300 text-lg">
-                Überwachen Sie Systemaktivitäten, Fehler und Sicherheitsereignisse.
-              </p>
-            </div>
-            <div className="flex space-x-4">
-              <button className="btn-gradient px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                <img src="/buttons/Filter.png" alt="Export" className="inline h-5 w-5 mr-2" />
-                Export Logs
-              </button>
-              <button className="bg-gray-700 text-gray-300 px-6 py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors duration-200">
-                <img src="/buttons/Delete.png" alt="Clear" className="inline h-5 w-5 mr-2" />
-                Logs löschen
-              </button>
-            </div>
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
+              System Logs
+            </h1>
+            <p className="text-gray-300 text-lg">
+              Überwachen Sie Systemaktivitäten, Fehler und
+              Sicherheitsereignisse.
+            </p>
           </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-300 text-sm font-medium">Gesamt Logs</p>
-                  <p className="text-3xl font-bold text-[#FCC822]">{stats.total}</p>
-                  <p className="text-gray-400 text-sm">Letzte 24h</p>
-                </div>
-                <div className="p-3 bg-[#FCC822] bg-opacity-20 rounded-lg">
-                  <img src="/buttons/Filter.png" alt="Total" className="h-8 w-8" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-300 text-sm font-medium">Fehler</p>
-                  <p className="text-3xl font-bold text-red-400">{stats.errors}</p>
-                  <p className="text-gray-400 text-sm">Kritische Ereignisse</p>
-                </div>
-                <div className="p-3 bg-red-500 bg-opacity-20 rounded-lg">
-                  <img src="/buttons/Close.png" alt="Errors" className="h-8 w-8" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-300 text-sm font-medium">Warnungen</p>
-                  <p className="text-3xl font-bold text-yellow-400">{stats.warnings}</p>
-                  <p className="text-gray-400 text-sm">Benötigen Aufmerksamkeit</p>
-                </div>
-                <div className="p-3 bg-yellow-500 bg-opacity-20 rounded-lg">
-                  <img src="/buttons/Filter.png" alt="Warnings" className="h-8 w-8" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-300 text-sm font-medium">Informationen</p>
-                  <p className="text-3xl font-bold text-blue-400">{stats.info}</p>
-                  <p className="text-gray-400 text-sm">Normale Aktivitäten</p>
-                </div>
-                <div className="p-3 bg-blue-500 bg-opacity-20 rounded-lg">
-                  <img src="/buttons/Accept.png" alt="Info" className="h-8 w-8" />
-                </div>
-              </div>
-            </div>
+          <div className="flex space-x-4">
+            <button className="btn-gradient px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105">
+              <img
+                src="/buttons/Filter.png"
+                alt="Export"
+                className="inline h-5 w-5 mr-2"
+              />
+              Export Logs
+            </button>
+            <button className="bg-gray-700 text-gray-300 px-6 py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors duration-200">
+              <img
+                src="/buttons/Delete.png"
+                alt="Clear"
+                className="inline h-5 w-5 mr-2"
+              />
+              Logs löschen
+            </button>
           </div>
+        </div>
 
-          {/* Filters */}
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 mb-8 border border-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="md:col-span-2">
-                <label htmlFor="search" className="block text-gray-300 font-medium mb-2">
-                  Suchen
-                </label>
-                <input
-                  type="text"
-                  id="search"
-                  placeholder="Log-Nachricht oder Details suchen..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-300 text-sm font-medium">Gesamt Logs</p>
+                <p className="text-3xl font-bold text-[#FCC822]">
+                  {stats.total}
+                </p>
+                <p className="text-gray-400 text-sm">Letzte 24h</p>
+              </div>
+              <div className="p-3 bg-[#FCC822] bg-opacity-20 rounded-lg">
+                <img
+                  src="/buttons/Filter.png"
+                  alt="Total"
+                  className="h-8 w-8"
                 />
               </div>
+            </div>
+          </div>
 
+          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between">
               <div>
-                <label htmlFor="level" className="block text-gray-300 font-medium mb-2">
-                  Log-Level
-                </label>
-                <select
-                  id="level"
-                  value={selectedLevel}
-                  onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-                >
-                  <option value="all">Alle Level</option>
-                  <option value="error">Fehler</option>
-                  <option value="warning">Warnung</option>
-                  <option value="info">Information</option>
-                  <option value="debug">Debug</option>
-                </select>
+                <p className="text-gray-300 text-sm font-medium">Fehler</p>
+                <p className="text-3xl font-bold text-red-400">
+                  {stats.errors}
+                </p>
+                <p className="text-gray-400 text-sm">Kritische Ereignisse</p>
               </div>
-
-              <div>
-                <label htmlFor="category" className="block text-gray-300 font-medium mb-2">
-                  Kategorie
-                </label>
-                <select
-                  id="category"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-                >
-                  <option value="all">Alle Kategorien</option>
-                  <option value="user">Benutzer</option>
-                  <option value="quiz">Quiz</option>
-                  <option value="system">System</option>
-                  <option value="security">Sicherheit</option>
-                  <option value="performance">Performance</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="dateRange" className="block text-gray-300 font-medium mb-2">
-                  Zeitraum
-                </label>
-                <select
-                  id="dateRange"
-                  value={dateRange}
-                  onChange={(e) => setDateRange(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-                >
-                  <option value="today">Heute</option>
-                  <option value="week">Letzte Woche</option>
-                  <option value="month">Letzter Monat</option>
-                  <option value="all">Alle</option>
-                </select>
+              <div className="p-3 bg-red-500 bg-opacity-20 rounded-lg">
+                <img
+                  src="/buttons/Close.png"
+                  alt="Errors"
+                  className="h-8 w-8"
+                />
               </div>
             </div>
           </div>
 
-          {/* Logs List */}
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl border border-gray-700 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-700">
-              <h2 className="text-xl font-bold text-[#FCC822]">
-                Log-Einträge ({filteredLogs.length})
-              </h2>
-            </div>
-
-            <div className="divide-y divide-gray-700">
-              {filteredLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="p-6 hover:bg-gray-700 hover:bg-opacity-30 transition-colors duration-200"
-                >
-                  <div className="flex items-start space-x-4">
-                    {/* Level Icon */}
-                    <div className="flex-shrink-0">
-                      <img
-                        src={getLevelIcon(log.level)}
-                        alt={log.level}
-                        className="h-6 w-6"
-                      />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getLevelColor(log.level)}`}>
-                          {log.level.toUpperCase()}
-                        </span>
-                        <span className="px-3 py-1 bg-[#FCC822] bg-opacity-20 text-[#FCC822] rounded-full text-xs font-medium">
-                          {log.category.toUpperCase()}
-                        </span>
-                        <span className="text-gray-400 text-xs">
-                          {formatTimestamp(log.timestamp)}
-                        </span>
-                      </div>
-
-                      <h3 className="text-white font-medium text-lg mb-2">
-                        {log.message}
-                      </h3>
-
-                      {log.details && (
-                        <div className="mb-3">
-                          <p className="text-gray-300 text-sm bg-gray-700 bg-opacity-50 p-3 rounded-lg font-mono">
-                            {log.details}
-                          </p>
-                        </div>
-                      )}
-
-                      <div className="flex items-center space-x-4 text-xs text-gray-400">
-                        {log.userId && (
-                          <span>User ID: {log.userId}</span>
-                        )}
-                        {log.ipAddress && (
-                          <span>IP: {log.ipAddress}</span>
-                        )}
-                        <span>ID: {log.id}</span>
-                      </div>
-                    </div>
-
-                    {/* Category Icon */}
-                    <div className="flex-shrink-0">
-                      <img
-                        src={getCategoryIcon(log.category)}
-                        alt={log.category}
-                        className="h-6 w-6 opacity-60"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredLogs.length === 0 && (
-              <div className="p-12 text-center">
-                <img src="/buttons/Filter.png" alt="No logs" className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <p className="text-gray-400 text-lg">
-                  Keine Log-Einträge gefunden.
+          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-300 text-sm font-medium">Warnungen</p>
+                <p className="text-3xl font-bold text-yellow-400">
+                  {stats.warnings}
                 </p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Ändern Sie Ihre Filterkriterien oder erweitern Sie den Zeitraum.
+                <p className="text-gray-400 text-sm">
+                  Benötigen Aufmerksamkeit
                 </p>
               </div>
-            )}
+              <div className="p-3 bg-yellow-500 bg-opacity-20 rounded-lg">
+                <img
+                  src="/buttons/Filter.png"
+                  alt="Warnings"
+                  className="h-8 w-8"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Auto-refresh indicator */}
-          <div className="mt-6 flex justify-center">
-            <div className="flex items-center space-x-2 bg-gray-800 bg-opacity-50 px-4 py-2 rounded-lg">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-gray-300 text-sm">
-                Automatische Aktualisierung alle 30 Sekunden
-              </span>
+          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-300 text-sm font-medium">
+                  Informationen
+                </p>
+                <p className="text-3xl font-bold text-blue-400">{stats.info}</p>
+                <p className="text-gray-400 text-sm">Normale Aktivitäten</p>
+              </div>
+              <div className="p-3 bg-blue-500 bg-opacity-20 rounded-lg">
+                <img src="/buttons/Accept.png" alt="Info" className="h-8 w-8" />
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Filters */}
+        <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 mb-8 border border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="md:col-span-2">
+              <label
+                htmlFor="search"
+                className="block text-gray-300 font-medium mb-2"
+              >
+                Suchen
+              </label>
+              <input
+                type="text"
+                id="search"
+                placeholder="Log-Nachricht oder Details suchen..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="level"
+                className="block text-gray-300 font-medium mb-2"
+              >
+                Log-Level
+              </label>
+              <select
+                id="level"
+                value={selectedLevel}
+                onChange={e => setSelectedLevel(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+              >
+                <option value="all">Alle Level</option>
+                <option value="error">Fehler</option>
+                <option value="warning">Warnung</option>
+                <option value="info">Information</option>
+                <option value="debug">Debug</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="category"
+                className="block text-gray-300 font-medium mb-2"
+              >
+                Kategorie
+              </label>
+              <select
+                id="category"
+                value={selectedCategory}
+                onChange={e => setSelectedCategory(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+              >
+                <option value="all">Alle Kategorien</option>
+                <option value="user">Benutzer</option>
+                <option value="quiz">Quiz</option>
+                <option value="system">System</option>
+                <option value="security">Sicherheit</option>
+                <option value="performance">Performance</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="dateRange"
+                className="block text-gray-300 font-medium mb-2"
+              >
+                Zeitraum
+              </label>
+              <select
+                id="dateRange"
+                value={dateRange}
+                onChange={e => setDateRange(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+              >
+                <option value="today">Heute</option>
+                <option value="week">Letzte Woche</option>
+                <option value="month">Letzter Monat</option>
+                <option value="all">Alle</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Logs List */}
+        <div className="bg-gray-800 bg-opacity-50 rounded-xl border border-gray-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-700">
+            <h2 className="text-xl font-bold text-[#FCC822]">
+              Log-Einträge ({filteredLogs.length})
+            </h2>
+          </div>
+
+          <div className="divide-y divide-gray-700">
+            {filteredLogs.map(log => (
+              <div
+                key={log.id}
+                className="p-6 hover:bg-gray-700 hover:bg-opacity-30 transition-colors duration-200"
+              >
+                <div className="flex items-start space-x-4">
+                  {/* Level Icon */}
+                  <div className="flex-shrink-0">
+                    <img
+                      src={getLevelIcon(log.level)}
+                      alt={log.level}
+                      className="h-6 w-6"
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium border ${getLevelColor(log.level)}`}
+                      >
+                        {log.level.toUpperCase()}
+                      </span>
+                      <span className="px-3 py-1 bg-[#FCC822] bg-opacity-20 text-[#FCC822] rounded-full text-xs font-medium">
+                        {log.category.toUpperCase()}
+                      </span>
+                      <span className="text-gray-400 text-xs">
+                        {formatTimestamp(log.timestamp)}
+                      </span>
+                    </div>
+
+                    <h3 className="text-white font-medium text-lg mb-2">
+                      {log.message}
+                    </h3>
+
+                    {log.details && (
+                      <div className="mb-3">
+                        <p className="text-gray-300 text-sm bg-gray-700 bg-opacity-50 p-3 rounded-lg font-mono">
+                          {log.details}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center space-x-4 text-xs text-gray-400">
+                      {log.userId && <span>User ID: {log.userId}</span>}
+                      {log.ipAddress && <span>IP: {log.ipAddress}</span>}
+                      <span>ID: {log.id}</span>
+                    </div>
+                  </div>
+
+                  {/* Category Icon */}
+                  <div className="flex-shrink-0">
+                    <img
+                      src={getCategoryIcon(log.category)}
+                      alt={log.category}
+                      className="h-6 w-6 opacity-60"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {filteredLogs.length === 0 && (
+            <div className="p-12 text-center">
+              <img
+                src="/buttons/Filter.png"
+                alt="No logs"
+                className="h-16 w-16 mx-auto mb-4 opacity-50"
+              />
+              <p className="text-gray-400 text-lg">
+                Keine Log-Einträge gefunden.
+              </p>
+              <p className="text-gray-500 text-sm mt-2">
+                Ändern Sie Ihre Filterkriterien oder erweitern Sie den Zeitraum.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Auto-refresh indicator */}
+        <div className="mt-6 flex justify-center">
+          <div className="flex items-center space-x-2 bg-gray-800 bg-opacity-50 px-4 py-2 rounded-lg">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-gray-300 text-sm">
+              Automatische Aktualisierung alle 30 Sekunden
+            </span>
+          </div>
+        </div>
+      </div>
     </ProtectedRoute>
   );
 }

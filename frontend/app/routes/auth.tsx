@@ -1,14 +1,14 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { Navigate, useLocation } from "react-router";
-import { useAuth } from "../contexts/auth";
-import { useAuthUI } from "../contexts/auth-ui";
-import { useAuthForm } from "../hooks/useAuthForm";
-import { SlidingAuthContainer, LoadingSkeleton } from "../components";
+import React, { useState, useCallback, useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router';
+import { useAuth } from '../contexts/auth';
+import { useAuthUI } from '../contexts/auth-ui';
+import { useAuthForm } from '../hooks/useAuthForm';
+import { SlidingAuthContainer, LoadingSkeleton } from '../components';
 
 export function meta() {
   return [
-    { title: "Authentication | Quizdom" },
-    { name: "description", content: "Login or create your Quizdom account." },
+    { title: 'Authentication | Quizdom' },
+    { name: 'description', content: 'Login or create your Quizdom account.' },
   ];
 }
 
@@ -22,7 +22,7 @@ export default function AuthPage() {
   const location = useLocation();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   const { formState, handleFieldChange, isFormValid, resetForm, getError } =
@@ -32,7 +32,7 @@ export default function AuthPage() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setLoading(true);
-      setError("");
+      setError('');
 
       try {
         if (isSignupMode) {
@@ -54,26 +54,26 @@ export default function AuthPage() {
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
-      setError("Signup functionality coming soon!");
+      setError('Signup functionality coming soon!');
     }, 2000);
   };
 
   const handleAuthError = (isSignup: boolean) => {
     setError(
       isSignup
-        ? "Signup failed. Please try again."
-        : "Login failed. Please check your credentials."
+        ? 'Signup failed. Please try again.'
+        : 'Login failed. Please check your credentials.'
     );
   };
 
   const resetAuthState = () => {
-    setError("");
+    setError('');
     setShowSuccess(false);
   };
 
   // Sync with URL changes
   useEffect(() => {
-    setSignupMode(location.pathname === "/signup");
+    setSignupMode(location.pathname === '/signup');
   }, [location.pathname, setSignupMode]);
 
   // Reset form when mode changes
@@ -111,10 +111,13 @@ export default function AuthPage() {
 /**
  * Determines redirect path based on location state and user role
  */
-function getRedirectPath(location: { state?: { from?: { pathname?: string } } }, user: { role: string }): string {
+function getRedirectPath(
+  location: { state?: { from?: { pathname?: string } } },
+  user: { role: string }
+): string {
   return (
     location.state?.from?.pathname ||
-    (user.role === "admin" ? "/admin/dashboard" : "/")
+    (user.role === 'admin' ? '/admin/dashboard' : '/')
   );
 }
 

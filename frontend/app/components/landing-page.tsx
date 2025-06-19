@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from 'react-router';
 
 interface LandingPageProps {
   // Currently no props needed, but structure is ready for future data
@@ -37,8 +37,8 @@ export function LandingPage(_props: LandingPageProps) {
             Rise of the Wise
           </p>
           <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
-            Tauchen Sie ein in die ultimative Quiz-Erfahrung.
-            Sammeln Sie Wisecoins, verdienen Sie Badges und beweisen Sie Ihr Wissen!
+            Tauchen Sie ein in die ultimative Quiz-Erfahrung. Sammeln Sie
+            Wisecoins, verdienen Sie Badges und beweisen Sie Ihr Wissen!
           </p>
 
           {/* CTA Button */}
@@ -53,29 +53,49 @@ export function LandingPage(_props: LandingPageProps) {
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-6 bg-gray-800 bg-opacity-30 rounded-xl backdrop-blur-sm">
               <div className="mb-4">
-                <img src="/wisecoin/wisecoin.png" alt="Wisecoins" className="h-12 w-12 mx-auto" />
+                <img
+                  src="/wisecoin/wisecoin.png"
+                  alt="Wisecoins"
+                  className="h-12 w-12 mx-auto"
+                />
               </div>
-              <h3 className="text-[#FCC822] text-lg font-bold mb-2">Wisecoins sammeln</h3>
+              <h3 className="text-[#FCC822] text-lg font-bold mb-2">
+                Wisecoins sammeln
+              </h3>
               <p className="text-gray-300 text-sm">
-                Verdienen Sie Wisecoins für richtige Antworten und kaufen Sie Power-Ups.
+                Verdienen Sie Wisecoins für richtige Antworten und kaufen Sie
+                Power-Ups.
               </p>
             </div>
 
             <div className="p-6 bg-gray-800 bg-opacity-30 rounded-xl backdrop-blur-sm">
               <div className="mb-4">
-                <img src="/badges/badge_book_1.png" alt="Badges" className="h-12 w-12 mx-auto" />
+                <img
+                  src="/badges/badge_book_1.png"
+                  alt="Badges"
+                  className="h-12 w-12 mx-auto"
+                />
               </div>
-              <h3 className="text-[#FCC822] text-lg font-bold mb-2">Badges verdienen</h3>
+              <h3 className="text-[#FCC822] text-lg font-bold mb-2">
+                Badges verdienen
+              </h3>
               <p className="text-gray-300 text-sm">
-                Schalten Sie einzigartige Achievements frei und zeigen Sie Ihre Erfolge.
+                Schalten Sie einzigartige Achievements frei und zeigen Sie Ihre
+                Erfolge.
               </p>
             </div>
 
             <div className="p-6 bg-gray-800 bg-opacity-30 rounded-xl backdrop-blur-sm">
               <div className="mb-4">
-                <img src="/playmodi/competitive.png" alt="Multiplayer" className="h-12 w-12 mx-auto" />
+                <img
+                  src="/playmodi/competitive.png"
+                  alt="Multiplayer"
+                  className="h-12 w-12 mx-auto"
+                />
               </div>
-              <h3 className="text-[#FCC822] text-lg font-bold mb-2">Verschiedene Modi</h3>
+              <h3 className="text-[#FCC822] text-lg font-bold mb-2">
+                Verschiedene Modi
+              </h3>
               <p className="text-gray-300 text-sm">
                 Spielen Sie Solo, gegen Freunde oder in spannenden Turnieren.
               </p>
@@ -85,4 +105,4 @@ export function LandingPage(_props: LandingPageProps) {
       </div>
     </div>
   );
-} 
+}

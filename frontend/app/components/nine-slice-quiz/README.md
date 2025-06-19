@@ -5,6 +5,7 @@ Reusable React components for creating pixel-art styled quiz interfaces using 9-
 ## Components
 
 ### `NineSlicePanel`
+
 Base component that renders a 9-slice scaled panel with pixel-art styling using Tailwind classes.
 
 ```tsx
@@ -12,22 +13,24 @@ import { NineSlicePanel } from '~/app/components/nine-slice-quiz';
 
 <NineSlicePanel onClick={() => console.log('clicked')}>
   <p>Your content here</p>
-</NineSlicePanel>
+</NineSlicePanel>;
 ```
 
 ### `QuizQuestion`
+
 Specialized component for displaying quiz questions with optimized styling.
 
 ```tsx
 import { QuizQuestion } from '~/app/components/nine-slice-quiz';
 
-<QuizQuestion 
+<QuizQuestion
   question="What is the capital of France?"
   onQuestionClick={() => console.log('Question clicked')}
-/>
+/>;
 ```
 
 ### `QuizButton`
+
 Interactive button component for quiz answers with hover and selection states.
 
 ```tsx
@@ -38,10 +41,11 @@ import { QuizButton } from '~/app/components/nine-slice-quiz';
   onClick={() => handleAnswer('paris')}
   selected={selectedAnswer === 'paris'}
   disabled={isQuizComplete}
-/>
+/>;
 ```
 
 ### `QuizContainer`
+
 Main container that orchestrates the entire quiz interface with responsive grid.
 
 ```tsx
@@ -49,21 +53,21 @@ import { QuizContainer } from '~/app/components/nine-slice-quiz';
 import type { QuizData } from '~/app/components/nine-slice-quiz';
 
 const quizData: QuizData = {
-  question: "What is the capital of France?",
+  question: 'What is the capital of France?',
   answers: [
-    { id: "paris", text: "Paris" },
-    { id: "london", text: "London" },
-    { id: "berlin", text: "Berlin" },
-    { id: "madrid", text: "Madrid" }
-  ]
+    { id: 'paris', text: 'Paris' },
+    { id: 'london', text: 'London' },
+    { id: 'berlin', text: 'Berlin' },
+    { id: 'madrid', text: 'Madrid' },
+  ],
 };
 
 <QuizContainer
   quizData={quizData}
   selectedAnswer={selectedAnswer}
-  onAnswerSelect={(answerId) => setSelectedAnswer(answerId)}
+  onAnswerSelect={answerId => setSelectedAnswer(answerId)}
   onQuestionClick={() => console.log('Question clicked')}
-/>
+/>;
 ```
 
 ## Styling
@@ -84,11 +88,11 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'pixel': ['Press Start 2P', 'monospace'],
-      }
-    }
-  }
-}
+        pixel: ['Press Start 2P', 'monospace'],
+      },
+    },
+  },
+};
 ```
 
 ## Features
@@ -122,4 +126,4 @@ The components have been converted from custom CSS to Tailwind:
 - **No CSS imports needed**: All styling is handled via Tailwind classes
 - **Same visual appearance**: Maintains the exact pixel-art aesthetic
 - **Better maintainability**: Easier to customize and extend
-- **Smaller bundle**: No separate CSS file to load 
+- **Smaller bundle**: No separate CSS file to load

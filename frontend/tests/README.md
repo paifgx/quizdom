@@ -15,6 +15,7 @@ tests/
 ## Test Types
 
 ### Unit Tests (`unit/`)
+
 - **Purpose**: Test individual components, functions, or modules in isolation
 - **Scope**: Single component or utility function
 - **Mocking**: Heavy use of mocks for dependencies
@@ -22,6 +23,7 @@ tests/
 - **Examples**: Component rendering, utility functions, hooks
 
 ### Integration Tests (`integration/`)
+
 - **Purpose**: Test how multiple components work together
 - **Scope**: Multiple components or modules interacting
 - **Mocking**: Minimal mocking, real implementations where possible
@@ -29,6 +31,7 @@ tests/
 - **Examples**: Form submission flows, API integration, context providers
 
 ### End-to-End Tests (`e2e/`)
+
 - **Purpose**: Test complete user workflows in a real browser environment using Playwright
 - **Scope**: Full application features from user perspective
 - **Mocking**: No mocking of frontend code, may mock external APIs
@@ -64,6 +67,7 @@ pnpm test:coverage
 ## Best Practices
 
 ### Unit Tests
+
 - Focus on public API of components/functions
 - Use descriptive test names that explain the expected behavior
 - Group related tests using `describe` blocks
@@ -71,12 +75,14 @@ pnpm test:coverage
 - Test both happy path and error scenarios
 
 ### Integration Tests
+
 - Test realistic user interactions
 - Verify data flow between components
 - Test form validation and submission
 - Verify context providers work correctly with consumers
 
 ### E2E Tests (Playwright)
+
 - Write from the user's perspective
 - Focus on critical user journeys
 - Keep tests independent and idempotent
@@ -101,4 +107,4 @@ When moving tests from co-located (next to components) to this centralized struc
 2. **Integration tests**: Move to `tests/integration/`
 3. **E2E tests**: Move to `tests/e2e/`
 
-Update import paths to reflect the new location relative to the source code. 
+Update import paths to reflect the new location relative to the source code.

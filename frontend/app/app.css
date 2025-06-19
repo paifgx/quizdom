@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @font-face {
   font-family: 'Tiny5';
@@ -7,11 +7,13 @@
 }
 
 @theme {
-  --font-sans: "Tiny5", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
-  
-  --color-quizdom-gold: #FCC822;
+  --font-sans:
+    'Tiny5', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
+    'DejaVu Sans Mono', monospace;
+
+  --color-quizdom-gold: #fcc822;
   --color-quizdom-blue: #061421;
-  --color-quizdom-gradient: linear-gradient(135deg, #FFCD2E 0%, #FCC822 100%);
+  --color-quizdom-gradient: linear-gradient(135deg, #ffcd2e 0%, #fcc822 100%);
 }
 
 html,
@@ -49,7 +51,7 @@ body {
 }
 
 .btn-gradient:hover {
-  background: linear-gradient(135deg, #FCC822 0%, #FFCD2E 100%);
+  background: linear-gradient(135deg, #fcc822 0%, #ffcd2e 100%);
   @apply scale-105 transition-all duration-200;
 }
 
@@ -71,7 +73,9 @@ body {
 .mobile-menu-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 200ms, transform 200ms;
+  transition:
+    opacity 200ms,
+    transform 200ms;
 }
 
 .mobile-menu-exit {
@@ -81,7 +85,9 @@ body {
 .mobile-menu-exit-active {
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity 200ms, transform 200ms;
+  transition:
+    opacity 200ms,
+    transform 200ms;
 }
 
 /* Login/Signup Form Animations */

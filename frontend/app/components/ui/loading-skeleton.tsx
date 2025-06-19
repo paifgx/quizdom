@@ -16,4 +16,4 @@ export function LoadingSkeleton() {
       <span className="sr-only">Loading content...</span>
     </div>
   );
-} 
+}

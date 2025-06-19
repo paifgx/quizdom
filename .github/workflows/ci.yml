@@ -15,7 +15,7 @@ jobs:
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -232,7 +232,7 @@ jobs:
         run: |
           python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           sleep 5
-        
+
       - name: Start frontend server
         working-directory: frontend
         run: |
@@ -254,7 +254,7 @@ jobs:
   build-check:
     name: Build Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

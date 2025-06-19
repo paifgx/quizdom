@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export function useReturnMessage() {
   useEffect(() => {
@@ -6,15 +6,15 @@ export function useReturnMessage() {
 
     const onChange = () => {
       if (document.hidden) {
-        document.title = "Ohne dich ist’s still – hüpf zurück!";
+        document.title = 'Ohne dich ist’s still – hüpf zurück!';
       } else {
         document.title = originalTitle;
       }
     };
 
-    document.addEventListener("visibilitychange", onChange);
+    document.addEventListener('visibilitychange', onChange);
     return () => {
-      document.removeEventListener("visibilitychange", onChange);
+      document.removeEventListener('visibilitychange', onChange);
       document.title = originalTitle;
     };
   }, []);

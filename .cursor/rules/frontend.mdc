@@ -1,5 +1,5 @@
 ---
-description: 
+description:
 globs: frontend/**/*
 alwaysApply: false
 ---
@@ -8,7 +8,7 @@ alwaysApply: false
 - Upgrade soon after each stable release, unless a breaking change blocks the project
 
 ## Folder structure
-- `frontend/app/` → app bootstrap: router, providers, ErrorBoundary  
+- `frontend/app/` → app bootstrap: router, providers, ErrorBoundary
 - `frontend/app/pages/` → route components (`*Page.tsx`)
 - `frontend/app/layouts/` → layout wrappers with `<Outlet>`
 - `frontend/app/components/` → shared UI pieces

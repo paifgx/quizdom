@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   isRouteErrorResponse,
   Links,
@@ -6,29 +6,29 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "react-router";
+} from 'react-router';
 
-import type { Route } from "./+types/root";
-import { AuthProvider } from "./contexts/auth";
-import { BackgroundProvider } from "./contexts/background";
-import { useReturnMessage } from "./hooks/useReturnMessage";
-import "./app.css";
+import type { Route } from './+types/root';
+import { AuthProvider } from './contexts/auth';
+import { BackgroundProvider } from './contexts/background';
+import { useReturnMessage } from './hooks/useReturnMessage';
+import './app.css';
 
 export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
+    rel: 'preconnect',
+    href: 'https://fonts.gstatic.com',
+    crossOrigin: 'anonymous',
   },
   {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Tiny5:wght@400&display=swap",
+    rel: 'stylesheet',
+    href: 'https://fonts.googleapis.com/css2?family=Tiny5:wght@400&display=swap',
   },
   {
-    rel: "icon",
-    href: "/logo/favicon.ico",
-  }
+    rel: 'icon',
+    href: '/logo/favicon.ico',
+  },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -62,20 +62,25 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
+  let message = 'Oops!';
+  let details = 'An unexpected error occurred.';
   let stack: string | undefined;
 
   if (
     isRouteErrorResponse(error) ||
-    (error && typeof (error as any).status === 'number')
+    (error && typeof (error as { status?: number }).status === 'number')
   ) {
-    message = (error as any).status === 404 ? "404" : "Error";
+    message = (error as { status: number }).status === 404 ? '404' : 'Error';
     details =
-      (error as any).status === 404
-        ? "The requested page could not be found."
-        : (error as any).statusText || details;
-  } else if ((process.env.NODE_ENV === "development" || (import.meta as any).env?.DEV) && error && error instanceof Error) {
+      (error as { status: number }).status === 404
+        ? 'The requested page could not be found.'
+        : (error as { statusText?: string }).statusText || details;
+  } else if (
+    (process.env.NODE_ENV === 'development' ||
+      (import.meta as { env?: { DEV?: boolean } }).env?.DEV) &&
+    error &&
+    error instanceof Error
+  ) {
     details = error.message;
     stack = error.stack;
   }

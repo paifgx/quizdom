@@ -1,5 +1,5 @@
-import React from "react";
-import { ValidatedInput } from "./validated-input";
+import React from 'react';
+import { ValidatedInput } from './validated-input';
 
 export interface LoginFormProps {
   email: string;
@@ -35,7 +35,7 @@ export function LoginForm({
         placeholder="test@mail.com"
         value={email}
         onChange={onEmailChange}
-        error={getError("email")}
+        error={getError('email')}
         autoComplete="email"
         required
       />
@@ -47,7 +47,7 @@ export function LoginForm({
         placeholder="Your password"
         value={password}
         onChange={onPasswordChange}
-        error={getError("password")}
+        error={getError('password')}
         autoComplete="current-password"
         required
       />

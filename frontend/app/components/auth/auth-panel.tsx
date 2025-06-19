@@ -3,9 +3,18 @@ import { LoginForm } from './login-form';
 import { SignupForm } from './signup-form';
 import { AuthActions } from './auth-actions';
 
+interface FormState {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  rememberMe?: boolean;
+}
+
 export interface AuthPanelProps {
   mode: 'login' | 'signup';
-  formState: Record<string, any>;
+  formState: FormState;
   loading: boolean;
   error: string;
   showSuccess: boolean;
@@ -32,15 +41,18 @@ export function AuthPanel({
 }: AuthPanelProps) {
   const isSignupMode = mode === 'signup';
   const title = isSignupMode ? 'Create Account!' : 'Welcome back!';
-  const subtitle = isSignupMode 
-    ? 'Please fill in your details to signup.' 
+  const subtitle = isSignupMode
+    ? 'Please fill in your details to signup.'
     : 'Please login to your account.';
 
   return (
     <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2" aria-live="polite">
+          <h1
+            className="text-3xl font-bold text-gray-900 mb-2"
+            aria-live="polite"
+          >
             {title}
           </h1>
           <p className="text-gray-600">{subtitle}</p>
@@ -78,15 +90,17 @@ export function AuthPanel({
             />
           ) : (
             <LoginForm
-              email={formState.email}
-              password={formState.password}
-              rememberMe={formState.rememberMe}
+              email={formState.email || ''}
+              password={formState.password || ''}
+              rememberMe={formState.rememberMe || false}
               loading={loading}
               error={error}
               isFormValid={isFormValid}
-              onEmailChange={(value) => onFieldChange('email', value)}
-              onPasswordChange={(value) => onFieldChange('password', value)}
-              onRememberMeChange={(checked) => onFieldChange('rememberMe', checked)}
+              onEmailChange={value => onFieldChange('email', value)}
+              onPasswordChange={value => onFieldChange('password', value)}
+              onRememberMeChange={checked =>
+                onFieldChange('rememberMe', checked)
+              }
               onSubmit={onSubmit}
               getError={getError}
             />
@@ -97,7 +111,7 @@ export function AuthPanel({
             loading={loading}
             isFormValid={isFormValid}
             rememberMe={formState.rememberMe}
-            onRememberMeChange={(checked) => onFieldChange('rememberMe', checked)}
+            onRememberMeChange={checked => onFieldChange('rememberMe', checked)}
           />
         </form>
 
@@ -114,4 +128,4 @@ export function AuthPanel({
       </div>
     </div>
   );
-} 
+}

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react';
 
 interface AuthUIContextType {
   isSignupMode: boolean;
@@ -30,7 +36,7 @@ export function AuthUIProvider({ children }: AuthUIProviderProps) {
     const willAnimate = isSignup !== isSignupMode;
     setShouldAnimate(willAnimate);
     setIsSignupMode(isSignup);
-    
+
     // Store the current mode in sessionStorage for persistence during navigation
     sessionStorage.setItem('auth-ui-mode', isSignup ? 'signup' : 'login');
   };
@@ -51,8 +57,6 @@ export function AuthUIProvider({ children }: AuthUIProviderProps) {
   };
 
   return (
-    <AuthUIContext.Provider value={value}>
-      {children}
-    </AuthUIContext.Provider>
+    <AuthUIContext.Provider value={value}>{children}</AuthUIContext.Provider>
   );
-} 
+}

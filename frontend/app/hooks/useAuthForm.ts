@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
-import { useFormValidation } from "./useFormValidation";
+import { useState, useCallback, useMemo } from 'react';
+import { useFormValidation } from './useFormValidation';
 
 export interface AuthFormState {
   email: string;
@@ -15,11 +15,11 @@ export interface AuthFormState {
  */
 export function useAuthForm(isSignupMode: boolean) {
   const [formState, setFormState] = useState<AuthFormState>({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    firstName: "",
-    lastName: "",
+    email: '',
+    password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: '',
     rememberMe: false,
   });
 
@@ -28,18 +28,18 @@ export function useAuthForm(isSignupMode: boolean) {
 
   const handleFieldChange = useCallback(
     (field: string, value: string | boolean) => {
-      setFormState((prev) => {
+      setFormState(prev => {
         const newState = { ...prev, [field]: value };
 
         // Handle validation with current state values
-        if (typeof value === "string") {
-          if (field === "password" && isSignupMode && prev.confirmPassword) {
-            validateField("confirmPassword", prev.confirmPassword, value);
+        if (typeof value === 'string') {
+          if (field === 'password' && isSignupMode && prev.confirmPassword) {
+            validateField('confirmPassword', prev.confirmPassword, value);
           }
           validateField(
             field as string,
             value,
-            field === "confirmPassword" ? prev.password : undefined
+            field === 'confirmPassword' ? prev.password : undefined
           );
         }
 
@@ -52,15 +52,15 @@ export function useAuthForm(isSignupMode: boolean) {
   const isFormValid = useMemo(() => {
     const { email, password, firstName, lastName, confirmPassword } = formState;
 
-    if (!email || !password || hasError("email") || hasError("password"))
+    if (!email || !password || hasError('email') || hasError('password'))
       return false;
 
     if (isSignupMode) {
       if (!firstName || !lastName || !confirmPassword) return false;
       if (
-        hasError("firstName") ||
-        hasError("lastName") ||
-        hasError("confirmPassword")
+        hasError('firstName') ||
+        hasError('lastName') ||
+        hasError('confirmPassword')
       )
         return false;
     }
@@ -70,11 +70,11 @@ export function useAuthForm(isSignupMode: boolean) {
 
   const resetForm = useCallback(() => {
     setFormState({
-      email: "",
-      password: "",
-      confirmPassword: "",
-      firstName: "",
-      lastName: "",
+      email: '',
+      password: '',
+      confirmPassword: '',
+      firstName: '',
+      lastName: '',
       rememberMe: false,
     });
     clearErrors();

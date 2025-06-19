@@ -6,3 +6,4 @@ pydantic-settings
 pytest
 httpx
 psycopg2-binary
+pre-commit
