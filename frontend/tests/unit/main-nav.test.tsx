@@ -40,7 +40,7 @@ describe('MainNav', () => {
     render(<MainNav />);
 
     expect(screen.getByText('Start')).toBeDefined();
-    expect(screen.getByText('Quizübersicht')).toBeDefined();
+    expect(screen.getByText('Themen')).toBeDefined();
     expect(screen.getByText('Spielmodi')).toBeDefined();
     expect(screen.getByText('Fortschritt')).toBeDefined();
     expect(screen.getByText('Profil')).toBeDefined();
