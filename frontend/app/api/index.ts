@@ -13,11 +13,13 @@ import {
   difficultyNames,
   difficultyNameMap,
   gameModes,
-  gameTopics,
-  homeTopics,
-  topics,
+  getGameTopics,
+  getHomeTopics,
+  getTopics,
+  getTopicDetailData,
   sampleAchievements,
-  topicDetailData,
+  updateMasterTopic,
+  findMasterTopic,
 } from './data';
 import {
   ApiError,
@@ -142,7 +144,7 @@ export async function fetchGameTopics(): Promise<GameTopic[]> {
   if (cached) return cached;
 
   await simulateDelay();
-  const result = [...gameTopics];
+  const result = getGameTopics();
   cacheUtils.set(cacheKey, result);
   return result;
 }
@@ -151,13 +153,15 @@ export async function fetchGameTopics(): Promise<GameTopic[]> {
  * Fetches simplified topics for home page dashboard.
  * @returns Promise resolving to array of home topics
  */
-export async function fetchHomeTopics(): Promise<typeof homeTopics> {
+export async function fetchHomeTopics(): Promise<
+  ReturnType<typeof getHomeTopics>
+> {
   const cacheKey = 'home-topics';
-  const cached = cacheUtils.get<typeof homeTopics>(cacheKey);
+  const cached = cacheUtils.get<ReturnType<typeof getHomeTopics>>(cacheKey);
   if (cached) return cached;
 
   await simulateDelay();
-  const result = [...homeTopics];
+  const result = getHomeTopics();
   cacheUtils.set(cacheKey, result);
   return result;
 }
@@ -172,7 +176,7 @@ export async function fetchTopics(): Promise<Topic[]> {
   if (cached) return cached;
 
   await simulateDelay();
-  const result = [...topics];
+  const result = getTopics();
   cacheUtils.set(cacheKey, result);
   return result;
 }
@@ -193,6 +197,7 @@ export async function fetchTopicById(topicId: string): Promise<Topic | null> {
   if (cached !== null) return cached;
 
   await simulateDelay();
+  const topics = getTopics();
   const result = topics.find(topic => topic.id === topicId) || null;
   cacheUtils.set(cacheKey, result);
   return result;
@@ -219,18 +224,31 @@ export async function updateTopicFavorite(
 
   await simulateDelay();
 
-  const topicIndex = topics.findIndex(topic => topic.id === topicId);
-  if (topicIndex === -1) {
+  // Update the master data source
+  const updatedMasterTopic = updateMasterTopic(topicId, { isFavorite });
+  if (!updatedMasterTopic) {
     throw createNotFoundError('Topic', topicId);
   }
-
-  topics[topicIndex] = { ...topics[topicIndex], isFavorite };
 
   // Invalidate related caches
   cacheUtils.invalidate('topics');
   cacheUtils.invalidate(`topic-${topicId}`);
 
-  return topics[topicIndex];
+  // Return the updated topic in the Topic interface format
+  return {
+    id: updatedMasterTopic.id,
+    title: updatedMasterTopic.title,
+    description: updatedMasterTopic.description,
+    category: updatedMasterTopic.category,
+    totalQuestions: updatedMasterTopic.totalQuestions,
+    completedQuestions: updatedMasterTopic.completedQuestions,
+    image: updatedMasterTopic.image,
+    stars: updatedMasterTopic.stars,
+    popularity: updatedMasterTopic.popularity,
+    wisecoinReward: updatedMasterTopic.wisecoinReward,
+    isCompleted: updatedMasterTopic.isCompleted,
+    isFavorite: updatedMasterTopic.isFavorite,
+  };
 }
 
 // ============================================================================
@@ -257,6 +275,7 @@ export async function fetchTopicDetailData(
   await simulateDelay();
 
   // Return specific topic data or default to IT Project Management
+  const topicDetailData = getTopicDetailData();
   const result =
     topicDetailData[topicId] || topicDetailData['it-project-management'];
   cacheUtils.set(cacheKey, result);
@@ -285,19 +304,32 @@ export async function updateTopicDetailFavorite(
 
   await simulateDelay();
 
-  const currentData =
-    topicDetailData[topicId] || topicDetailData['it-project-management'];
-  const updatedData = { ...currentData, isFavorite };
+  // Update the master data source
+  const updatedMasterTopic = updateMasterTopic(topicId, { isFavorite });
 
-  // Update the data store
-  topicDetailData[topicId] = updatedData;
+  // If topic doesn't exist, use default fallback
+  const masterTopic =
+    updatedMasterTopic || findMasterTopic('it-project-management')!;
 
   // Invalidate related caches
   cacheUtils.invalidate(`topic-detail-${topicId}`);
   cacheUtils.invalidate('topics');
   cacheUtils.invalidate(`topic-${topicId}`);
 
-  return updatedData;
+  // Return the updated topic in TopicDetailData format
+  return {
+    id: masterTopic.id,
+    title: masterTopic.title,
+    description: masterTopic.description,
+    image: masterTopic.image,
+    totalQuestions: masterTopic.totalQuestions,
+    completedQuestions: masterTopic.completedQuestions,
+    bookmarkedQuestions: masterTopic.bookmarkedQuestions || 0,
+    stars: masterTopic.stars,
+    questions: masterTopic.questions || [],
+    isFavorite: masterTopic.isFavorite,
+    wisecoinReward: masterTopic.wisecoinReward,
+  };
 }
 
 // ============================================================================
@@ -362,7 +394,7 @@ export async function fetchInitialData(): Promise<{
   difficultyNames: DifficultyLevel[];
   gameModes: GameMode[];
   gameTopics: GameTopic[];
-  homeTopics: typeof homeTopics;
+  homeTopics: ReturnType<typeof getHomeTopics>;
   topics: Topic[];
   achievements: Achievement[];
 }> {

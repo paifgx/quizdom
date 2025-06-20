@@ -80,171 +80,301 @@ export const gameModes: GameMode[] = [
 ];
 
 // ============================================================================
-// TOPICS DATA
+// COMPREHENSIVE TOPICS DATA - SINGLE SOURCE OF TRUTH
 // ============================================================================
 
 /**
- * Game topics used in game mode selection.
+ * Comprehensive topic data structure serving as single source of truth.
+ * All other topic arrays are derived from this base data.
  */
-export const gameTopics: GameTopic[] = [
-  {
-    id: 'it-projectmanagement',
-    title: 'IT-Projektmanagement',
-    totalQuestions: 150,
-    image: '/topics/it-project-management.png',
-    description:
-      'Umfassende Fragen zum IT-Projektmanagement, Methodologien und bewährten Praktiken.',
-  },
-  {
-    id: 'math',
-    title: 'Mathematik',
-    totalQuestions: 100,
-    image: '/topics/math.png',
-    description:
-      'Mathematische Grundlagen und fortgeschrittene Konzepte für alle Lernstufen.',
-  },
-  {
-    id: 'physics',
-    title: 'Physik',
-    totalQuestions: 120,
-    image: '/topics/physics.png',
-    description: 'Physik-Grundlagen - von Mechanik bis Quantenphysik.',
-  },
-  {
-    id: 'world-history',
-    title: 'Weltgeschichte',
-    totalQuestions: 200,
-    image: '/topics/history.png',
-    description: 'Wichtige Ereignisse und Persönlichkeiten der Weltgeschichte.',
-  },
-  {
-    id: 'geography',
-    title: 'Geographie',
-    totalQuestions: 80,
-    image: '/topics/geography.png',
-    description: 'Länder, Hauptstädte, Flüsse und geographische Merkmale.',
-  },
-  {
-    id: 'art-culture',
-    title: 'Kunst & Kultur',
-    totalQuestions: 90,
-    image: '/topics/art.png',
-    description:
-      'Meisterwerke der Kunstgeschichte und kulturelle Entwicklungen.',
-  },
-];
+interface ComprehensiveTopic {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  totalQuestions: number;
+  completedQuestions: number;
+  bookmarkedQuestions?: number;
+  image: string;
+  stars: number;
+  popularity: number;
+  wisecoinReward: number;
+  isCompleted: boolean;
+  isFavorite: boolean;
+  showOnHome?: boolean;
+  questions?: Array<{
+    id: string;
+    number: number;
+    isBookmarked: boolean;
+    isCompleted: boolean;
+    difficulty: 'easy' | 'medium' | 'hard';
+  }>;
+}
 
 /**
- * Home page topics for dashboard display.
+ * Master topics data - single source of truth for all topic information.
  */
-export const homeTopics = [
-  {
-    id: 'it-project-management',
-    title: 'IT-Projektmanagement',
-    image: '/topics/it-project-management.png',
-    description: 'Projektmanagement in der IT-Welt und bewährte Praktiken.',
-  },
-  {
-    id: 'math',
-    title: 'Mathematik',
-    image: '/topics/math.png',
-    description:
-      'Mathematische Grundlagen und fortgeschrittene Konzepte für alle Lernstufen.',
-  },
-];
-
-/**
- * Full topics data for topics page with complete metadata.
- */
-export const topics: Topic[] = [
+const masterTopics: ComprehensiveTopic[] = [
   {
     id: 'it-project-management',
     title: 'IT-Projektmanagement',
     description:
-      'Umfassende Fragen zum IT-Projektmanagement, Methodologien und bewährten Praktiken.',
+      'Umfassende Fragen zum IT-Projektmanagement, Methodologien und bewährten Praktiken. Lerne über agile, waterfall und hybride Ansätze.',
     category: 'Technologie',
     totalQuestions: 150,
     completedQuestions: 10,
+    bookmarkedQuestions: 2,
     image: '/topics/it-project-management.png',
-    stars: 2, // Medium difficulty
+    stars: 2,
     popularity: 85,
     wisecoinReward: 200,
     isCompleted: false,
     isFavorite: true,
+    showOnHome: true,
+    questions: [
+      {
+        id: '1',
+        number: 1,
+        isBookmarked: true,
+        isCompleted: true,
+        difficulty: 'easy',
+      },
+      {
+        id: '2',
+        number: 2,
+        isBookmarked: true,
+        isCompleted: false,
+        difficulty: 'medium',
+      },
+      {
+        id: '3',
+        number: 3,
+        isBookmarked: false,
+        isCompleted: false,
+        difficulty: 'hard',
+      },
+    ],
   },
   {
     id: 'mathematics',
     title: 'Mathematik',
     description:
-      'Mathematische Grundlagen und fortgeschrittene Konzepte für alle Lernstufen.',
+      'Mathematische Grundlagen und fortgeschrittene Konzepte für alle Lernstufen. Von grundlegender Arithmetik bis zu komplexer Analysis.',
     category: 'Mathematik',
     totalQuestions: 100,
     completedQuestions: 0,
+    bookmarkedQuestions: 0,
     image: '/topics/math.png',
-    stars: 4, // Hard difficulty
+    stars: 4,
     popularity: 92,
     wisecoinReward: 250,
     isCompleted: false,
     isFavorite: false,
+    showOnHome: true,
+    questions: [],
   },
   {
     id: 'physics',
     title: 'Physik',
-    description: 'Physik-Grundlagen - von Mechanik bis Quantenphysik.',
+    description:
+      'Erkunde die fundamentalen Gesetze der Natur durch interaktive Fragen über Mechanik, Thermodynamik und Quantenphysik.',
     category: 'Wissenschaft',
     totalQuestions: 120,
-    completedQuestions: 85,
+    completedQuestions: 25,
+    bookmarkedQuestions: 5,
     image: '/topics/physics.png',
-    stars: 3, // Medium difficulty
+    stars: 3,
     popularity: 88,
     wisecoinReward: 180,
     isCompleted: false,
     isFavorite: true,
+    showOnHome: false,
+    questions: [
+      {
+        id: '1',
+        number: 1,
+        isBookmarked: true,
+        isCompleted: true,
+        difficulty: 'easy',
+      },
+      {
+        id: '2',
+        number: 2,
+        isBookmarked: false,
+        isCompleted: true,
+        difficulty: 'medium',
+      },
+    ],
   },
   {
     id: 'world-history',
     title: 'Weltgeschichte',
-    description: 'Wichtige Ereignisse und Persönlichkeiten der Weltgeschichte.',
+    description:
+      'Reise durch die Zeit mit Fragen über antike Zivilisationen, Weltkriege und historische Ereignisse, die unsere Welt geprägt haben.',
     category: 'Geschichte',
     totalQuestions: 200,
-    completedQuestions: 200,
+    completedQuestions: 50,
+    bookmarkedQuestions: 8,
     image: '/topics/history.png',
-    stars: 2, // Medium difficulty
+    stars: 1,
     popularity: 90,
-    wisecoinReward: 300,
-    isCompleted: true,
+    wisecoinReward: 150,
+    isCompleted: false,
     isFavorite: false,
+    showOnHome: false,
   },
   {
     id: 'geography',
     title: 'Geographie',
-    description: 'Länder, Hauptstädte, Flüsse und geographische Merkmale.',
+    description:
+      'Länder, Hauptstädte, Flüsse und geographische Merkmale der Welt entdecken.',
     category: 'Geographie',
     totalQuestions: 80,
     completedQuestions: 45,
+    bookmarkedQuestions: 3,
     image: '/topics/geography.png',
-    stars: 1, // Easy difficulty
+    stars: 1,
     popularity: 95,
     wisecoinReward: 150,
     isCompleted: false,
     isFavorite: false,
+    showOnHome: false,
   },
   {
     id: 'art-culture',
     title: 'Kunst & Kultur',
     description:
-      'Meisterwerke der Kunstgeschichte und kulturelle Entwicklungen.',
+      'Meisterwerke der Kunstgeschichte und kulturelle Entwicklungen durch die Jahrhunderte.',
     category: 'Kunst & Kultur',
     totalQuestions: 90,
     completedQuestions: 15,
+    bookmarkedQuestions: 1,
     image: '/topics/art.png',
-    stars: 5, // Hard difficulty
+    stars: 5,
     popularity: 71,
     wisecoinReward: 220,
     isCompleted: false,
     isFavorite: false,
+    showOnHome: false,
   },
 ];
+
+// ============================================================================
+// MASTER DATA ACCESS AND MUTATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Exported master topics for API mutations.
+ * Use updateMasterTopic() instead of direct mutations.
+ */
+export { masterTopics };
+
+/**
+ * Updates a topic in the master data source.
+ * This ensures all derived data stays synchronized.
+ */
+export function updateMasterTopic(
+  topicId: string,
+  updates: Partial<ComprehensiveTopic>
+): ComprehensiveTopic | null {
+  const topicIndex = masterTopics.findIndex(topic => topic.id === topicId);
+  if (topicIndex === -1) return null;
+
+  masterTopics[topicIndex] = { ...masterTopics[topicIndex], ...updates };
+  return masterTopics[topicIndex];
+}
+
+/**
+ * Finds a topic in the master data source.
+ */
+export function findMasterTopic(topicId: string): ComprehensiveTopic | null {
+  return masterTopics.find(topic => topic.id === topicId) || null;
+}
+
+// ============================================================================
+// DERIVED DATA VIEWS
+// ============================================================================
+
+/**
+ * Game topics used in game mode selection.
+ * Derived from masterTopics with GameTopic interface.
+ */
+export function getGameTopics(): GameTopic[] {
+  return masterTopics.map(topic => ({
+    id: topic.id,
+    title: topic.title,
+    totalQuestions: topic.totalQuestions,
+    image: topic.image,
+    description: topic.description,
+  }));
+}
+
+/**
+ * Home page topics for dashboard display.
+ * Derived from masterTopics, filtered by showOnHome flag.
+ */
+export function getHomeTopics() {
+  return masterTopics
+    .filter(topic => topic.showOnHome)
+    .map(topic => ({
+      id: topic.id,
+      title: topic.title,
+      image: topic.image,
+      description: topic.description,
+    }));
+}
+
+/**
+ * Full topics data for topics page with complete metadata.
+ * Derived from masterTopics with Topic interface.
+ */
+export function getTopics(): Topic[] {
+  return masterTopics.map(topic => ({
+    id: topic.id,
+    title: topic.title,
+    description: topic.description,
+    category: topic.category,
+    totalQuestions: topic.totalQuestions,
+    completedQuestions: topic.completedQuestions,
+    image: topic.image,
+    stars: topic.stars,
+    popularity: topic.popularity,
+    wisecoinReward: topic.wisecoinReward,
+    isCompleted: topic.isCompleted,
+    isFavorite: topic.isFavorite,
+  }));
+}
+
+/**
+ * Topic detail data for individual topic pages.
+ * Derived from masterTopics with TopicDetailData interface.
+ */
+export function getTopicDetailData(): Record<string, TopicDetailData> {
+  return Object.fromEntries(
+    masterTopics.map(topic => [
+      topic.id,
+      {
+        id: topic.id,
+        title: topic.title,
+        description: topic.description,
+        image: topic.image,
+        totalQuestions: topic.totalQuestions,
+        completedQuestions: topic.completedQuestions,
+        bookmarkedQuestions: topic.bookmarkedQuestions || 0,
+        stars: topic.stars,
+        questions: topic.questions || [],
+        isFavorite: topic.isFavorite,
+        wisecoinReward: topic.wisecoinReward,
+      },
+    ])
+  );
+}
+
+// Backward compatibility - export static versions for components that need them
+export const gameTopics = getGameTopics();
+export const homeTopics = getHomeTopics();
+export const topics = getTopics();
+export const topicDetailData = getTopicDetailData();
 
 // ============================================================================
 // ACHIEVEMENTS DATA
@@ -285,114 +415,3 @@ export const sampleAchievements: Achievement[] = [
     isUnlocked: false,
   },
 ];
-
-// ============================================================================
-// TOPIC DETAIL DATA
-// ============================================================================
-
-/**
- * Mock topic detail data for development and testing.
- */
-export const topicDetailData: Record<string, TopicDetailData> = {
-  'it-project-management': {
-    id: 'it-project-management',
-    title: 'IT-Projektmanagement',
-    description:
-      'Umfassende Fragen zum IT-Projektmanagement, Methodologien und bewährten Praktiken. Lerne über agile, waterfall und hybride Ansätze.',
-    image: '/topics/it-project-management.png',
-    totalQuestions: 150,
-    completedQuestions: 10,
-    bookmarkedQuestions: 2,
-    stars: 2, // Medium difficulty
-    questions: [
-      {
-        id: '1',
-        number: 1,
-        isBookmarked: true,
-        isCompleted: true,
-        difficulty: 'easy',
-      },
-      {
-        id: '2',
-        number: 2,
-        isBookmarked: true,
-        isCompleted: false,
-        difficulty: 'medium',
-      },
-      {
-        id: '3',
-        number: 3,
-        isBookmarked: false,
-        isCompleted: false,
-        difficulty: 'hard',
-      },
-    ],
-    isFavorite: true,
-    wisecoinReward: 200,
-  },
-  mathematics: {
-    id: 'mathematics',
-    title: 'Mathematik',
-    description:
-      'Mathematische Grundlagen und fortgeschrittene Konzepte für alle Lernstufen. Von grundlegender Arithmetik bis zu komplexer Analysis.',
-    image: '/topics/math.png',
-    totalQuestions: 100,
-    completedQuestions: 0,
-    bookmarkedQuestions: 0,
-    stars: 4, // Hard difficulty
-    questions: [],
-    isFavorite: false,
-    wisecoinReward: 250,
-  },
-  physics: {
-    id: 'physics',
-    title: 'Physik',
-    description:
-      'Erkunde die fundamentalen Gesetze der Natur durch interaktive Fragen über Mechanik, Thermodynamik und Quantenphysik.',
-    image: '/topics/physics.png',
-    totalQuestions: 120,
-    completedQuestions: 25,
-    bookmarkedQuestions: 5,
-    stars: 3, // Medium difficulty
-    questions: [
-      {
-        id: '1',
-        number: 1,
-        isBookmarked: true,
-        isCompleted: true,
-        difficulty: 'easy',
-      },
-      {
-        id: '2',
-        number: 2,
-        isBookmarked: false,
-        isCompleted: true,
-        difficulty: 'medium',
-      },
-    ],
-    isFavorite: true,
-    wisecoinReward: 180,
-  },
-  history: {
-    id: 'history',
-    title: 'Geschichte',
-    description:
-      'Reise durch die Zeit mit Fragen über antike Zivilisationen, Weltkriege und historische Ereignisse, die unsere Welt geprägt haben.',
-    image: '/topics/history.png',
-    totalQuestions: 200,
-    completedQuestions: 50,
-    bookmarkedQuestions: 8,
-    stars: 1, // Easy difficulty
-    questions: [
-      {
-        id: '1',
-        number: 1,
-        isBookmarked: true,
-        isCompleted: true,
-        difficulty: 'easy',
-      },
-    ],
-    isFavorite: false,
-    wisecoinReward: 150,
-  },
-};
