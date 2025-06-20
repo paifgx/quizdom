@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/auth';
-import type { Topic, TopicFilters } from '../types/topics';
+import type { GameTopic, TopicFilters } from '../types/topics';
 import {
   filterTopics,
   sortTopics,
@@ -9,19 +9,19 @@ import {
 } from '../utils/topics';
 
 interface UseTopicsPageOptions {
-  topics: Topic[];
+  topics: GameTopic[];
 }
 
 interface UseTopicsPageReturn {
   // State
-  topics: Topic[];
+  topics: GameTopic[];
   filters: TopicFilters;
   showFilters: boolean;
   statistics: ReturnType<typeof calculateTopicStatistics>;
 
   // Computed values
-  filteredTopics: Topic[];
-  sortedTopics: Topic[];
+  filteredTopics: GameTopic[];
+  sortedTopics: GameTopic[];
 
   // Actions
   toggleFavorite: (topicId: string, event: React.MouseEvent) => void;
@@ -43,7 +43,7 @@ export function useTopicsPage({
   const { user } = useAuth();
 
   // State management
-  const [localTopics, setLocalTopics] = useState<Topic[]>(topics);
+  const [localTopics, setLocalTopics] = useState<GameTopic[]>(topics);
   const [filters, setFilters] = useState<TopicFilters>({
     category: 'all',
     difficulty: 'all',

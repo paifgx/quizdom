@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react';
 import { Link } from 'react-router';
-import type { Topic } from '../../types/topics';
+import type { GameTopic } from '../../types/topics';
 import {
   getDifficultyColor,
   getDifficultyName,
@@ -9,7 +9,7 @@ import {
 import { translate } from '../../utils/translations';
 
 interface TopicsTopicCardProps {
-  topic: Topic;
+  topic: GameTopic;
   onToggleFavorite: (topicId: string, event: MouseEvent) => void;
 }
 
@@ -49,7 +49,7 @@ export function TopicsTopicCard({
 }
 
 interface TopicBannerProps {
-  topic: Topic;
+  topic: GameTopic;
   onToggleFavorite: (topicId: string, event: MouseEvent) => void;
 }
 
@@ -160,7 +160,7 @@ function CompletionBadge() {
 }
 
 interface TopicContentProps {
-  topic: Topic;
+  topic: GameTopic;
   progressPercentage: number;
 }
 
@@ -225,7 +225,7 @@ function ProgressBar({
 }
 
 interface TopicMetadataProps {
-  topic: Topic;
+  topic: GameTopic;
 }
 
 /**

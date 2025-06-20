@@ -8,7 +8,7 @@ import {
 } from '../components';
 import { useTopicsPage } from '../hooks/useTopicsPage';
 import { fetchTopics } from '../api';
-import type { Topic } from '../types/topics';
+import type { GameTopic } from '../types/topics';
 
 export function meta() {
   return [
@@ -35,7 +35,7 @@ export function meta() {
  * @returns Topics page JSX element
  */
 export default function TopicsPage() {
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<GameTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

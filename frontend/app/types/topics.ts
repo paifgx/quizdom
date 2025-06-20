@@ -3,7 +3,7 @@
  * Defines interfaces for topic data, filtering, and sorting functionality.
  */
 
-export interface Topic {
+export interface GameTopic {
   id: string;
   title: string;
   description: string;

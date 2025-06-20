@@ -1,5 +1,5 @@
-import React from 'react';
 import type { GameStep, GameModeId, Topic } from '../../types/game';
+import { translate } from '../../utils/translations';
 
 interface ActionButtonsProps {
   currentStep: GameStep;
@@ -109,9 +109,9 @@ function NextButton({ onNext }: NextButtonProps) {
     <button
       onClick={onNext}
       className="px-8 py-3 bg-gradient-to-r from-[#FCC822] to-[#e6b41f] text-gray-900 rounded-lg font-bold text-lg hover:from-[#e6b41f] hover:to-[#d1a01c] transform hover:scale-105 transition-all duration-200"
-      aria-label="Proceed to topic selection"
+      aria-label={translate('nextButton.ariaLabel')}
     >
-      Next: Choose Topic
+      {translate('nextButton.ariaLabel')}
     </button>
   );
 }
@@ -128,9 +128,9 @@ function BackButton({ onBack }: BackButtonProps) {
     <button
       onClick={onBack}
       className="px-6 py-3 bg-gray-700 text-gray-300 rounded-lg font-medium hover:bg-gray-600 transition-colors duration-200"
-      aria-label="Go back to previous step or page"
+      aria-label={translate('accessibility.back')}
     >
-      Back
+      {translate('accessibility.back')}
     </button>
   );
 }

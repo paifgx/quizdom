@@ -4,8 +4,8 @@
  * All user-facing content is in German following the application's localization requirements.
  */
 
-import type { GameMode, Topic as GameTopic } from '../types/game';
-import type { Topic, DifficultyLevel } from '../types/topics';
+import type { GameMode } from '../types/game';
+import type { GameTopic, DifficultyLevel } from '../types/topics';
 import type { TopicDetailData, Achievement } from '../types/topic-detail';
 
 // ============================================================================
@@ -357,9 +357,16 @@ export function getGameTopics(): GameTopic[] {
   return masterTopics.map(topic => ({
     id: topic.id,
     title: topic.title,
-    totalQuestions: topic.totalQuestions,
-    image: topic.image,
     description: topic.description,
+    category: topic.category,
+    totalQuestions: topic.totalQuestions,
+    completedQuestions: topic.completedQuestions,
+    image: topic.image,
+    stars: topic.stars,
+    popularity: topic.popularity,
+    wisecoinReward: topic.wisecoinReward,
+    isCompleted: topic.isCompleted,
+    isFavorite: topic.isFavorite,
   }));
 }
 
@@ -382,7 +389,7 @@ export function getHomeTopics() {
  * Full topics data for topics page with complete metadata.
  * Derived from masterTopics with Topic interface.
  */
-export function getTopics(): Topic[] {
+export function getTopics(): GameTopic[] {
   return masterTopics.map(topic => ({
     id: topic.id,
     title: topic.title,

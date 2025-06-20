@@ -5,8 +5,8 @@
  * Includes error handling, caching, and validation for improved reliability.
  */
 
-import type { GameMode, Topic as GameTopic } from '../types/game';
-import type { Topic, DifficultyLevel } from '../types/topics';
+import type { GameMode } from '../types/game';
+import type { GameTopic, DifficultyLevel } from '../types/topics';
 import type { TopicDetailData, Achievement } from '../types/topic-detail';
 import {
   categories,
@@ -123,9 +123,9 @@ export async function fetchHomeTopics(): Promise<
  * Fetches complete topics data for topics page.
  * @returns Promise resolving to array of topics with full metadata
  */
-export async function fetchTopics(): Promise<Topic[]> {
+export async function fetchTopics(): Promise<GameTopic[]> {
   const cacheKey = 'topics';
-  const cached = cacheUtils.get<Topic[]>(cacheKey);
+  const cached = cacheUtils.get<GameTopic[]>(cacheKey);
   if (cached) return cached;
 
   await simulateDelay();
@@ -140,13 +140,15 @@ export async function fetchTopics(): Promise<Topic[]> {
  * @returns Promise resolving to topic or null if not found
  * @throws ApiError if topicId is invalid
  */
-export async function fetchTopicById(topicId: string): Promise<Topic | null> {
+export async function fetchTopicById(
+  topicId: string
+): Promise<GameTopic | null> {
   if (!isValidTopicId(topicId)) {
     throw createValidationError('topicId', topicId, 'valid topic ID');
   }
 
   const cacheKey = generateCacheKey('topic', topicId);
-  const cached = cacheUtils.get<Topic | null>(cacheKey);
+  const cached = cacheUtils.get<GameTopic | null>(cacheKey);
   if (cached !== null) return cached;
 
   await simulateDelay();
@@ -166,7 +168,7 @@ export async function fetchTopicById(topicId: string): Promise<Topic | null> {
 export async function updateTopicFavorite(
   topicId: string,
   isFavorite: boolean
-): Promise<Topic | null> {
+): Promise<GameTopic | null> {
   if (!isValidTopicId(topicId)) {
     throw createValidationError('topicId', topicId, 'valid topic ID');
   }
@@ -349,7 +351,7 @@ export async function fetchInitialData(): Promise<{
   gameModes: GameMode[];
   gameTopics: GameTopic[];
   homeTopics: ReturnType<typeof getHomeTopics>;
-  topics: Topic[];
+  topics: GameTopic[];
   achievements: Achievement[];
 }> {
   const cacheKey = 'initial-data';

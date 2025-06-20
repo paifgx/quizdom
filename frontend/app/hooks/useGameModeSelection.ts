@@ -54,7 +54,7 @@ export function useGameModeSelection({
 
   // State management
   const [currentStep, setCurrentStep] = useState<GameStep>(
-    preSelectedTopic ? 'mode' : 'mode'
+    preSelectedTopic ? 'topic' : 'mode'
   );
   const [selectedMode, setSelectedMode] = useState<GameModeId | null>(null);
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(

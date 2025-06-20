@@ -1,11 +1,11 @@
 import type { MouseEvent } from 'react';
-import type { Topic } from '../../types/topics';
+import type { GameTopic } from '../../types/topics';
 import { TopicsTopicCard } from './topic-card';
 import { TopicsPageGridSkeleton } from '../ui/loading-skeleton';
 import { translate } from '../../utils/translations';
 
 interface TopicsGridProps {
-  topics: Topic[];
+  topics: GameTopic[];
   onToggleFavorite: (topicId: string, event: MouseEvent) => void;
   isLoading?: boolean;
 }

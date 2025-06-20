@@ -4,7 +4,7 @@
  * Follows functional programming principles with pure functions.
  */
 
-import type { Topic, SortOption, DifficultyLevel } from '../types/topics';
+import type { GameTopic, SortOption, DifficultyLevel } from '../types/topics';
 
 /**
  * Gets the difficulty name based on star rating.
@@ -78,13 +78,13 @@ export function getProgressPercentage(
  * @returns Filtered array of topics
  */
 export function filterTopics(
-  topics: Topic[],
+  topics: GameTopic[],
   filters: {
     category: string;
     difficulty: string;
     searchTerm: string;
   }
-): Topic[] {
+): GameTopic[] {
   return topics.filter(topic => {
     const matchesCategory =
       filters.category === 'all' || topic.category === filters.category;
@@ -110,7 +110,10 @@ export function filterTopics(
  * @param sortBy - Sort criteria
  * @returns Sorted array of topics
  */
-export function sortTopics(topics: Topic[], sortBy: SortOption): Topic[] {
+export function sortTopics(
+  topics: GameTopic[],
+  sortBy: SortOption
+): GameTopic[] {
   return [...topics].sort((a, b) => {
     switch (sortBy) {
       case 'popularity':
@@ -139,7 +142,7 @@ export function sortTopics(topics: Topic[], sortBy: SortOption): Topic[] {
  * @returns Statistics object with calculated values
  */
 export function calculateTopicStatistics(
-  topics: Topic[],
+  topics: GameTopic[],
   userWisecoins: number = 0
 ) {
   const totalTopics = topics.length;

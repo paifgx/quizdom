@@ -5,7 +5,7 @@
 
 import React from 'react';
 import type { TopicStatsProps } from '../../types/topic-detail';
-import { getDifficultyName } from '../../api';
+import { getDifficultyName } from '../../utils/topics';
 
 /**
  * Displays topic statistics including difficulty stars, completion status, and wisecoin reward.
