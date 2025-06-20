@@ -1,14 +1,14 @@
 // Auth components
 export { AuthActions } from './auth/auth-actions';
 export { AuthPanel } from './auth/auth-panel';
+export { LoginForm } from './auth/login-form';
+export { SignupForm } from './auth/signup-form';
 export { ForgotPasswordForm } from './auth/forgot-password-form';
 export { ForgotPasswordSuccess } from './auth/forgot-password-success';
-export { LoginForm } from './auth/login-form';
+export { ProtectedRoute } from './auth/protected-route';
+export { SlidingAuthContainer } from './auth/sliding-auth-container';
 export { LogoPanel } from './auth/logo-panel';
 export { PasswordStrengthIndicator } from './auth/password-strength-indicator';
-export { ProtectedRoute } from './auth/protected-route';
-export { SignupForm } from './auth/signup-form';
-export { SlidingAuthContainer } from './auth/sliding-auth-container';
 export { ValidatedInput } from './auth/validated-input';
 
 // Dashboard components
@@ -27,10 +27,12 @@ export { QuizContainer } from './nine-slice-quiz/quiz-container';
 export { QuizQuestion } from './nine-slice-quiz/quiz-question';
 
 // UI components
-export { BackgroundControls } from './ui/background-controls';
-export { HomeLoading } from './ui/home-loading';
 export { LoadingSkeleton } from './ui/loading-skeleton';
-export { AuthPageLayout } from './ui/page-layout';
+export { HomeLoading } from './ui/home-loading';
+export { BackgroundControls } from './ui/background-controls';
+
+// Home components
+export { LoadingSpinner } from './home/loading-spinner';
 
 // Game mode components
 export { GameModeCard } from './game-modes/game-mode-card';

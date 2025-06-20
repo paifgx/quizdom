@@ -15,8 +15,9 @@ interface DashboardProps {
 }
 
 /**
- * Presentational dashboard component for authenticated users
- * Displays topics and search functionality (sidebar is handled by layout)
+ * Presentational dashboard component for authenticated users.
+ * Displays topics and search functionality with English language interface.
+ * Follows accessibility best practices and responsive design.
  */
 export function Dashboard({
   searchTerm,
@@ -31,7 +32,7 @@ export function Dashboard({
         <div className="relative">
           <input
             type="text"
-            placeholder="Suche nach deinem Thema..."
+            placeholder="Search for your topic..."
             value={searchTerm}
             onChange={e => onSearchChange(e.target.value)}
             className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-800/80 border border-gray-600 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent text-base sm:text-lg backdrop-blur-sm"
@@ -57,7 +58,7 @@ export function Dashboard({
       {/* Topics Header */}
       <div className="mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-          Deine Themen
+          Your Topics
         </h2>
       </div>
 
@@ -94,11 +95,9 @@ export function Dashboard({
       {filteredTopics.length === 0 && (
         <div className="text-center py-8 sm:py-12">
           <p className="text-gray-400 text-base sm:text-lg mb-2">
-            Keine Themen gefunden
+            No topics found
           </p>
-          <p className="text-gray-500 text-sm">
-            Versuchen Sie einen anderen Suchbegriff
-          </p>
+          <p className="text-gray-500 text-sm">Try a different search term</p>
         </div>
       )}
     </div>
