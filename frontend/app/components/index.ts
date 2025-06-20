@@ -44,3 +44,10 @@ export { HelpText } from './game-modes/help-text';
 export { LiveRegion } from './game-modes/live-region';
 export { GameModeSelection } from './game-modes/game-mode-selection';
 export { TopicSelection } from './game-modes/topic-selection';
+
+// Topics components
+export { TopicsHeader } from './topics/topics-header';
+export { TopicsStatistics } from './topics/topics-statistics';
+export { TopicsFilters } from './topics/topics-filters';
+export { TopicsTopicCard } from './topics/topic-card';
+export { TopicsGrid } from './topics/topics-grid';
