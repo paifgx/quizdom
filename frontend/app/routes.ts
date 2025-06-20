@@ -19,6 +19,7 @@ export default [
     layout('layouts/dashboard-layout.tsx', [
       index('routes/home.tsx'),
       route('/topics/:topicId', 'routes/topic-detail.tsx'),
+      route('/topics/:topicId/questions/:questionId', 'routes/quiz.tsx'),
     ]),
 
     // Other main routes (without dashboard sidebar)

@@ -3,6 +3,7 @@
  * Shows question title, bookmark status, difficulty, and completion status.
  */
 
+import { Link } from 'react-router';
 import type { QuestionCardProps } from '../../types/topic-detail';
 
 /**
@@ -12,19 +13,21 @@ import type { QuestionCardProps } from '../../types/topic-detail';
  * @param props - Component properties including question data
  * @returns JSX element for question card
  */
-export function QuestionCard({ question }: QuestionCardProps) {
+export function QuestionCard({ question, topicId }: QuestionCardProps) {
   return (
-    <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-[#FCC822] transition-all duration-200 cursor-pointer hover:scale-105">
-      <div className="flex items-center justify-between mb-3">
-        <QuestionTitle title={question.title} />
-        <BookmarkIndicator isBookmarked={question.isBookmarked} />
-      </div>
+    <Link to={`/topics/${topicId}/questions/${question.id}`}>
+      <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-[#FCC822] transition-all duration-200 cursor-pointer hover:scale-105 h-full">
+        <div className="flex items-center justify-between mb-3">
+          <QuestionTitle title={question.title} />
+          <BookmarkIndicator isBookmarked={question.isBookmarked} />
+        </div>
 
-      <div className="flex items-center justify-between">
-        <DifficultyBadge difficulty={question.difficulty} />
-        <CompletionIndicator isCompleted={question.isCompleted} />
+        <div className="flex items-center justify-between">
+          <DifficultyBadge difficulty={question.difficulty} />
+          <CompletionIndicator isCompleted={question.isCompleted} />
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

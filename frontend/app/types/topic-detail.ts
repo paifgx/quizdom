@@ -10,6 +10,12 @@ export interface TopicQuestion {
   number: number;
   /** Short descriptive title of the question */
   title: string;
+  /** The full text of the question */
+  questionText: string;
+  /** Possible answers for the question */
+  answers: Array<{ id: string; text: string }>;
+  /** The ID of the correct answer */
+  correctAnswerId: string;
   /** Whether the question is bookmarked by the user */
   isBookmarked: boolean;
   /** Whether the question has been completed */
@@ -70,11 +76,15 @@ export interface TopicQuestionsProps {
   questions: TopicQuestion[];
   /** Number of bookmarked questions */
   bookmarkedCount: number;
+  /** ID of the topic */
+  topicId: string;
 }
 
 export interface QuestionCardProps {
   /** Question data to display */
   question: TopicQuestion;
+  /** ID of the topic */
+  topicId: string;
 }
 
 export interface BackNavigationProps {

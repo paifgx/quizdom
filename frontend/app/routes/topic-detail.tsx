@@ -123,6 +123,7 @@ export default function TopicDetailPage() {
         <TopicQuestions
           questions={topic.questions}
           bookmarkedCount={topic.bookmarkedQuestions}
+          topicId={topic.id}
         />
 
         <BackNavigation onBack={handleBack} />
