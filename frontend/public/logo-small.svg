@@ -1,0 +1,8 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g fill="#FCC822">
+    <!-- Crown -->
+    <path d="M10 8L12 4L14 8L16 4L18 8L20 12H8L10 8Z"/>
+    <!-- Text QUIZDOM -->
+    <text x="28" y="25" font-family="Arial, sans-serif" font-size="16" font-weight="bold">QUIZDOM</text>
+  </g>
+</svg>

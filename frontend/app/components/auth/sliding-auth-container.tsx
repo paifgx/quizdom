@@ -2,9 +2,18 @@ import React from 'react';
 import { AuthPanel } from './auth-panel';
 import { LogoPanel } from './logo-panel';
 
+interface FormState {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  rememberMe?: boolean;
+}
+
 export interface SlidingAuthContainerProps {
   isSignupMode: boolean;
-  formState: any;
+  formState: FormState;
   loading: boolean;
   error: string;
   showSuccess: boolean;
@@ -71,4 +80,4 @@ export function SlidingAuthContainer({
       </div>
     </div>
   );
-} 
+}

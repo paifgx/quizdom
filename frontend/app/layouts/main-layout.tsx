@@ -1,7 +1,7 @@
-import React from "react";
-import { Outlet } from "react-router";
-import { MainNav } from "../components/navigation/main-nav";
-import { useBackgroundImage } from "../hooks/useBackgroundImage";
+import React from 'react';
+import { Outlet } from 'react-router';
+import { MainNav } from '../components/navigation/main-nav';
+import { useBackgroundImage } from '../hooks/useBackgroundImage';
 
 /**
  * Main layout component that provides consistent navigation and background
@@ -26,4 +26,4 @@ export default function MainLayout() {
       </div>
     </div>
   );
-} 
+}

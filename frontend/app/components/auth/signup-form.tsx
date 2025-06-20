@@ -1,6 +1,6 @@
-import React from "react";
-import { ValidatedInput } from "./validated-input";
-import { PasswordStrengthIndicator } from "./password-strength-indicator";
+import React from 'react';
+import { ValidatedInput } from './validated-input';
+import { PasswordStrengthIndicator } from './password-strength-indicator';
 
 export interface SignupFormProps {
   firstName: string;
@@ -27,7 +27,7 @@ export function SignupForm({
   password,
   confirmPassword,
   onFieldChange,
-  onSubmit,
+  onSubmit: _onSubmit,
   getError,
 }: SignupFormProps) {
   return (
@@ -37,20 +37,20 @@ export function SignupForm({
           id="firstName"
           name="firstName"
           type="text"
-          placeholder="First Name"
+          placeholder="Vorname"
           value={firstName}
-          onChange={(value) => onFieldChange("firstName", value)}
-          error={getError("firstName")}
+          onChange={value => onFieldChange('firstName', value)}
+          error={getError('firstName')}
           required
         />
         <ValidatedInput
           id="lastName"
           name="lastName"
           type="text"
-          placeholder="Last Name"
+          placeholder="Nachname"
           value={lastName}
-          onChange={(value) => onFieldChange("lastName", value)}
-          error={getError("lastName")}
+          onChange={value => onFieldChange('lastName', value)}
+          error={getError('lastName')}
           required
         />
       </div>
@@ -61,8 +61,8 @@ export function SignupForm({
         type="email"
         placeholder="test@mail.com"
         value={email}
-        onChange={(value) => onFieldChange("email", value)}
-        error={getError("email")}
+        onChange={value => onFieldChange('email', value)}
+        error={getError('email')}
         autoComplete="email"
         required
       />
@@ -72,10 +72,10 @@ export function SignupForm({
           id="password"
           name="password"
           type="password"
-          placeholder="Your password"
+          placeholder="Ihr Passwort"
           value={password}
-          onChange={(value) => onFieldChange("password", value)}
-          error={getError("password")}
+          onChange={value => onFieldChange('password', value)}
+          error={getError('password')}
           autoComplete="new-password"
           required
         />
@@ -86,10 +86,10 @@ export function SignupForm({
         id="confirmPassword"
         name="confirmPassword"
         type="password"
-        placeholder="Confirm password"
+        placeholder="Passwort bestätigen"
         value={confirmPassword}
-        onChange={(value) => onFieldChange("confirmPassword", value)}
-        error={getError("confirmPassword")}
+        onChange={value => onFieldChange('confirmPassword', value)}
+        error={getError('confirmPassword')}
         autoComplete="new-password"
         required
       />

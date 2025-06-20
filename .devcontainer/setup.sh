@@ -36,17 +36,17 @@ echo "📦 Installing Node.js dependencies..."
 if [ -f "frontend/package.json" ]; then
     echo "🔧 Node.js version: $(node --version)"
     echo "🔧 npm version: $(npm --version)"
-    
+
     # Ensure corepack is enabled and prepare pnpm
     echo "🔧 Enabling corepack..."
     corepack enable || echo "Corepack already enabled or failed to enable"
-    
+
     echo "🔧 Preparing pnpm..."
     corepack prepare pnpm@latest --activate || echo "Failed to prepare pnpm, continuing..."
-    
+
     cd frontend
     echo "📍 Now in frontend directory: $(pwd)"
-    
+
     # Try to install dependencies with pnpm
     echo "🔧 Installing with pnpm..."
     if command -v pnpm >/dev/null 2>&1; then
@@ -56,7 +56,7 @@ if [ -f "frontend/package.json" ]; then
         echo "⚠️ pnpm not available, trying with corepack pnpm..."
         corepack pnpm install
     fi
-    
+
     echo "✅ Node.js dependencies installed successfully"
     cd ..
 else
@@ -70,4 +70,4 @@ else
     exit 1
 fi
 
-echo "🎉 Development environment setup complete!" 
+echo "🎉 Development environment setup complete!"

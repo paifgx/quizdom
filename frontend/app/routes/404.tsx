@@ -3,7 +3,10 @@ import { Link } from 'react-router';
 export function meta() {
   return [
     { title: '404 - Seite nicht gefunden | Quizdom' },
-    { name: 'description', content: 'Die angeforderte Seite konnte nicht gefunden werden.' },
+    {
+      name: 'description',
+      content: 'Die angeforderte Seite konnte nicht gefunden werden.',
+    },
   ];
 }
 
@@ -27,8 +30,9 @@ export default function NotFoundPage() {
             Seite nicht gefunden
           </h2>
           <p className="text-gray-300 text-lg leading-relaxed">
-            Die Seite, die Sie suchen, konnte nicht gefunden werden. 
-            Sie wurde möglicherweise verschoben, gelöscht oder Sie haben eine falsche URL eingegeben.
+            Die Seite, die Sie suchen, konnte nicht gefunden werden. Sie wurde
+            möglicherweise verschoben, gelöscht oder Sie haben eine falsche URL
+            eingegeben.
           </p>
         </div>
 
@@ -42,7 +46,8 @@ export default function NotFoundPage() {
           </Link>
           <div className="text-sm text-gray-400">
             <p>
-              Oder verwenden Sie die Navigation oben, um zu anderen Bereichen zu gelangen.
+              Oder verwenden Sie die Navigation oben, um zu anderen Bereichen zu
+              gelangen.
             </p>
           </div>
         </div>
@@ -50,24 +55,12 @@ export default function NotFoundPage() {
         {/* Decorative Elements */}
         <div className="mt-12 opacity-30">
           <div className="flex justify-center space-x-4">
-            <img
-              src="/buttons/Home.png"
-              alt=""
-              className="h-8 w-8"
-            />
-            <img
-              src="/buttons/Left.png"
-              alt=""
-              className="h-8 w-8"
-            />
-            <img
-              src="/buttons/Right.png"
-              alt=""
-              className="h-8 w-8"
-            />
+            <img src="/buttons/Home.png" alt="" className="h-8 w-8" />
+            <img src="/buttons/Left.png" alt="" className="h-8 w-8" />
+            <img src="/buttons/Right.png" alt="" className="h-8 w-8" />
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

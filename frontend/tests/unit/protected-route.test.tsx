@@ -1,47 +1,53 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
-import { ProtectedRoute } from '../../app/components/auth/protected-route'
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import { ProtectedRoute } from '../../app/components/auth/protected-route';
 
-// Mock the Navigate component
-const mockNavigate = vi.fn()
+// Mock react-router hooks that are used inside the component
+const mockNavigate = vi.fn();
+
 vi.mock('react-router', async () => {
-  const actual = await vi.importActual('react-router')
+  const actual = await vi.importActual('react-router');
+
   return {
     ...actual,
-    Navigate: ({ to, state, replace }: any) => {
-      mockNavigate(to, state, replace)
-      return <div data-testid="navigate" data-to={to} />
+    // Provide a stub for useNavigate that captures calls without performing real navigation
+    useNavigate: () => (to: any, options?: any) => {
+      mockNavigate(to, options?.state, options?.replace);
     },
-    useLocation: () => ({ pathname: '/test' })
-  }
-})
+
+    // Ensure a deterministic location in tests
+    useLocation: () => ({ pathname: '/test' }),
+  };
+});
 
 // Mock the auth context
 const mockAuthContext = {
   isAuthenticated: true,
   isAdmin: false,
   isViewingAsAdmin: false,
-  loading: false
-}
+  loading: false,
+};
 
 vi.mock('../../app/contexts/auth', () => ({
-  useAuth: () => mockAuthContext
-}))
+  useAuth: () => mockAuthContext,
+}));
 
 describe('ProtectedRoute', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     // Reset mock auth context to defaults
     Object.assign(mockAuthContext, {
       isAuthenticated: true,
       isAdmin: false,
       isViewingAsAdmin: false,
-      loading: false
-    })
-  })
+      loading: false,
+    });
+  });
 
-  const TestChild = () => <div data-testid="protected-content">Protected Content</div>
+  const TestChild = () => (
+    <div data-testid="protected-content">Protected Content</div>
+  );
 
   it('renders children when user is authenticated', () => {
     render(
@@ -50,13 +56,13 @@ describe('ProtectedRoute', () => {
           <TestChild />
         </ProtectedRoute>
       </MemoryRouter>
-    )
+    );
 
-    expect(screen.getByTestId('protected-content')).toBeDefined()
-  })
+    expect(screen.getByTestId('protected-content')).toBeDefined();
+  });
 
   it('shows loading spinner when loading is true', () => {
-    Object.assign(mockAuthContext, { loading: true })
+    Object.assign(mockAuthContext, { loading: true });
 
     render(
       <MemoryRouter>
@@ -64,14 +70,14 @@ describe('ProtectedRoute', () => {
           <TestChild />
         </ProtectedRoute>
       </MemoryRouter>
-    )
+    );
 
-    expect(screen.getByText('Loading...')).toBeDefined()
-    expect(screen.queryByTestId('protected-content')).toBeNull()
-  })
+    expect(screen.getByText('Laden...')).toBeDefined();
+    expect(screen.queryByTestId('protected-content')).toBeNull();
+  });
 
   it('redirects to login when user is not authenticated', () => {
-    Object.assign(mockAuthContext, { isAuthenticated: false })
+    Object.assign(mockAuthContext, { isAuthenticated: false });
 
     render(
       <MemoryRouter>
@@ -79,17 +85,21 @@ describe('ProtectedRoute', () => {
           <TestChild />
         </ProtectedRoute>
       </MemoryRouter>
-    )
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith('/login', { from: { pathname: '/test' } }, true)
-  })
+    expect(mockNavigate).toHaveBeenCalledWith(
+      '/login',
+      { from: { pathname: '/test' } },
+      true
+    );
+  });
 
   it('renders children for admin when requireAdmin is true and user is admin', () => {
-    Object.assign(mockAuthContext, { 
+    Object.assign(mockAuthContext, {
       isAuthenticated: true,
       isAdmin: true,
-      isViewingAsAdmin: true
-    })
+      isViewingAsAdmin: true,
+    });
 
     render(
       <MemoryRouter>
@@ -97,16 +107,16 @@ describe('ProtectedRoute', () => {
           <TestChild />
         </ProtectedRoute>
       </MemoryRouter>
-    )
+    );
 
-    expect(screen.getByTestId('protected-content')).toBeDefined()
-  })
+    expect(screen.getByTestId('protected-content')).toBeDefined();
+  });
 
   it('redirects to 403 when requireAdmin is true but user is not admin', () => {
-    Object.assign(mockAuthContext, { 
+    Object.assign(mockAuthContext, {
       isAuthenticated: true,
-      isAdmin: false
-    })
+      isAdmin: false,
+    });
 
     render(
       <MemoryRouter>
@@ -114,17 +124,17 @@ describe('ProtectedRoute', () => {
           <TestChild />
         </ProtectedRoute>
       </MemoryRouter>
-    )
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith('/403', undefined, true)
-  })
+    expect(mockNavigate).toHaveBeenCalledWith('/403', undefined, true);
+  });
 
   it('redirects to home when admin is not viewing as admin on admin route', () => {
-    Object.assign(mockAuthContext, { 
+    Object.assign(mockAuthContext, {
       isAuthenticated: true,
       isAdmin: true,
-      isViewingAsAdmin: false
-    })
+      isViewingAsAdmin: false,
+    });
 
     render(
       <MemoryRouter>
@@ -132,16 +142,16 @@ describe('ProtectedRoute', () => {
           <TestChild />
         </ProtectedRoute>
       </MemoryRouter>
-    )
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith('/', undefined, true)
-  })
+    expect(mockNavigate).toHaveBeenCalledWith('/', undefined, true);
+  });
 
   it('does not require admin by default', () => {
-    Object.assign(mockAuthContext, { 
+    Object.assign(mockAuthContext, {
       isAuthenticated: true,
-      isAdmin: false
-    })
+      isAdmin: false,
+    });
 
     render(
       <MemoryRouter>
@@ -149,8 +159,8 @@ describe('ProtectedRoute', () => {
           <TestChild />
         </ProtectedRoute>
       </MemoryRouter>
-    )
+    );
 
-    expect(screen.getByTestId('protected-content')).toBeDefined()
-  })
-}) 
+    expect(screen.getByTestId('protected-content')).toBeDefined();
+  });
+});

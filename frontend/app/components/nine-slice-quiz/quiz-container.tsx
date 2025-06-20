@@ -22,21 +22,21 @@ export interface QuizContainerProps {
 /**
  * Main quiz container that combines question display with answer selection grid
  */
-export function QuizContainer({ 
-  quizData, 
-  selectedAnswer, 
-  onAnswerSelect, 
-  onQuestionClick 
+export function QuizContainer({
+  quizData,
+  selectedAnswer,
+  onAnswerSelect,
+  onQuestionClick,
 }: QuizContainerProps) {
   return (
     <div className="max-w-4xl mx-auto p-5">
-      <QuizQuestion 
+      <QuizQuestion
         question={quizData.question}
         onQuestionClick={onQuestionClick}
       />
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
-        {quizData.answers.map((answer) => (
+        {quizData.answers.map(answer => (
           <QuizButton
             key={answer.id}
             text={answer.text}
@@ -47,4 +47,4 @@ export function QuizContainer({
       </div>
     </div>
   );
-} 
+}

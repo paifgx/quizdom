@@ -30,4 +30,4 @@ export { QuizQuestion } from './nine-slice-quiz/quiz-question';
 export { BackgroundControls } from './ui/background-controls';
 export { HomeLoading } from './ui/home-loading';
 export { LoadingSkeleton } from './ui/loading-skeleton';
-export { AuthPageLayout } from './ui/page-layout'; 
+export { AuthPageLayout } from './ui/page-layout';

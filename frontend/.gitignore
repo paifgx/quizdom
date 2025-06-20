@@ -111,7 +111,6 @@ temp/
 
 # Gatsby (if used)
 .gatsby/
-public/
 
 # SvelteKit (if used)
 .svelte-kit/

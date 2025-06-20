@@ -9,12 +9,15 @@ export interface LogoPanelProps {
  * Shows brand logo and information with gradient background
  */
 export function LogoPanel({ position }: LogoPanelProps) {
-  const gradientClass = position === 'left' 
-    ? 'bg-gradient-to-br from-gray-900 to-[#061421]'
-    : 'bg-gradient-to-br from-[#061421] to-gray-900';
+  const gradientClass =
+    position === 'left'
+      ? 'bg-gradient-to-br from-gray-900 to-[#061421]'
+      : 'bg-gradient-to-br from-[#061421] to-gray-900';
 
   return (
-    <div className={`hidden lg:flex flex-1 items-center justify-center ${gradientClass}`}>
+    <div
+      className={`hidden lg:flex flex-1 items-center justify-center ${gradientClass}`}
+    >
       <div className="text-center">
         <img
           src="/logo/Logo_Quizdom_transparent.png"
@@ -30,4 +33,4 @@ export function LogoPanel({ position }: LogoPanelProps) {
       </div>
     </div>
   );
-} 
+}

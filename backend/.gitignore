@@ -153,4 +153,4 @@ alembic/versions/*.py
 .tmp/
 temp/
 *.tmp
-*.temp 
+*.temp

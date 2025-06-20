@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 const routeBackgrounds: Record<string, string> = {
   '/': '/background/background_pink.png',
   '/quizzes': '/background/background_orange.png',
+  '/topics': '/background/background_day.png',
   '/game-modes': '/background/background_day.png',
   '/progress': '/background/background_pink.png',
   '/profile': '/background/background_orange.png',
@@ -25,14 +26,14 @@ function getBackgroundForRoute(pathname: string): string {
   if (routeBackgrounds[pathname]) {
     return routeBackgrounds[pathname];
   }
-  
+
   // Check for route prefixes (for nested routes)
   for (const [route, background] of Object.entries(routeBackgrounds)) {
     if (pathname.startsWith(route) && route !== '/') {
       return background;
     }
   }
-  
+
   // Default background
   return routeBackgrounds['/'] || '/background/background_pink.png';
 }
@@ -43,8 +44,9 @@ function getBackgroundForRoute(pathname: string): string {
  */
 export function useBackgroundImage() {
   const location = useLocation();
-  const { backgroundImage, setBackgroundImage, resetToDefault } = useBackground();
-  
+  const { backgroundImage, setBackgroundImage, resetToDefault } =
+    useBackground();
+
   // Automatically set background based on route when location changes
   useEffect(() => {
     const routeBackground = getBackgroundForRoute(location.pathname);
@@ -63,4 +65,4 @@ export function useBackgroundImage() {
       setBackgroundImage(routeBackground);
     },
   };
-} 
+}

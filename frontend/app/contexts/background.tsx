@@ -1,4 +1,9 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+} from 'react';
 
 interface BackgroundContextType {
   backgroundImage: string;
@@ -6,7 +11,9 @@ interface BackgroundContextType {
   resetToDefault: () => void;
 }
 
-const BackgroundContext = createContext<BackgroundContextType | undefined>(undefined);
+const BackgroundContext = createContext<BackgroundContextType | undefined>(
+  undefined
+);
 
 const DEFAULT_BACKGROUND = '/background/background_pink.png';
 
@@ -19,7 +26,8 @@ interface BackgroundProviderProps {
  * for the main layout
  */
 export function BackgroundProvider({ children }: BackgroundProviderProps) {
-  const [backgroundImage, setBackgroundImageState] = useState(DEFAULT_BACKGROUND);
+  const [backgroundImage, setBackgroundImageState] =
+    useState(DEFAULT_BACKGROUND);
 
   const setBackgroundImage = (image: string) => {
     setBackgroundImageState(image);
@@ -30,11 +38,13 @@ export function BackgroundProvider({ children }: BackgroundProviderProps) {
   };
 
   return (
-    <BackgroundContext.Provider value={{
-      backgroundImage,
-      setBackgroundImage,
-      resetToDefault,
-    }}>
+    <BackgroundContext.Provider
+      value={{
+        backgroundImage,
+        setBackgroundImage,
+        resetToDefault,
+      }}
+    >
       {children}
     </BackgroundContext.Provider>
   );
@@ -49,4 +59,4 @@ export function useBackground() {
     throw new Error('useBackground must be used within a BackgroundProvider');
   }
   return context;
-} 
+}

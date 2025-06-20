@@ -5,4 +5,4 @@ Object.defineProperty(import.meta, 'env', {
   value: { DEV: false },
   writable: true,
   configurable: true,
-}); 
+});

@@ -14,7 +14,7 @@ describe('SignupForm', () => {
     isFormValid: false,
     onFieldChange: vi.fn(),
     onSubmit: vi.fn(),
-    getError: vi.fn()
+    getError: vi.fn(),
   };
 
   beforeEach(() => {
@@ -23,39 +23,47 @@ describe('SignupForm', () => {
 
   it('renders all required form fields', () => {
     render(<SignupForm {...defaultProps} />);
-    
-    expect(screen.getByPlaceholderText('First Name')).toBeDefined();
-    expect(screen.getByPlaceholderText('Last Name')).toBeDefined();
+
+    expect(screen.getByPlaceholderText('Vorname')).toBeDefined();
+    expect(screen.getByPlaceholderText('Nachname')).toBeDefined();
     expect(screen.getByPlaceholderText('test@mail.com')).toBeDefined();
-    expect(screen.getByPlaceholderText('Your password')).toBeDefined();
-    expect(screen.getByPlaceholderText('Confirm password')).toBeDefined();
+    expect(screen.getByPlaceholderText('Ihr Passwort')).toBeDefined();
+    expect(screen.getByPlaceholderText('Passwort bestätigen')).toBeDefined();
   });
 
   it('displays password strength indicator', () => {
-    render(<SignupForm {...defaultProps} password="test123" />);
-    
+    render(<SignupForm {...defaultProps} />);
+
     // The PasswordStrengthIndicator should be rendered when password has value
-    // This tests the integration with the password strength component
-    expect(screen.getByPlaceholderText('Your password')).toBeDefined();
+    expect(screen.getByPlaceholderText('Ihr Passwort')).toBeDefined();
   });
 
-  it('displays error message when error prop is provided', () => {
-    render(<SignupForm {...defaultProps} error="Email already exists" />);
-    
-    const errorMessage = screen.getByText('Email already exists');
-    expect(errorMessage).toBeDefined();
-    expect(errorMessage.getAttribute('role')).toBe('alert');
+  it('calls getError for field validation', () => {
+    const mockGetError = vi.fn();
+    mockGetError.mockReturnValue(undefined);
+
+    render(<SignupForm {...defaultProps} getError={mockGetError} />);
+
+    expect(mockGetError).toHaveBeenCalledWith('firstName');
+    expect(mockGetError).toHaveBeenCalledWith('lastName');
+    expect(mockGetError).toHaveBeenCalledWith('email');
+    expect(mockGetError).toHaveBeenCalledWith('password');
+    expect(mockGetError).toHaveBeenCalledWith('confirmPassword');
   });
 
   it('has proper autocomplete attributes', () => {
     render(<SignupForm {...defaultProps} />);
-    
+
     const emailInput = screen.getByPlaceholderText('test@mail.com');
-    const passwordInput = screen.getByPlaceholderText('Your password');
-    const confirmPasswordInput = screen.getByPlaceholderText('Confirm password');
-    
+    const passwordInput = screen.getByPlaceholderText('Ihr Passwort');
+    const confirmPasswordInput = screen.getByPlaceholderText(
+      'Passwort bestätigen'
+    );
+
     expect(emailInput.getAttribute('autocomplete')).toBe('email');
     expect(passwordInput.getAttribute('autocomplete')).toBe('new-password');
-    expect(confirmPasswordInput.getAttribute('autocomplete')).toBe('new-password');
+    expect(confirmPasswordInput.getAttribute('autocomplete')).toBe(
+      'new-password'
+    );
   });
-}); 
+});

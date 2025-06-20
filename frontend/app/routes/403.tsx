@@ -3,7 +3,10 @@ import { Link } from 'react-router';
 export function meta() {
   return [
     { title: '403 - Zugriff verweigert | Quizdom' },
-    { name: 'description', content: 'Sie haben keine Berechtigung für diese Seite.' },
+    {
+      name: 'description',
+      content: 'Sie haben keine Berechtigung für diese Seite.',
+    },
   ];
 }
 
@@ -27,8 +30,8 @@ export default function ForbiddenPage() {
             Zugriff verweigert
           </h2>
           <p className="text-gray-300 text-lg leading-relaxed">
-            Sie haben keine Berechtigung, auf diese Seite zuzugreifen. 
-            Diese Funktion ist nur für Administratoren verfügbar.
+            Sie haben keine Berechtigung, auf diese Seite zuzugreifen. Diese
+            Funktion ist nur für Administratoren verfügbar.
           </p>
         </div>
 
@@ -42,7 +45,8 @@ export default function ForbiddenPage() {
           </Link>
           <div className="text-sm text-gray-400">
             <p>
-              Falls Sie glauben, dass dies ein Fehler ist, wenden Sie sich an den Administrator.
+              Falls Sie glauben, dass dies ein Fehler ist, wenden Sie sich an
+              den Administrator.
             </p>
           </div>
         </div>
@@ -50,19 +54,11 @@ export default function ForbiddenPage() {
         {/* Decorative Elements */}
         <div className="mt-12 opacity-30">
           <div className="flex justify-center space-x-4">
-            <img
-              src="/buttons/Home.png"
-              alt=""
-              className="h-8 w-8"
-            />
-            <img
-              src="/buttons/Settings.png"
-              alt=""
-              className="h-8 w-8"
-            />
+            <img src="/buttons/Home.png" alt="" className="h-8 w-8" />
+            <img src="/buttons/Settings.png" alt="" className="h-8 w-8" />
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

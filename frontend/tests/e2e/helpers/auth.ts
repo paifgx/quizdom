@@ -13,14 +13,14 @@ export class AuthHelper {
    */
   async login(username: string, password: string) {
     await this.page.goto('/login');
-    
+
     // Fill login form
     await this.page.fill('[data-testid="username"]', username);
     await this.page.fill('[data-testid="password"]', password);
-    
+
     // Submit form
     await this.page.getByRole('button', { name: /login|anmelden/i }).click();
-    
+
     // Wait for successful login (adjust based on your success indicator)
     await expect(this.page.getByText(/profile|profil/i)).toBeVisible();
   }
@@ -30,7 +30,7 @@ export class AuthHelper {
    */
   async logout() {
     await this.page.getByRole('button', { name: /logout|abmelden/i }).click();
-    
+
     // Verify logout was successful
     await expect(this.page.getByText(/login|anmelden/i)).toBeVisible();
   }
@@ -55,4 +55,4 @@ export class AuthHelper {
   async loginAsAdmin() {
     await this.login('admin', 'adminpassword');
   }
-} 
+}

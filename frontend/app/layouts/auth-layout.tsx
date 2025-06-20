@@ -1,6 +1,6 @@
-import React from "react";
-import { Outlet } from "react-router";
-import { AuthUIProvider } from "../contexts/auth-ui";
+import React from 'react';
+import { Outlet } from 'react-router';
+import { AuthUIProvider } from '../contexts/auth-ui';
 
 /**
  * Authentication layout for login, forgot password, and other auth-related pages
@@ -14,4 +14,4 @@ export default function AuthLayout() {
       </div>
     </AuthUIProvider>
   );
-} 
+}

@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/auth';
 
-interface NavLink {
+interface NavigationLink {
   label: string;
   path: string;
   role?: 'player' | 'admin';
   icon?: string;
 }
 
-const playerNavLinks: NavLink[] = [
+const playerNavLinks: NavigationLink[] = [
   { label: 'Start', path: '/', role: 'player' },
-  { label: 'Quizübersicht', path: '/quizzes', role: 'player' },
+  { label: 'Themen', path: '/topics', role: 'player' },
   { label: 'Spielmodi', path: '/game-modes', role: 'player' },
   { label: 'Fortschritt', path: '/progress', role: 'player' },
   { label: 'Profil', path: '/profile', role: 'player' },
 ];
 
-const adminNavLinks: NavLink[] = [
+const adminNavLinks: NavigationLink[] = [
   { label: 'Dashboard', path: '/admin/dashboard', role: 'admin' },
   { label: 'Fragen', path: '/admin/questions', role: 'admin' },
   { label: 'Users', path: '/admin/users', role: 'admin' },
@@ -26,15 +26,15 @@ const adminNavLinks: NavLink[] = [
 
 export function MainNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { 
-    user, 
-    isAuthenticated, 
-    isAdmin, 
-    activeRole, 
-    isViewingAsAdmin, 
-    logout, 
-    switchToAdminView, 
-    switchToPlayerView 
+  const {
+    user,
+    isAuthenticated,
+    isAdmin,
+    activeRole: _activeRole,
+    isViewingAsAdmin,
+    logout,
+    switchToAdminView,
+    switchToPlayerView,
   } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -74,7 +74,11 @@ export function MainNav() {
 
   if (!isAuthenticated) {
     return (
-      <nav role="navigation" aria-label="Main navigation" className="bg-[#061421] border-b border-gray-700">
+      <nav
+        role="navigation"
+        aria-label="Main navigation"
+        className="bg-[#061421] border-b border-gray-700"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center space-x-2">
@@ -90,13 +94,13 @@ export function MainNav() {
                 to="/login"
                 className="text-gray-300 hover:text-[#FCC822] transition-colors duration-200"
               >
-                Login
+                Anmelden
               </Link>
               <Link
                 to="/signup"
                 className="btn-gradient px-4 py-2 rounded text-sm font-medium transition-all duration-200"
               >
-                Sign Up
+                Registrieren
               </Link>
             </div>
           </div>
@@ -106,7 +110,11 @@ export function MainNav() {
   }
 
   return (
-    <nav role="navigation" aria-label="Main navigation" className="bg-[#061421] border-b border-gray-700">
+    <nav
+      role="navigation"
+      aria-label="Main navigation"
+      className="bg-[#061421] border-b border-gray-700"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -122,7 +130,7 @@ export function MainNav() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             {/* Navigation Links based on active role */}
-            {getNavLinks().map((link) => (
+            {getNavLinks().map(link => (
               <Link
                 key={link.path}
                 to={link.path}
@@ -163,13 +171,17 @@ export function MainNav() {
                 </span>
                 {isAdmin && (
                   <button
-                    onClick={isViewingAsAdmin ? handleSwitchToPlayerView : handleSwitchToAdminView}
+                    onClick={
+                      isViewingAsAdmin
+                        ? handleSwitchToPlayerView
+                        : handleSwitchToAdminView
+                    }
                     className={`flex items-center space-x-1 text-white text-xs px-2 py-1 rounded-full font-medium transition-all duration-200 hover:scale-105 cursor-pointer border ${
-                      isViewingAsAdmin 
-                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 border-purple-400 hover:border-purple-300' 
+                      isViewingAsAdmin
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 border-purple-400 hover:border-purple-300'
                         : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 border-green-400 hover:border-green-300'
                     }`}
-                    title={`Currently in ${isViewingAsAdmin ? 'admin' : 'player'} mode. Click to switch to ${isViewingAsAdmin ? 'player' : 'admin'} view.`}
+                    title={`Aktuell im ${isViewingAsAdmin ? 'Admin' : 'Spieler'}-Modus. Klicken Sie, um zur ${isViewingAsAdmin ? 'Spieler' : 'Admin'}-Ansicht zu wechseln.`}
                   >
                     <span>{isViewingAsAdmin ? 'admin' : 'player'}</span>
                     <svg
@@ -178,12 +190,17 @@ export function MainNav() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                      />
                     </svg>
                   </button>
                 )}
               </div>
-              
+
               <button
                 onClick={handleLogout}
                 className="p-2 text-gray-300 hover:text-[#FCC822] transition-colors duration-200"
@@ -212,9 +229,19 @@ export function MainNav() {
               stroke="currentColor"
             >
               {isMobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
@@ -224,10 +251,8 @@ export function MainNav() {
         {isMobileMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-800 rounded-b-lg">
-
-
               {/* Navigation Links based on active role */}
-              {getNavLinks().map((link) => (
+              {getNavLinks().map(link => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -241,12 +266,14 @@ export function MainNav() {
                   {link.label}
                 </Link>
               ))}
-              
+
               {/* Mobile User Info */}
               <div className="border-t border-gray-700 pt-4 pb-3">
                 <div className="flex items-center px-3 space-x-3">
                   <img
-                    src={user?.avatar || '/avatars/player_male_with_greataxe.png'}
+                    src={
+                      user?.avatar || '/avatars/player_male_with_greataxe.png'
+                    }
                     alt={`${user?.username} Avatar`}
                     className="h-10 w-10 rounded-full"
                   />
@@ -257,13 +284,17 @@ export function MainNav() {
                       </div>
                       {isAdmin && (
                         <button
-                          onClick={isViewingAsAdmin ? handleSwitchToPlayerView : handleSwitchToAdminView}
+                          onClick={
+                            isViewingAsAdmin
+                              ? handleSwitchToPlayerView
+                              : handleSwitchToAdminView
+                          }
                           className={`flex items-center space-x-1 text-white text-xs px-2 py-1 rounded-full font-medium transition-all duration-200 hover:scale-105 cursor-pointer border ${
-                            isViewingAsAdmin 
-                              ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 border-purple-400 hover:border-purple-300' 
+                            isViewingAsAdmin
+                              ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 border-purple-400 hover:border-purple-300'
                               : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 border-green-400 hover:border-green-300'
                           }`}
-                          title={`Currently in ${isViewingAsAdmin ? 'admin' : 'player'} mode. Click to switch to ${isViewingAsAdmin ? 'player' : 'admin'} view.`}
+                          title={`Aktuell im ${isViewingAsAdmin ? 'Admin' : 'Spieler'}-Modus. Klicken Sie, um zur ${isViewingAsAdmin ? 'Spieler' : 'Admin'}-Ansicht zu wechseln.`}
                         >
                           <span>{isViewingAsAdmin ? 'admin' : 'player'}</span>
                           <svg
@@ -272,7 +303,12 @@ export function MainNav() {
                             stroke="currentColor"
                             viewBox="0 0 24 24"
                           >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                            />
                           </svg>
                         </button>
                       )}
@@ -309,4 +345,4 @@ export function MainNav() {
       </div>
     </nav>
   );
-} 
+}

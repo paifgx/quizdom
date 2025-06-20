@@ -74,4 +74,4 @@ describe('useAuthForm', () => {
     expect(result.current.formState.email).toBe('');
     expect(result.current.formState.password).toBe('');
   });
-}); 
+});
