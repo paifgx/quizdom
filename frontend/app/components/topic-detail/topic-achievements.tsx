@@ -5,6 +5,7 @@
 
 import React from 'react';
 import type { TopicAchievementsProps } from '../../types/topic-detail';
+import { translate } from '../../utils/translations';
 
 /**
  * Displays achievement badges with unlock status indicators.
@@ -16,7 +17,9 @@ import type { TopicAchievementsProps } from '../../types/topic-detail';
 export function TopicAchievements({ achievements }: TopicAchievementsProps) {
   return (
     <div className="flex flex-col space-y-2">
-      <h3 className="text-sm font-semibold text-gray-400">Achievements</h3>
+      <h3 className="text-sm font-semibold text-gray-400">
+        {translate('dashboard.achievements')}
+      </h3>
       <div className="flex items-center space-x-2 lg:space-x-3 flex-wrap gap-2">
         {achievements.map(achievement => (
           <AchievementBadge key={achievement.id} achievement={achievement} />

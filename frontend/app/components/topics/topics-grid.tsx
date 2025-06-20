@@ -1,6 +1,7 @@
 import type { MouseEvent } from 'react';
 import type { Topic } from '../../types/topics';
 import { TopicsTopicCard } from './topic-card';
+import { translate } from '../../utils/translations';
 
 interface TopicsGridProps {
   topics: Topic[];
@@ -46,9 +47,11 @@ function EmptyTopicsState() {
         alt="No topics"
         className="h-16 w-16 mx-auto mb-4 opacity-50"
       />
-      <p className="text-gray-400 text-lg">No topics found.</p>
+      <p className="text-gray-400 text-lg">
+        {translate('topics.noTopicsFound')}
+      </p>
       <p className="text-gray-500 text-sm mt-2">
-        Try adjusting your search criteria or selecting a different category.
+        {translate('topics.adjustSearchCriteria')}
       </p>
     </div>
   );

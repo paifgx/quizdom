@@ -98,6 +98,11 @@ export const translations = {
     overviewDescription:
       'Entdecken Sie spannende Themen aus verschiedenen Kategorien und testen Sie Ihr Wissen.',
     searchTopics: 'Themen suchen...',
+    yourTopics: 'Ihre Themen',
+    noTopicsFound: 'Keine Themen gefunden',
+    tryDifferentSearch: 'Versuchen Sie einen anderen Suchbegriff',
+    adjustSearchCriteria:
+      'Versuchen Sie, Ihre Suchkriterien anzupassen oder eine andere Kategorie zu wählen.',
     filters: 'Filter',
     category: 'Kategorie',
     allCategories: 'Alle Kategorien',
@@ -126,6 +131,16 @@ export const translations = {
     add: 'Hinzufügen',
     settings: 'Einstellungen',
     reports: 'Berichte',
+  },
+
+  // Dashboard
+  dashboard: {
+    achievements: 'Erfolge',
+    rewards: 'Belohnungen',
+    wisecoins: 'Wisecoins',
+    onlineUsers: 'Andere Benutzer online',
+    firstQuiz: 'Erstes Quiz',
+    quizMaster: 'Quiz-Meister',
   },
 
   // Common
@@ -247,6 +262,8 @@ export const translations = {
 
   // Page Titles
   pageTitles: {
+    home: 'Quizdom - Rise of the Wise',
+    homeDescription: 'Willkommen bei Quizdom - dem ultimativen Quiz-Erlebnis!',
     authentication: 'Authentifizierung | Quizdom',
     authDescription: 'Melden Sie sich an oder erstellen Sie Ihr Quizdom-Konto.',
     adminDashboard: 'Admin Dashboard | Quizdom',

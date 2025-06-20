@@ -1,4 +1,5 @@
 import React from 'react';
+import { translate } from '../../utils/translations';
 
 export interface LogoPanelProps {
   position: 'left' | 'right';
@@ -28,7 +29,7 @@ export function LogoPanel({ position }: LogoPanelProps) {
           QUIZDOM
         </h2>
         <p className="text-xl text-gray-300 transition-all duration-700">
-          Rise of the Wise
+          {translate('landing.tagline')}
         </p>
       </div>
     </div>

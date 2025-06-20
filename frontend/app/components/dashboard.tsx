@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { translate } from '../utils/translations';
 
 interface Topic {
   id: string;
@@ -16,7 +17,7 @@ interface DashboardProps {
 
 /**
  * Presentational dashboard component for authenticated users.
- * Displays topics and search functionality with English language interface.
+ * Displays topics and search functionality with German language interface.
  * Follows accessibility best practices and responsive design.
  */
 export function Dashboard({
@@ -32,7 +33,7 @@ export function Dashboard({
         <div className="relative">
           <input
             type="text"
-            placeholder="Search for your topic..."
+            placeholder={translate('topics.searchTopics')}
             value={searchTerm}
             onChange={e => onSearchChange(e.target.value)}
             className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-800/80 border border-gray-600 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent text-base sm:text-lg backdrop-blur-sm"
@@ -58,7 +59,7 @@ export function Dashboard({
       {/* Topics Header */}
       <div className="mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-          Your Topics
+          {translate('topics.yourTopics')}
         </h2>
       </div>
 
@@ -95,9 +96,11 @@ export function Dashboard({
       {filteredTopics.length === 0 && (
         <div className="text-center py-8 sm:py-12">
           <p className="text-gray-400 text-base sm:text-lg mb-2">
-            No topics found
+            {translate('topics.noTopicsFound')}
           </p>
-          <p className="text-gray-500 text-sm">Try a different search term</p>
+          <p className="text-gray-500 text-sm">
+            {translate('topics.tryDifferentSearch')}
+          </p>
         </div>
       )}
     </div>

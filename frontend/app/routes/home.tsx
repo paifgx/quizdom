@@ -9,6 +9,7 @@ import { Dashboard } from '../components/dashboard';
 import { LoadingSpinner } from '../components/home/loading-spinner';
 import { useHomePage } from '../hooks/useHomePage';
 import { fetchHomeTopics } from '../api';
+import { translate } from '../utils/translations';
 import { useEffect, useState } from 'react';
 
 // Add type definition for HomeTopic
@@ -22,14 +23,14 @@ interface HomeTopic {
 /**
  * Meta function for home page SEO and routing.
  * Provides page title and description for search engines.
- * Uses English content following language consistency rules.
+ * Uses German content following language consistency rules.
  */
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: 'Quizdom - Rise of the Wise' },
+    { title: translate('pageTitles.home') },
     {
       name: 'description',
-      content: 'Welcome to Quizdom - The ultimate quiz experience!',
+      content: translate('pageTitles.homeDescription'),
     },
   ];
 }
