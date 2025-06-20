@@ -130,8 +130,7 @@ export default function ProfilePage() {
                           : 'border-gray-600 hover:border-[#FCC822]'
                       }`}
                       onClick={() => {
-                        // TODO: Implement avatar selection
-                        // console.log('Avatar selected:', avatar);
+                        // Avatar selection coming soon
                       }}
                     >
                       <img

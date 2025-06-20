@@ -1,5 +1,6 @@
-import React from 'react';
+import type { FormEvent } from 'react';
 import { ValidatedInput } from './validated-input';
+import { translate } from '../../utils/translations';
 
 export interface LoginFormProps {
   email: string;
@@ -11,7 +12,7 @@ export interface LoginFormProps {
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onRememberMeChange: (checked: boolean) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: FormEvent) => void;
   getError: (field: string) => string | undefined;
 }
 
@@ -44,7 +45,7 @@ export function LoginForm({
         id="password"
         name="password"
         type="password"
-        placeholder="Ihr Passwort"
+        placeholder={translate('auth.yourPassword')}
         value={password}
         onChange={onPasswordChange}
         error={getError('password')}

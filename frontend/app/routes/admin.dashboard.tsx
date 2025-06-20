@@ -1,311 +1,211 @@
 import { ProtectedRoute } from '../components/auth/protected-route';
 import { useAuth } from '../contexts/auth';
+import { translate } from '../utils/translations';
 
 export function meta() {
   return [
-    { title: 'Admin Dashboard | Quizdom' },
-    { name: 'description', content: 'Administrationsbereich für Quizdom.' },
+    { title: translate('pageTitles.adminDashboard') },
+    {
+      name: 'description',
+      content: translate('pageTitles.adminDashboardDescription'),
+    },
   ];
 }
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
 
-  const dashboardStats = {
-    totalUsers: 1247,
-    activeUsers: 89,
-    totalQuizzes: 156,
-    totalQuestions: 2340,
-    averageScore: 78.5,
-    systemUptime: '99.8%',
-  };
-
-  const recentActivity = [
-    {
-      id: 1,
-      user: 'max_mustermann',
-      action: 'Quiz abgeschlossen',
-      details: 'Wissenschaft Quiz (85% Genauigkeit)',
-      timestamp: '2 Minuten',
-      type: 'quiz_completion',
-    },
-    {
-      id: 2,
-      user: 'anna_schmidt',
-      action: 'Neuer Benutzer registriert',
-      details: 'E-Mail: anna.schmidt@email.com',
-      timestamp: '15 Minuten',
-      type: 'user_registration',
-    },
-    {
-      id: 3,
-      user: 'peter_wagner',
-      action: 'Badge erhalten',
-      details: 'Quiz-Meister Badge freigeschaltet',
-      timestamp: '32 Minuten',
-      type: 'achievement',
-    },
-    {
-      id: 4,
-      user: 'system',
-      action: 'Neue Fragen hinzugefügt',
-      details: '15 neue Fragen zur Kategorie Geschichte',
-      timestamp: '1 Stunde',
-      type: 'system',
-    },
-  ];
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'quiz_completion':
-        return '/buttons/Accept.png';
-      case 'user_registration':
-        return '/buttons/Add.png';
-      case 'achievement':
-        return '/badges/badge_book_1.png';
-      case 'system':
-        return '/buttons/Settings.png';
-      default:
-        return '/buttons/Home.png';
-    }
-  };
-
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'quiz_completion':
-        return 'text-green-400';
-      case 'user_registration':
-        return 'text-blue-400';
-      case 'achievement':
-        return 'text-[#FCC822]';
-      case 'system':
-        return 'text-purple-400';
-      default:
-        return 'text-gray-400';
-    }
-  };
-
   return (
-    <ProtectedRoute requireAdmin={true}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-300 text-lg">
-            Willkommen zurück, {user?.username}! Hier ist eine Übersicht über
-            das System.
-          </p>
-        </div>
+    <ProtectedRoute requireAdmin>
+      <div className="min-h-screen bg-[#061421] text-white p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
+              {translate('nav.dashboard')}
+            </h1>
+            <p className="text-gray-300">
+              Willkommen zurück, {user?.username}! Hier können Sie das
+              Quizdom-System verwalten.
+            </p>
+          </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-300 text-sm font-medium">
-                  Benutzer gesamt
-                </p>
-                <p className="text-3xl font-bold text-[#FCC822]">
-                  {dashboardStats.totalUsers.toLocaleString()}
-                </p>
-                <p className="text-green-400 text-sm">+12% diesen Monat</p>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-gray-800 bg-opacity-30 rounded-xl p-6 border border-gray-700/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">Aktive Benutzer</p>
+                  <p className="text-2xl font-bold text-[#FCC822]">1,234</p>
+                </div>
+                <div className="w-12 h-12 bg-[#FCC822] bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-[#FCC822]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                    />
+                  </svg>
+                </div>
               </div>
-              <div className="p-3 bg-[#FCC822] bg-opacity-20 rounded-lg">
+            </div>
+
+            <div className="bg-gray-800 bg-opacity-30 rounded-xl p-6 border border-gray-700/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">Gesamte Fragen</p>
+                  <p className="text-2xl font-bold text-[#FCC822]">5,678</p>
+                </div>
+                <div className="w-12 h-12 bg-[#FCC822] bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-[#FCC822]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-800 bg-opacity-30 rounded-xl p-6 border border-gray-700/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">Aktive Spiele</p>
+                  <p className="text-2xl font-bold text-[#FCC822]">89</p>
+                </div>
+                <div className="w-12 h-12 bg-[#FCC822] bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-[#FCC822]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-800 bg-opacity-30 rounded-xl p-6 border border-gray-700/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">System Status</p>
+                  <p className="text-2xl font-bold text-green-400">Online</p>
+                </div>
+                <div className="w-12 h-12 bg-green-400 bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-[#FCC822] mb-4">
+              Schnellaktionen
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
                 <img
-                  src="/avatars/player_male_with_greataxe.png"
-                  alt="Users"
-                  className="h-8 w-8"
+                  src="/buttons/Add.png"
+                  alt={translate('accessibility.add')}
+                  className="h-6 w-6 mx-auto mb-2"
                 />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-300 text-sm font-medium">
-                  Aktive Benutzer
-                </p>
-                <p className="text-3xl font-bold text-[#FCC822]">
-                  {dashboardStats.activeUsers}
-                </p>
-                <p className="text-green-400 text-sm">Letzten 24h</p>
-              </div>
-              <div className="p-3 bg-green-500 bg-opacity-20 rounded-lg">
-                <img src="/buttons/Play.png" alt="Active" className="h-8 w-8" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-300 text-sm font-medium">
-                  Quizzes gesamt
-                </p>
-                <p className="text-3xl font-bold text-[#FCC822]">
-                  {dashboardStats.totalQuizzes}
-                </p>
-                <p className="text-blue-400 text-sm">In 15 Kategorien</p>
-              </div>
-              <div className="p-3 bg-blue-500 bg-opacity-20 rounded-lg">
+                {translate('admin.addNewQuestion')}
+              </button>
+              <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
                 <img
-                  src="/badges/badge_book_1.png"
-                  alt="Quizzes"
-                  className="h-8 w-8"
+                  src="/avatars/ai_assistant_wizard.png"
+                  alt={translate('accessibility.user')}
+                  className="h-6 w-6 mx-auto mb-2"
                 />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-300 text-sm font-medium">
-                  Fragen gesamt
-                </p>
-                <p className="text-3xl font-bold text-[#FCC822]">
-                  {dashboardStats.totalQuestions.toLocaleString()}
-                </p>
-                <p className="text-purple-400 text-sm">+45 diese Woche</p>
-              </div>
-              <div className="p-3 bg-purple-500 bg-opacity-20 rounded-lg">
-                <img
-                  src="/buttons/Filter.png"
-                  alt="Questions"
-                  className="h-8 w-8"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-300 text-sm font-medium">Ø Punktzahl</p>
-                <p className="text-3xl font-bold text-[#FCC822]">
-                  {dashboardStats.averageScore}%
-                </p>
-                <p className="text-green-400 text-sm">
-                  +2.3% vs. letzten Monat
-                </p>
-              </div>
-              <div className="p-3 bg-[#FCC822] bg-opacity-20 rounded-lg">
-                <img
-                  src="/stars/star_full.png"
-                  alt="Score"
-                  className="h-8 w-8"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-300 text-sm font-medium">
-                  System-Verfügbarkeit
-                </p>
-                <p className="text-3xl font-bold text-[#FCC822]">
-                  {dashboardStats.systemUptime}
-                </p>
-                <p className="text-green-400 text-sm">Letzten 30 Tage</p>
-              </div>
-              <div className="p-3 bg-green-500 bg-opacity-20 rounded-lg">
+                {translate('admin.manageUsers')}
+              </button>
+              <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
                 <img
                   src="/buttons/Settings.png"
-                  alt="System"
-                  className="h-8 w-8"
+                  alt={translate('accessibility.settings')}
+                  className="h-6 w-6 mx-auto mb-2"
                 />
+                {translate('admin.systemSettings')}
+              </button>
+              <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
+                <img
+                  src="/buttons/Filter.png"
+                  alt={translate('accessibility.reports')}
+                  className="h-6 w-6 mx-auto mb-2"
+                />
+                {translate('admin.createReports')}
+              </button>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div>
+            <h2 className="text-2xl font-bold text-[#FCC822] mb-4">
+              Letzte Aktivitäten
+            </h2>
+            <div className="bg-gray-800 bg-opacity-30 rounded-xl p-6 border border-gray-700/50">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-white">
+                      Neuer Benutzer registriert: max.mustermann@example.com
+                    </p>
+                    <p className="text-gray-400 text-sm">vor 5 Minuten</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-white">
+                      Neue Frage hinzugefügt: "Was ist die Hauptstadt von
+                      Deutschland?"
+                    </p>
+                    <p className="text-gray-400 text-sm">vor 15 Minuten</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-white">System-Update abgeschlossen</p>
+                    <p className="text-gray-400 text-sm">vor 1 Stunde</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
-          <h2 className="text-2xl font-bold text-[#FCC822] mb-6">
-            Letzte Aktivitäten
-          </h2>
-          <div className="space-y-4">
-            {recentActivity.map(activity => (
-              <div
-                key={activity.id}
-                className="flex items-start space-x-4 p-4 bg-gray-700 bg-opacity-50 rounded-lg hover:bg-opacity-70 transition-all duration-200"
-              >
-                <div className="flex-shrink-0">
-                  <img
-                    src={getActivityIcon(activity.type)}
-                    alt={activity.action}
-                    className="h-6 w-6"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <p className="text-white font-medium truncate">
-                      {activity.user}
-                    </p>
-                    <span
-                      className={`text-sm ${getActivityColor(activity.type)}`}
-                    >
-                      {activity.action}
-                    </span>
-                  </div>
-                  <p className="text-gray-300 text-sm mt-1">
-                    {activity.details}
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <span className="text-gray-400 text-xs">
-                    vor {activity.timestamp}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 text-center">
-            <button className="text-[#FCC822] hover:text-[#FFCD2E] font-medium text-sm transition-colors duration-200">
-              Alle Aktivitäten anzeigen →
-            </button>
-          </div>
-        </div>
-
-        {/* Schnellaktionen */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
-            <img
-              src="/buttons/Add.png"
-              alt="Hinzufügen"
-              className="h-6 w-6 mx-auto mb-2"
-            />
-            Neue Frage hinzufügen
-          </button>
-          <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
-            <img
-              src="/avatars/ai_assistant_wizard.png"
-              alt="Benutzer"
-              className="h-6 w-6 mx-auto mb-2"
-            />
-            Benutzer verwalten
-          </button>
-          <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
-            <img
-              src="/buttons/Settings.png"
-              alt="Einstellungen"
-              className="h-6 w-6 mx-auto mb-2"
-            />
-            System-Einstellungen
-          </button>
-          <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
-            <img
-              src="/buttons/Filter.png"
-              alt="Berichte"
-              className="h-6 w-6 mx-auto mb-2"
-            />
-            Berichte erstellen
-          </button>
         </div>
       </div>
     </ProtectedRoute>

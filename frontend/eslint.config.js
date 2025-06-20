@@ -10,6 +10,7 @@ export default [
   {
     ignores: [
       'dist',
+      'build',
       'node_modules',
       '.react-router',
       'coverage',

@@ -28,7 +28,6 @@ export default function AdminQuestionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
-  const [_showAddModal, setShowAddModal] = useState(false);
 
   const categories = [
     'Wissenschaft',
@@ -139,7 +138,9 @@ export default function AdminQuestionsPage() {
             </p>
           </div>
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              // Add question modal coming soon
+            }}
             className="btn-gradient px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105"
           >
             <img

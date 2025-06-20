@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/auth';
+import { translate } from '../../utils/translations';
 
 interface NavigationLink {
   label: string;
@@ -10,18 +11,26 @@ interface NavigationLink {
 }
 
 const playerNavLinks: NavigationLink[] = [
-  { label: 'Start', path: '/', role: 'player' },
-  { label: 'Themen', path: '/topics', role: 'player' },
-  { label: 'Spielmodi', path: '/game-modes', role: 'player' },
-  { label: 'Fortschritt', path: '/progress', role: 'player' },
-  { label: 'Profil', path: '/profile', role: 'player' },
+  { label: translate('nav.start'), path: '/', role: 'player' },
+  { label: translate('nav.topics'), path: '/topics', role: 'player' },
+  { label: translate('nav.gameModes'), path: '/game-modes', role: 'player' },
+  { label: translate('nav.progress'), path: '/progress', role: 'player' },
+  { label: translate('nav.profile'), path: '/profile', role: 'player' },
 ];
 
 const adminNavLinks: NavigationLink[] = [
-  { label: 'Dashboard', path: '/admin/dashboard', role: 'admin' },
-  { label: 'Fragen', path: '/admin/questions', role: 'admin' },
-  { label: 'Users', path: '/admin/users', role: 'admin' },
-  { label: 'Logs', path: '/admin/logs', role: 'admin' },
+  {
+    label: translate('nav.dashboard'),
+    path: '/admin/dashboard',
+    role: 'admin',
+  },
+  {
+    label: translate('nav.questions'),
+    path: '/admin/questions',
+    role: 'admin',
+  },
+  { label: translate('nav.users'), path: '/admin/users', role: 'admin' },
+  { label: translate('nav.logs'), path: '/admin/logs', role: 'admin' },
 ];
 
 export function MainNav() {
@@ -94,13 +103,13 @@ export function MainNav() {
                 to="/login"
                 className="text-gray-300 hover:text-[#FCC822] transition-colors duration-200"
               >
-                Anmelden
+                {translate('nav.login')}
               </Link>
               <Link
                 to="/signup"
                 className="btn-gradient px-4 py-2 rounded text-sm font-medium transition-all duration-200"
               >
-                Registrieren
+                {translate('nav.register')}
               </Link>
             </div>
           </div>
@@ -181,9 +190,13 @@ export function MainNav() {
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 border-purple-400 hover:border-purple-300'
                         : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 border-green-400 hover:border-green-300'
                     }`}
-                    title={`Aktuell im ${isViewingAsAdmin ? 'Admin' : 'Spieler'}-Modus. Klicken Sie, um zur ${isViewingAsAdmin ? 'Spieler' : 'Admin'}-Ansicht zu wechseln.`}
+                    title={`Aktuell im ${isViewingAsAdmin ? translate('nav.admin') : translate('nav.player')}-Modus. Klicken Sie, um zur ${isViewingAsAdmin ? translate('nav.player') : translate('nav.admin')}-Ansicht zu wechseln.`}
                   >
-                    <span>{isViewingAsAdmin ? 'admin' : 'player'}</span>
+                    <span>
+                      {isViewingAsAdmin
+                        ? translate('nav.admin')
+                        : translate('nav.player')}
+                    </span>
                     <svg
                       className="w-3 h-3 opacity-80"
                       fill="none"
@@ -204,11 +217,11 @@ export function MainNav() {
               <button
                 onClick={handleLogout}
                 className="p-2 text-gray-300 hover:text-[#FCC822] transition-colors duration-200"
-                aria-label="Logout"
+                aria-label={translate('accessibility.logout')}
               >
                 <img
                   src="/buttons/Logout.png"
-                  alt="Logout"
+                  alt={translate('accessibility.logout')}
                   className="h-5 w-5"
                 />
               </button>
@@ -220,7 +233,7 @@ export function MainNav() {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 rounded-md text-gray-300 hover:text-[#FCC822] hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:ring-offset-2 focus:ring-offset-gray-800"
             aria-expanded={isMobileMenuOpen}
-            aria-label="Toggle menu"
+            aria-label={translate('accessibility.toggleMenu')}
           >
             <svg
               className="h-6 w-6"
@@ -294,9 +307,13 @@ export function MainNav() {
                               ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 border-purple-400 hover:border-purple-300'
                               : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 border-green-400 hover:border-green-300'
                           }`}
-                          title={`Aktuell im ${isViewingAsAdmin ? 'Admin' : 'Spieler'}-Modus. Klicken Sie, um zur ${isViewingAsAdmin ? 'Spieler' : 'Admin'}-Ansicht zu wechseln.`}
+                          title={`Aktuell im ${isViewingAsAdmin ? translate('nav.admin') : translate('nav.player')}-Modus. Klicken Sie, um zur ${isViewingAsAdmin ? translate('nav.player') : translate('nav.admin')}-Ansicht zu wechseln.`}
                         >
-                          <span>{isViewingAsAdmin ? 'admin' : 'player'}</span>
+                          <span>
+                            {isViewingAsAdmin
+                              ? translate('nav.admin')
+                              : translate('nav.player')}
+                          </span>
                           <svg
                             className="w-3 h-3 opacity-80"
                             fill="none"
@@ -335,7 +352,7 @@ export function MainNav() {
                       alt=""
                       className="h-5 w-5 mr-2"
                     />
-                    Logout
+                    {translate('nav.logout')}
                   </button>
                 </div>
               </div>

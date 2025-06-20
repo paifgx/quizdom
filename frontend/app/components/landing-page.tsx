@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
+import { translate } from '../utils/translations';
 
-interface LandingPageProps {
-  // Currently no props needed, but structure is ready for future data
+export interface LandingPageProps {
+  // Add any props if needed in the future
 }
 
 /**
@@ -34,11 +35,10 @@ export function LandingPage(_props: LandingPageProps) {
             QUIZDOM
           </h1>
           <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-medium">
-            Rise of the Wise
+            {translate('landing.tagline')}
           </p>
           <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
-            Tauchen Sie ein in die ultimative Quiz-Erfahrung. Sammeln Sie
-            Wisecoins, verdienen Sie Badges und beweisen Sie Ihr Wissen!
+            {translate('landing.description')}
           </p>
 
           {/* CTA Button */}
@@ -46,7 +46,7 @@ export function LandingPage(_props: LandingPageProps) {
             to="/signup"
             className="btn-gradient inline-block px-8 py-4 rounded-xl text-xl font-bold transition-all duration-300 hover:scale-110 shadow-2xl"
           >
-            Start playing
+            {translate('landing.startPlaying')}
           </Link>
 
           {/* Features */}
@@ -60,11 +60,10 @@ export function LandingPage(_props: LandingPageProps) {
                 />
               </div>
               <h3 className="text-[#FCC822] text-lg font-bold mb-2">
-                Wisecoins sammeln
+                {translate('landing.collectWisecoins')}
               </h3>
               <p className="text-gray-300 text-sm">
-                Verdienen Sie Wisecoins für richtige Antworten und kaufen Sie
-                Power-Ups.
+                {translate('landing.collectWisecoinsDesc')}
               </p>
             </div>
 
@@ -77,11 +76,10 @@ export function LandingPage(_props: LandingPageProps) {
                 />
               </div>
               <h3 className="text-[#FCC822] text-lg font-bold mb-2">
-                Badges verdienen
+                {translate('landing.earnBadges')}
               </h3>
               <p className="text-gray-300 text-sm">
-                Schalten Sie einzigartige Achievements frei und zeigen Sie Ihre
-                Erfolge.
+                {translate('landing.earnBadgesDesc')}
               </p>
             </div>
 
@@ -94,10 +92,10 @@ export function LandingPage(_props: LandingPageProps) {
                 />
               </div>
               <h3 className="text-[#FCC822] text-lg font-bold mb-2">
-                Verschiedene Modi
+                {translate('landing.variousModes')}
               </h3>
               <p className="text-gray-300 text-sm">
-                Spielen Sie Solo, gegen Freunde oder in spannenden Turnieren.
+                {translate('landing.variousModesDesc')}
               </p>
             </div>
           </div>

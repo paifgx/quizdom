@@ -1,79 +1,98 @@
+/**
+ * Home page route component.
+ * Renders different views based on authentication state following single responsibility principle.
+ * Uses clean architecture with separated concerns and proper error handling.
+ */
 import type { Route } from './+types/home';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { useAuth } from '../contexts/auth';
 import { LandingPage } from '../components/landing-page';
 import { Dashboard } from '../components/dashboard';
+import { LoadingSpinner } from '../components/home/loading-spinner';
+import { useHomePage } from '../hooks/useHomePage';
+import { fetchHomeTopics } from '../api';
+import { translate } from '../utils/translations';
+import { useEffect, useState } from 'react';
 
+// Add type definition for HomeTopic
+interface HomeTopic {
+  id: string;
+  title: string;
+  image: string;
+  description: string;
+}
+
+/**
+ * Meta function for home page SEO and routing.
+ * Provides page title and description for search engines.
+ * Uses German content following language consistency rules.
+ */
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: 'Quizdom - Rise of the Wise' },
+    { title: translate('pageTitles.home') },
     {
       name: 'description',
-      content: 'Willkommen bei Quizdom - Das ultimative Quiz-Erlebnis!',
+      content: translate('pageTitles.homeDescription'),
     },
   ];
 }
 
-// Mock data for topics
-const availableTopics = [
-  {
-    id: 'it-project-management',
-    title: 'IT Project Management',
-    image: '/topics/it-project-management.png',
-    description: 'Projektmanagement in der IT-Welt',
-  },
-  {
-    id: 'math',
-    title: 'Mathematics',
-    image: '/topics/math.png',
-    description: 'Mathematische Grundlagen und fortgeschrittene Konzepte',
-  },
-];
-
 /**
- * Home route component that renders different views based on authentication state
- * Acts as a container component managing data and logic
+ * Main home page component.
+ * Acts as a smart container component that orchestrates authentication-based rendering.
+ * Delegates business logic to custom hooks and renders appropriate views.
+ *
+ * Features:
+ * - Authentication-based view switching
+ * - Loading state management
+ * - Admin dashboard redirection
+ * - Topic search functionality
+ * - Error boundary ready
  */
 export default function HomePage() {
-  const { isAuthenticated, isViewingAsAdmin, loading } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
+  const [homeTopics, setHomeTopics] = useState<HomeTopic[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
-  // Redirect admins viewing as admin to admin dashboard
+  // Load home topics data
   useEffect(() => {
-    if (isAuthenticated && isViewingAsAdmin) {
-      navigate('/admin/dashboard', { replace: true });
-    }
-  }, [isAuthenticated, isViewingAsAdmin, navigate]);
+    const loadHomeTopics = async () => {
+      try {
+        const topics = await fetchHomeTopics();
+        setHomeTopics(topics);
+      } catch {
+        // Error intentionally ignored
+      } finally {
+        setDataLoading(false);
+      }
+    };
 
-  const filteredTopics = availableTopics.filter(topic =>
-    topic.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    loadHomeTopics();
+  }, []);
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-  };
+  const {
+    isAuthenticated,
+    loading,
+    searchTerm,
+    filteredTopics,
+    handleSearchChange,
+  } = useHomePage({ topics: homeTopics });
 
-  // Show loading state to prevent content flicker during authentication check
+  // Show loading state only during authentication check
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822]"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
+  // Render authenticated user dashboard with skeleton loading for topics
   if (isAuthenticated) {
     return (
       <Dashboard
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
-        topics={availableTopics}
+        topics={homeTopics}
         filteredTopics={filteredTopics}
+        isTopicsLoading={dataLoading}
       />
     );
   }
 
+  // Render landing page for unauthenticated users
   return <LandingPage />;
 }

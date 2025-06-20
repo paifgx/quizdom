@@ -29,7 +29,6 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [_sortBy, _setSortBy] = useState('registeredAt');
 
   const sampleUsers: User[] = [
     {

@@ -1,607 +1,115 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '../components/auth/protected-route';
-import { useAuth } from '../contexts/auth';
+import {
+  TopicsHeader,
+  TopicsStatistics,
+  TopicsFilters,
+  TopicsGrid,
+} from '../components';
+import { useTopicsPage } from '../hooks/useTopicsPage';
+import { fetchTopics } from '../api';
+import type { GameTopic } from '../types/topics';
 
 export function meta() {
   return [
-    { title: 'Themenübersicht | Quizdom' },
+    { title: 'Topics Overview | Quizdom' },
     {
       name: 'description',
-      content: 'Übersicht aller verfügbaren Quiz-Themen.',
+      content: 'Overview of all available quiz topics.',
     },
   ];
 }
 
-interface Topic {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  totalQuestions: number;
-  completedQuestions: number;
-  image: string;
-  stars: number;
-  popularity: number;
-  wisecoinReward: number;
-  isCompleted: boolean;
-  isFavorite: boolean;
-}
-
+/**
+ * Topics page component.
+ * Displays a comprehensive overview of available quiz topics with filtering,
+ * sorting, and statistics. Provides navigation to individual topic details.
+ *
+ * Features:
+ * - Topic filtering by category, difficulty, and search terms
+ * - Sorting by popularity, difficulty, title, or progress
+ * - Favorite topic management
+ * - Progress tracking and statistics
+ * - Responsive grid layout
+ *
+ * @returns Topics page JSX element
+ */
 export default function TopicsPage() {
-  const { user } = useAuth();
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('popularity');
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
+  const [topics, setTopics] = useState<GameTopic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const categories = [
-    'Wissenschaft',
-    'Geschichte',
-    'Geographie',
-    'Sport',
-    'Kunst & Kultur',
-    'Technologie',
-    'Natur',
-    'Mathematik',
-  ];
+  const {
+    filters,
+    showFilters,
+    statistics,
+    sortedTopics,
+    toggleFavorite,
+    updateFilters,
+    toggleFilters,
+  } = useTopicsPage({ topics });
 
-  // Fantasy-themed difficulty names based on star ratings
-  const getDifficultyName = (stars: number): string => {
-    switch (stars) {
-      case 1:
-        return 'Anfänger';
-      case 2:
-        return 'Lehrling';
-      case 3:
-        return 'Geselle';
-      case 4:
-        return 'Meister';
-      case 5:
-        return 'Großmeister';
-      default:
-        return 'Anfänger';
-    }
-  };
+  // Load topics data
+  useEffect(() => {
+    const loadTopics = async () => {
+      try {
+        setError(null);
+        const topicsData = await fetchTopics();
+        setTopics(topicsData);
+      } catch {
+        setError('Fehler beim Laden der Themen');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const difficultyNames = [
-    'Anfänger',
-    'Lehrling',
-    'Geselle',
-    'Meister',
-    'Großmeister',
-  ];
-
-  // Initialize topics data with useEffect or direct initialization
-  React.useEffect(() => {
-    setTopics([
-      {
-        id: 'it-projectmanagement',
-        title: 'IT-Projektmanagement',
-        description:
-          'Comprehensive questions about IT project management, methodologies, and best practices.',
-        category: 'Technologie',
-        totalQuestions: 150,
-        completedQuestions: 10,
-        image: '/topics/it-project-management.png',
-        stars: 2, // Medium difficulty
-        popularity: 85,
-        wisecoinReward: 200,
-        isCompleted: false,
-        isFavorite: true,
-      },
-      {
-        id: 'math',
-        title: 'Mathematik',
-        description:
-          'Mathematische Grundlagen und fortgeschrittene Konzepte für alle Lernstufen.',
-        category: 'Mathematik',
-        totalQuestions: 100,
-        completedQuestions: 0,
-        image: '/topics/math.png',
-        stars: 4, // Hard difficulty
-        popularity: 92,
-        wisecoinReward: 250,
-        isCompleted: false,
-        isFavorite: false,
-      },
-      {
-        id: 'physics',
-        title: 'Physik',
-        description: 'Grundlagen der Physik - von Mechanik bis Quantenphysik.',
-        category: 'Wissenschaft',
-        totalQuestions: 120,
-        completedQuestions: 85,
-        image: '/topics/physics.png',
-        stars: 3, // Medium difficulty
-        popularity: 88,
-        wisecoinReward: 180,
-        isCompleted: false,
-        isFavorite: true,
-      },
-      {
-        id: 'world-history',
-        title: 'Weltgeschichte',
-        description:
-          'Wichtige Ereignisse und Persönlichkeiten der Weltgeschichte.',
-        category: 'Geschichte',
-        totalQuestions: 200,
-        completedQuestions: 200,
-        image: '/topics/history.png',
-        stars: 2, // Medium difficulty
-        popularity: 90,
-        wisecoinReward: 300,
-        isCompleted: true,
-        isFavorite: false,
-      },
-      {
-        id: 'geography',
-        title: 'Geographie',
-        description:
-          'Länder, Hauptstädte, Flüsse und geografische Besonderheiten.',
-        category: 'Geographie',
-        totalQuestions: 80,
-        completedQuestions: 45,
-        image: '/topics/geography.png',
-        stars: 1, // Easy difficulty
-        popularity: 95,
-        wisecoinReward: 150,
-        isCompleted: false,
-        isFavorite: false,
-      },
-      {
-        id: 'art-culture',
-        title: 'Kunst & Kultur',
-        description:
-          'Meisterwerke der Kunstgeschichte und kulturelle Entwicklungen.',
-        category: 'Kunst & Kultur',
-        totalQuestions: 90,
-        completedQuestions: 15,
-        image: '/topics/art.png',
-        stars: 5, // Hard difficulty
-        popularity: 71,
-        wisecoinReward: 220,
-        isCompleted: false,
-        isFavorite: false,
-      },
-    ]);
+    loadTopics();
   }, []);
 
-  // Toggle favorite function
-  const toggleFavorite = (topicId: string, event: React.MouseEvent) => {
-    event.preventDefault(); // Prevent navigation when clicking favorite button
-    setTopics(prevTopics =>
-      prevTopics.map(topic =>
-        topic.id === topicId
-          ? { ...topic, isFavorite: !topic.isFavorite }
-          : topic
-      )
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-8">
+            <p className="text-red-400 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-gradient px-4 py-2 rounded-lg"
+            >
+              Neu laden
+            </button>
+          </div>
+        </div>
+      </ProtectedRoute>
     );
-  };
-
-  const filteredTopics = topics.filter(topic => {
-    const matchesCategory =
-      selectedCategory === 'all' || topic.category === selectedCategory;
-    const matchesDifficulty =
-      selectedDifficulty === 'all' ||
-      getDifficultyName(topic.stars) === selectedDifficulty;
-    const matchesSearch =
-      topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      topic.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      topic.category.toLowerCase().includes(searchTerm.toLowerCase());
-
-    return matchesCategory && matchesDifficulty && matchesSearch;
-  });
-
-  const sortedTopics = [...filteredTopics].sort((a, b) => {
-    switch (sortBy) {
-      case 'popularity':
-        return b.popularity - a.popularity;
-      case 'difficulty':
-        return a.stars - b.stars;
-      case 'title':
-        return a.title.localeCompare(b.title);
-      case 'progress':
-        return (
-          b.completedQuestions / b.totalQuestions -
-          a.completedQuestions / a.totalQuestions
-        );
-      default:
-        return 0;
-    }
-  });
-
-  const getDifficultyColor = (stars: number) => {
-    switch (stars) {
-      case 1:
-        return 'bg-green-600 text-green-100';
-      case 2:
-        return 'bg-blue-600 text-blue-100';
-      case 3:
-        return 'bg-yellow-600 text-yellow-100';
-      case 4:
-        return 'bg-orange-600 text-orange-100';
-      case 5:
-        return 'bg-red-600 text-red-100';
-      default:
-        return 'bg-gray-600 text-gray-100';
-    }
-  };
-
-  const getDifficultyLabel = (stars: number) => {
-    return getDifficultyName(stars);
-  };
-
-  const getCompletedTopicsCount = () => {
-    return topics.filter(topic => topic.isCompleted).length;
-  };
-
-  const getFavoriteTopicsCount = () => {
-    return topics.filter(topic => topic.isFavorite).length;
-  };
-
-  const getTotalProgress = () => {
-    const totalQuestions = topics.reduce(
-      (sum, topic) => sum + topic.totalQuestions,
-      0
-    );
-    const completedQuestions = topics.reduce(
-      (sum, topic) => sum + topic.completedQuestions,
-      0
-    );
-    return totalQuestions > 0
-      ? Math.round((completedQuestions / totalQuestions) * 100)
-      : 0;
-  };
-
-  const getProgressPercentage = (completed: number, total: number) => {
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
-  };
+  }
 
   return (
     <ProtectedRoute>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
-            Themenübersicht
-          </h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Entdecken Sie spannende Themen aus verschiedenen Kategorien und
-            testen Sie Ihr Wissen.
-          </p>
-        </div>
+        <TopicsHeader />
+        <TopicsStatistics statistics={statistics} />
 
-        {/* Statistics - More subtle design */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-6 text-sm">
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="text-xl font-semibold text-[#FCC822]">
-              {topics.length}
-            </div>
-            <div className="text-gray-400">Verfügbare Themen</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="text-xl font-semibold text-red-400">
-              {getFavoriteTopicsCount()}
-            </div>
-            <div className="text-gray-400">Meine Favoriten</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="text-xl font-semibold text-green-400">
-              {getCompletedTopicsCount()}
-            </div>
-            <div className="text-gray-400">Abgeschlossen</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="text-xl font-semibold text-[#FCC822]">
-              {getTotalProgress()}%
-            </div>
-            <div className="text-gray-400">Gesamtfortschritt</div>
-          </div>
-          <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-center">
-            <div className="flex items-center justify-center gap-1">
-              <img
-                src="/wisecoin/wisecoin.png"
-                alt="Wisecoins"
-                className="h-5 w-5"
-              />
-              <div className="text-xl font-semibold text-[#FCC822]">
-                {user?.wisecoins || 0}
-              </div>
-            </div>
-            <div className="text-gray-400">Ihre Wisecoins</div>
-          </div>
-        </div>
+        <TopicsFilters
+          filters={filters}
+          showFilters={showFilters}
+          onUpdateFilters={updateFilters}
+          onToggleFilters={toggleFilters}
+        />
 
-        {/* Filters */}
-        <div className="bg-gray-800 bg-opacity-30 rounded-xl p-4 mb-8 border border-gray-700/50">
-          <div className="flex flex-col gap-4">
-            {/* Search Bar with Toggle Button - Full Width */}
-            <div className="flex gap-2">
-              <div className="flex-grow">
-                <input
-                  type="text"
-                  id="search"
-                  placeholder="Thema suchen..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-                />
-              </div>
-              <div className="flex items-center">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`px-3 py-2.5 rounded-lg border transition-colors duration-200 ${
-                    showFilters
-                      ? 'bg-[#FCC822] border-[#FCC822] text-gray-900'
-                      : 'bg-gray-700/50 border-gray-600/50 text-gray-300 hover:border-[#FCC822] hover:text-[#FCC822]'
-                  }`}
-                  title={
-                    showFilters ? 'Filter ausblenden' : 'Filter einblenden'
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="hidden sm:inline">Filter</span>
-                  </div>
-                </button>
-              </div>
-            </div>
+        <TopicsGrid
+          topics={sortedTopics}
+          onToggleFavorite={toggleFavorite}
+          isLoading={loading}
+        />
 
-            {/* Select Boxes - Row */}
-            {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                <div>
-                  <label
-                    htmlFor="category"
-                    className="block text-gray-300 font-medium mb-2"
-                  >
-                    Kategorie
-                  </label>
-                  <select
-                    id="category"
-                    value={selectedCategory}
-                    onChange={e => setSelectedCategory(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-                  >
-                    <option value="all">Alle Kategorien</option>
-                    {categories.map(category => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="difficulty"
-                    className="block text-gray-300 font-medium mb-2"
-                  >
-                    Schwierigkeit
-                  </label>
-                  <select
-                    id="difficulty"
-                    value={selectedDifficulty}
-                    onChange={e => setSelectedDifficulty(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-                  >
-                    <option value="all">Alle Schwierigkeiten</option>
-                    {difficultyNames.map(difficulty => (
-                      <option key={difficulty} value={difficulty}>
-                        {difficulty}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="sort"
-                    className="block text-gray-300 font-medium mb-2"
-                  >
-                    Sortieren nach
-                  </label>
-                  <select
-                    id="sort"
-                    value={sortBy}
-                    onChange={e => setSortBy(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-                  >
-                    <option value="popularity">Beliebtheit</option>
-                    <option value="difficulty">Schwierigkeit</option>
-                    <option value="title">Titel</option>
-                    <option value="progress">Fortschritt</option>
-                  </select>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Topics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedTopics.map(topic => (
-            <Link
-              key={topic.id}
-              to={`/topics/${topic.id}`}
-              className={`bg-gray-800 bg-opacity-50 rounded-xl overflow-hidden border transition-all duration-300 hover:scale-105 block ${
-                topic.isCompleted
-                  ? 'border-green-500 shadow-lg shadow-green-500/20'
-                  : topic.isFavorite
-                    ? 'border-red-500 shadow-lg shadow-red-500/20 hover:border-red-400'
-                    : 'border-gray-700 hover:border-[#FCC822]'
-              }`}
-            >
-              {/* Banner Image */}
-              <div className="relative h-32 w-full">
-                <img
-                  src={topic.image}
-                  alt={topic.title}
-                  className="h-full w-full object-cover"
-                  onError={e => {
-                    e.currentTarget.src = '/badges/badge_book_1.png';
-                  }}
-                />
-                {/* Difficulty Badge - Positioned over banner */}
-                <div className="absolute top-3 left-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(topic.stars)}`}
-                  >
-                    {getDifficultyLabel(topic.stars)}
-                  </span>
-                </div>
-                {/* Favorite Button - Positioned over banner */}
-                <button
-                  onClick={event => toggleFavorite(topic.id, event)}
-                  className="absolute top-3 right-3 p-2 bg-gray-900 bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200"
-                  title={
-                    topic.isFavorite
-                      ? 'Von Favoriten entfernen'
-                      : 'Zu Favoriten hinzufügen'
-                  }
-                >
-                  <svg
-                    className={`h-4 w-4 transition-colors duration-200 ${
-                      topic.isFavorite
-                        ? 'text-red-500 fill-current'
-                        : 'text-gray-400 hover:text-red-500'
-                    }`}
-                    viewBox="0 0 24 24"
-                    fill={topic.isFavorite ? 'currentColor' : 'none'}
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                </button>
-
-                {/* Completion Badge - Positioned over banner */}
-                {topic.isCompleted && (
-                  <div className="absolute bottom-3 right-3 flex items-center space-x-2 bg-gray-900 bg-opacity-80 rounded-full px-2 py-1">
-                    <img
-                      src="/buttons/Accept.png"
-                      alt="Completed"
-                      className="h-4 w-4"
-                    />
-                    <span className="text-green-400 text-xs font-medium">
-                      Abgeschlossen
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {topic.title}
-                </h3>
-
-                <p className="text-gray-300 text-sm mb-4 line-clamp-2">
-                  {topic.description}
-                </p>
-
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm text-gray-400 mb-1">
-                    <span>Fortschritt</span>
-                    <span>
-                      {getProgressPercentage(
-                        topic.completedQuestions,
-                        topic.totalQuestions
-                      )}
-                      %
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-[#FCC822] h-2 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${getProgressPercentage(topic.completedQuestions, topic.totalQuestions)}%`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-sm text-gray-400 mb-4">
-                  <div className="flex justify-between">
-                    <span>Kategorie:</span>
-                    <span className="text-[#FCC822]">{topic.category}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Fragen:</span>
-                    <span>
-                      {topic.completedQuestions}/{topic.totalQuestions}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Schwierigkeit:</span>
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, index) => (
-                        <img
-                          key={index}
-                          src={
-                            index < topic.stars
-                              ? '/stars/star_full.png'
-                              : '/stars/star_empty.png'
-                          }
-                          alt={`Star ${index + 1}`}
-                          className="h-3 w-3"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Belohnung:</span>
-                    <div className="flex items-center space-x-1">
-                      <img
-                        src="/wisecoin/wisecoin.png"
-                        alt="Wisecoins"
-                        className="h-4 w-4"
-                      />
-                      <span className="text-[#FCC822]">
-                        {topic.wisecoinReward}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-4 border-t border-gray-700">
-                  <div className="text-[#FCC822] text-sm font-medium">
-                    Thema erkunden →
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* No Results */}
-        {sortedTopics.length === 0 && (
-          <div className="text-center py-12">
-            <img
-              src="/badges/badge_book_1.png"
-              alt="No topics"
-              className="h-16 w-16 mx-auto mb-4 opacity-50"
-            />
-            <p className="text-gray-400 text-lg">Keine Themen gefunden.</p>
-            <p className="text-gray-500 text-sm mt-2">
-              Ändern Sie Ihre Suchkriterien oder wählen Sie eine andere
-              Kategorie.
-            </p>
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && !loading && (
+          <div className="mt-8 p-4 bg-gray-800 rounded-lg text-sm text-gray-300">
+            <p>Debug Info:</p>
+            <p>Total topics loaded: {topics.length}</p>
+            <p>Sorted topics count: {sortedTopics.length}</p>
+            <p>Filters: {JSON.stringify(filters, null, 2)}</p>
           </div>
         )}
       </div>

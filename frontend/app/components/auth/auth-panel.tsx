@@ -2,6 +2,7 @@ import React from 'react';
 import { LoginForm } from './login-form';
 import { SignupForm } from './signup-form';
 import { AuthActions } from './auth-actions';
+import { translate } from '../../utils/translations';
 
 interface FormState {
   firstName?: string;
@@ -40,10 +41,12 @@ export function AuthPanel({
   getError,
 }: AuthPanelProps) {
   const isSignupMode = mode === 'signup';
-  const title = isSignupMode ? 'Konto erstellen!' : 'Willkommen zurück!';
+  const title = isSignupMode
+    ? translate('auth.createAccount')
+    : translate('auth.welcomeBack');
   const subtitle = isSignupMode
-    ? 'Bitte füllen Sie Ihre Daten aus, um sich zu registrieren.'
-    : 'Bitte melden Sie sich in Ihrem Konto an.';
+    ? translate('auth.signupSubtitle')
+    : translate('auth.loginSubtitle');
 
   return (
     <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
@@ -60,20 +63,20 @@ export function AuthPanel({
 
         {showSuccess && (
           <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg mb-6">
-            Konto erfolgreich erstellt! Weiterleitung...
+            {translate('auth.accountCreated')}
+          </div>
+        )}
+
+        {error && (
+          <div
+            className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg animate-fade-in"
+            role="alert"
+          >
+            {error}
           </div>
         )}
 
         <form onSubmit={onSubmit} className="space-y-6">
-          {error && (
-            <div
-              className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg"
-              role="alert"
-            >
-              {error}
-            </div>
-          )}
-
           {isSignupMode ? (
             <SignupForm
               firstName={formState.firstName || ''}
@@ -117,11 +120,13 @@ export function AuthPanel({
 
         {!isSignupMode && (
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-700 mb-2">Demo-Konten:</p>
+            <p className="text-sm text-gray-700 mb-2">
+              {translate('auth.demoAccounts')}
+            </p>
             <div className="space-y-1 text-xs text-gray-600">
-              <p>Spieler: player@quizdom.com</p>
-              <p>Admin: admin@quizdom.com</p>
-              <p>Passwort: beliebig</p>
+              <p>{translate('auth.playerDemo')}</p>
+              <p>{translate('auth.adminDemo')}</p>
+              <p>{translate('auth.passwordDemo')}</p>
             </div>
           </div>
         )}
