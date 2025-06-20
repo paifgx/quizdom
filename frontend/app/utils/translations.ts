@@ -118,6 +118,13 @@ export const translations = {
     completed: 'Abgeschlossen',
     totalProgress: 'Gesamtfortschritt',
     yourWisecoins: 'Meine Wisecoins',
+    questions: 'Fragen',
+    reward: 'Belohnung',
+    wisecoins: 'Wisecoins',
+    star: 'Stern',
+    exploreTopic: 'Thema erkunden',
+    addToFavorites: 'Zu Favoriten hinzufügen',
+    removeFromFavorites: 'Aus Favoriten entfernen',
   },
 
   // Game Modes

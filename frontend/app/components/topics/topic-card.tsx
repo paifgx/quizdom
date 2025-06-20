@@ -6,6 +6,7 @@ import {
   getDifficultyName,
   getProgressPercentage,
 } from '../../utils/topics';
+import { translate } from '../../utils/translations';
 
 interface TopicsTopicCardProps {
   topic: Topic;
@@ -117,7 +118,11 @@ function FavoriteButton({
     <button
       onClick={event => onToggle(topicId, event)}
       className="absolute top-3 right-3 p-2 bg-gray-900 bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200"
-      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      title={
+        isFavorite
+          ? translate('topics.removeFromFavorites')
+          : translate('topics.addToFavorites')
+      }
     >
       <svg
         className={`h-4 w-4 transition-colors duration-200 ${
@@ -142,8 +147,14 @@ function FavoriteButton({
 function CompletionBadge() {
   return (
     <div className="absolute bottom-3 right-3 flex items-center space-x-2 bg-gray-900 bg-opacity-80 rounded-full px-2 py-1">
-      <img src="/buttons/Accept.png" alt="Completed" className="h-4 w-4" />
-      <span className="text-green-400 text-xs font-medium">Completed</span>
+      <img
+        src="/buttons/Accept.png"
+        alt={translate('topics.completed')}
+        className="h-4 w-4"
+      />
+      <span className="text-green-400 text-xs font-medium">
+        {translate('topics.completed')}
+      </span>
     </div>
   );
 }
@@ -176,7 +187,7 @@ function TopicContent({ topic, progressPercentage }: TopicContentProps) {
 
       <div className="flex justify-end pt-4 border-t border-gray-700">
         <div className="text-[#FCC822] text-sm font-medium">
-          Explore Topic →
+          {translate('topics.exploreTopic')} →
         </div>
       </div>
     </div>
@@ -200,7 +211,7 @@ function ProgressBar({
   return (
     <div className="mb-4">
       <div className="flex justify-between text-sm text-gray-400 mb-1">
-        <span>Progress</span>
+        <span>{translate('topics.progress')}</span>
         <span>{percentage}%</span>
       </div>
       <div className="w-full bg-gray-700 rounded-full h-2">
@@ -225,17 +236,17 @@ function TopicMetadata({ topic }: TopicMetadataProps) {
   return (
     <div className="space-y-2 text-sm text-gray-400 mb-4">
       <div className="flex justify-between">
-        <span>Category:</span>
+        <span>{translate('topics.category')}:</span>
         <span className="text-[#FCC822]">{topic.category}</span>
       </div>
       <div className="flex justify-between">
-        <span>Questions:</span>
+        <span>{translate('topics.questions')}:</span>
         <span>
           {topic.completedQuestions}/{topic.totalQuestions}
         </span>
       </div>
       <div className="flex justify-between">
-        <span>Difficulty:</span>
+        <span>{translate('topics.difficulty')}:</span>
         <div className="flex items-center space-x-1">
           {[...Array(5)].map((_, index) => (
             <img
@@ -245,18 +256,18 @@ function TopicMetadata({ topic }: TopicMetadataProps) {
                   ? '/stars/star_full.png'
                   : '/stars/star_empty.png'
               }
-              alt={`Star ${index + 1}`}
+              alt={`${translate('topics.star')} ${index + 1}`}
               className="h-3 w-3"
             />
           ))}
         </div>
       </div>
       <div className="flex justify-between">
-        <span>Reward:</span>
+        <span>{translate('topics.reward')}:</span>
         <div className="flex items-center space-x-1">
           <img
             src="/wisecoin/wisecoin.png"
-            alt="Wisecoins"
+            alt={translate('topics.wisecoins')}
             className="h-4 w-4"
           />
           <span className="text-[#FCC822]">{topic.wisecoinReward}</span>

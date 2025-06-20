@@ -1,23 +1,34 @@
 import type { MouseEvent } from 'react';
 import type { Topic } from '../../types/topics';
 import { TopicsTopicCard } from './topic-card';
+import { TopicsPageGridSkeleton } from '../ui/loading-skeleton';
 import { translate } from '../../utils/translations';
 
 interface TopicsGridProps {
   topics: Topic[];
   onToggleFavorite: (topicId: string, event: MouseEvent) => void;
+  isLoading?: boolean;
 }
 
 /**
  * Topics grid component for displaying topic cards.
  * Renders topics in a responsive grid layout with proper spacing.
- * Handles empty state when no topics are available.
+ * Handles empty state when no topics are available and loading state with skeletons.
  *
  * @param props - Component props
  * @param props.topics - Array of topics to display
  * @param props.onToggleFavorite - Callback for favorite toggle actions
+ * @param props.isLoading - Whether topics are currently loading
  */
-export function TopicsGrid({ topics, onToggleFavorite }: TopicsGridProps) {
+export function TopicsGrid({
+  topics,
+  onToggleFavorite,
+  isLoading = false,
+}: TopicsGridProps) {
+  if (isLoading) {
+    return <TopicsPageGridSkeleton count={9} />;
+  }
+
   if (topics.length === 0) {
     return <EmptyTopicsState />;
   }

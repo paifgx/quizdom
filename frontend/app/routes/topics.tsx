@@ -9,7 +9,6 @@ import {
 import { useTopicsPage } from '../hooks/useTopicsPage';
 import { fetchTopics } from '../api';
 import type { Topic } from '../types/topics';
-import { translate } from '../utils/translations';
 
 export function meta() {
   return [
@@ -67,19 +66,6 @@ export default function TopicsPage() {
     loadTopics();
   }, []);
 
-  if (loading) {
-    return (
-      <ProtectedRoute>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
-            <p className="text-gray-300">{translate('common.loading')}</p>
-          </div>
-        </div>
-      </ProtectedRoute>
-    );
-  }
-
   if (error) {
     return (
       <ProtectedRoute>
@@ -111,10 +97,14 @@ export default function TopicsPage() {
           onToggleFilters={toggleFilters}
         />
 
-        <TopicsGrid topics={sortedTopics} onToggleFavorite={toggleFavorite} />
+        <TopicsGrid
+          topics={sortedTopics}
+          onToggleFavorite={toggleFavorite}
+          isLoading={loading}
+        />
 
         {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
+        {process.env.NODE_ENV === 'development' && !loading && (
           <div className="mt-8 p-4 bg-gray-800 rounded-lg text-sm text-gray-300">
             <p>Debug Info:</p>
             <p>Total topics loaded: {topics.length}</p>
