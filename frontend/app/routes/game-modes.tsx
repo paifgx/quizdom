@@ -1,119 +1,105 @@
-import { useSearchParams } from 'react-router';
+/**
+ * Game modes selection page component.
+ * Orchestrates the two-step flow: mode selection → topic selection → game start.
+ * Follows clean code principles with proper separation of concerns.
+ */
+import React from 'react';
 import { ProtectedRoute } from '../components/auth/protected-route';
+import { PageHeader } from '../components/game-modes/page-header';
+import { ProgressIndicator } from '../components/game-modes/progress-indicator';
+import { LiveRegion } from '../components/game-modes/live-region';
+import { GameModeSelection } from '../components/game-modes/game-mode-selection';
+import { TopicSelection } from '../components/game-modes/topic-selection';
+import { ActionButtons } from '../components/game-modes/action-buttons';
+import { HelpText } from '../components/game-modes/help-text';
+import { useGameModeSelection } from '../hooks/useGameModeSelection';
+import { gameModes, topics } from '../data/game-data';
 
 export function meta() {
   return [
-    { title: 'Spielmodi | Quizdom' },
+    { title: 'Game Modes | Quizdom' },
     {
       name: 'description',
-      content: 'Wählen Sie aus verschiedenen spannenden Spielmodi.',
+      content: 'Choose from different exciting game modes.',
     },
   ];
 }
 
+/**
+ * Main game modes selection page.
+ * Provides a clean, accessible interface for selecting game mode and topic.
+ * Uses extracted components and custom hook for state management.
+ *
+ * Features:
+ * - Two-step selection flow (mode → topic)
+ * - Support for pre-selected topics via URL parameters
+ * - Full accessibility support with ARIA attributes and live regions
+ * - Error handling and validation
+ * - Responsive design
+ */
 export default function GameModesPage() {
-  const [searchParams] = useSearchParams();
-  const topicId = searchParams.get('topic');
+  const {
+    currentStep,
+    selectedMode,
+    selectedTopicId,
+    preSelectedTopic,
+    liveRegionText,
+    canStart,
+    handleModeSelect,
+    handleTopicSelect,
+    handleStart,
+    handleBack,
+    handleNextStep,
+  } = useGameModeSelection({ topics });
 
-  const gameModes = [
-    {
-      id: 'classic',
-      name: 'Classic Quiz',
-      description: 'Klassisches Quiz mit Multiple-Choice-Fragen',
-      icon: '/playmodi/classic.png',
-      difficulty: 'Einfach',
-      rewards: '10-20 Wisecoins',
-    },
-    {
-      id: 'time-attack',
-      name: 'Time Attack',
-      description: 'Schnelle Antworten unter Zeitdruck',
-      icon: '/playmodi/time_attack.png',
-      difficulty: 'Mittel',
-      rewards: '15-30 Wisecoins',
-    },
-    {
-      id: 'competitive',
-      name: 'Competitive',
-      description: 'Spiele gegen andere Spieler',
-      icon: '/playmodi/competitive.png',
-      difficulty: 'Schwer',
-      rewards: '25-50 Wisecoins',
-    },
-    {
-      id: 'daily-challenge',
-      name: 'Daily Challenge',
-      description: 'Tägliche Herausforderung mit besonderen Belohnungen',
-      icon: '/playmodi/daily_challenge.png',
-      difficulty: 'Variabel',
-      rewards: 'Spezial Badges',
-    },
-  ];
+  const selectedModeData = selectedMode
+    ? (gameModes.find(m => m.id === selectedMode) ?? null)
+    : null;
 
   return (
     <ProtectedRoute>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[#FCC822] mb-4">Spielmodi</h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Wählen Sie aus verschiedenen spannenden Spielmodi und stellen Sie
-            Ihr Wissen unter Beweis.
-            {topicId && (
-              <span className="block mt-2 text-sm text-[#FCC822]">
-                Thema ausgewählt: {topicId.replace('-', ' ').toUpperCase()}
-              </span>
-            )}
-          </p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <PageHeader
+          currentStep={currentStep}
+          selectedModeData={selectedModeData}
+          preSelectedTopic={preSelectedTopic}
+        />
 
-        {/* Game Modes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-          {gameModes.map(mode => (
-            <div
-              key={mode.id}
-              className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm border border-gray-700 hover:border-[#FCC822] transition-all duration-300 hover:scale-105 cursor-pointer"
-              role="button"
-              tabIndex={0}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  // TODO: Implement game mode selection
-                  // console.log(`Starting ${mode.name}`);
-                }
-              }}
-            >
-              <div className="text-center">
-                <div className="mb-4">
-                  <img
-                    src={mode.icon}
-                    alt={mode.name}
-                    className="h-16 w-16 mx-auto"
-                    onError={e => {
-                      e.currentTarget.src = '/buttons/Play.png';
-                    }}
-                  />
-                </div>
-                <h3 className="text-xl font-bold text-[#FCC822] mb-2">
-                  {mode.name}
-                </h3>
-                <p className="text-gray-300 mb-4">{mode.description}</p>
-                <div className="space-y-2 text-sm text-gray-400">
-                  <p>
-                    <span className="font-medium">Schwierigkeit:</span>{' '}
-                    {mode.difficulty}
-                  </p>
-                  <p>
-                    <span className="font-medium">Belohnungen:</span>{' '}
-                    {mode.rewards}
-                  </p>
-                </div>
-                <button className="btn-gradient mt-4 px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200">
-                  Spielen
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <ProgressIndicator
+          currentStep={currentStep}
+          showProgress={!preSelectedTopic}
+        />
+
+        <LiveRegion text={liveRegionText} />
+
+        {currentStep === 'mode' && (
+          <GameModeSelection
+            gameModes={gameModes}
+            selectedMode={selectedMode}
+            onModeSelect={handleModeSelect}
+          />
+        )}
+
+        {currentStep === 'topic' && (
+          <TopicSelection
+            topics={topics}
+            selectedTopicId={selectedTopicId}
+            selectedModeData={selectedModeData}
+            onTopicSelect={handleTopicSelect}
+          />
+        )}
+
+        <ActionButtons
+          currentStep={currentStep}
+          preSelectedTopic={preSelectedTopic}
+          selectedMode={selectedMode}
+          canStart={canStart}
+          onStart={handleStart}
+          onNext={handleNextStep}
+          onBack={handleBack}
+        />
+
+        <HelpText selectedMode={selectedMode} />
       </div>
     </ProtectedRoute>
   );

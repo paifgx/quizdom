@@ -31,3 +31,14 @@ export { BackgroundControls } from './ui/background-controls';
 export { HomeLoading } from './ui/home-loading';
 export { LoadingSkeleton } from './ui/loading-skeleton';
 export { AuthPageLayout } from './ui/page-layout';
+
+// Game mode components
+export { GameModeCard } from './game-modes/game-mode-card';
+export { TopicCard } from './game-modes/topic-card';
+export { ProgressIndicator } from './game-modes/progress-indicator';
+export { ActionButtons } from './game-modes/action-buttons';
+export { PageHeader } from './game-modes/page-header';
+export { HelpText } from './game-modes/help-text';
+export { LiveRegion } from './game-modes/live-region';
+export { GameModeSelection } from './game-modes/game-mode-selection';
+export { TopicSelection } from './game-modes/topic-selection';
