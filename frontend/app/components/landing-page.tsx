@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
-interface LandingPageProps {
-  // Currently no props needed, but structure is ready for future data
+export interface LandingPageProps {
+  // Add any props if needed in the future
 }
 
 /**
@@ -46,7 +46,7 @@ export function LandingPage(_props: LandingPageProps) {
             to="/signup"
             className="btn-gradient inline-block px-8 py-4 rounded-xl text-xl font-bold transition-all duration-300 hover:scale-110 shadow-2xl"
           >
-            Start playing
+            Jetzt spielen
           </Link>
 
           {/* Features */}

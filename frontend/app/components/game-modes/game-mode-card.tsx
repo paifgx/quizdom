@@ -1,6 +1,7 @@
 import React from 'react';
 import type { GameMode } from '../../types/game';
 import { handleKeyDown } from '../../utils/keyboard';
+import { translate } from '../../utils/translations';
 
 interface GameModeCardProps {
   mode: GameMode;
@@ -35,7 +36,7 @@ export function GameModeCard({
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      aria-label={`Select ${mode.name} game mode`}
+      aria-label={`${translate('accessibility.selectGameMode')} ${mode.name}`}
     >
       <div
         className={`bg-gray-800/70 rounded-xl overflow-hidden border-2 transition-all duration-300 ${

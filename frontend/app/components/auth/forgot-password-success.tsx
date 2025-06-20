@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { translate } from '../../utils/translations';
 
 export interface ForgotPasswordSuccessProps {
   email: string;
@@ -21,7 +22,7 @@ export function ForgotPasswordSuccess({
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
-          aria-label="E-Mail gesendet"
+          aria-label={translate('accessibility.emailSent')}
         >
           <path
             strokeLinecap="round"
@@ -33,7 +34,7 @@ export function ForgotPasswordSuccess({
       </div>
 
       <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg">
-        <p className="font-medium">E-Mail erfolgreich gesendet!</p>
+        <p className="font-medium">{translate('passwordReset.emailSent')}</p>
         <p className="text-sm mt-1">
           Wir haben Anweisungen zum Zurücksetzen des Passworts an{' '}
           <strong>{email}</strong> gesendet
@@ -45,14 +46,14 @@ export function ForgotPasswordSuccess({
           onClick={onSendAnother}
           className="w-full py-3 px-4 border border-gray-300 text-gray-700 bg-white rounded-lg text-base font-medium hover:bg-gray-50 transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
         >
-          Weitere E-Mail senden
+          {translate('passwordReset.sendAnotherEmail')}
         </button>
 
         <Link
           to="/login"
           className="block w-full py-3 px-4 text-center text-[#FCC822] hover:text-[#FFCD2E] transition-colors duration-200 font-medium"
         >
-          Zurück zur Anmeldung
+          {translate('auth.backToLogin')}
         </Link>
       </div>
     </div>

@@ -3,10 +3,10 @@
  * Manages topic data, favorite status, and navigation logic.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import type { TopicDetailData } from '../types/topic-detail';
-import { getTopicData } from '../data/topic-detail-data';
+import { fetchTopicDetailData } from '../api';
 
 interface UseTopicDetailOptions {
   /** Topic ID from URL parameters */
@@ -36,11 +36,35 @@ export function useTopicDetail({
 }: UseTopicDetailOptions): UseTopicDetailReturn {
   const navigate = useNavigate();
 
-  // Initialize topic state with data from topicId or default
-  const [topic, setTopic] = useState<TopicDetailData>(() => {
-    if (!topicId) return getTopicData('it-project-management');
-    return getTopicData(topicId);
+  // Initialize topic state with loading placeholder
+  const [topic, setTopic] = useState<TopicDetailData>({
+    id: '',
+    title: '',
+    description: '',
+    image: '',
+    totalQuestions: 0,
+    completedQuestions: 0,
+    bookmarkedQuestions: 0,
+    stars: 1,
+    questions: [],
+    isFavorite: false,
+    wisecoinReward: 0,
   });
+
+  // Load topic data
+  useEffect(() => {
+    const loadTopicData = async () => {
+      try {
+        const targetTopicId = topicId || 'it-project-management';
+        const topicData = await fetchTopicDetailData(targetTopicId);
+        setTopic(topicData);
+      } catch {
+        // Error intentionally ignored
+      }
+    };
+
+    loadTopicData();
+  }, [topicId]);
 
   /**
    * Toggles the favorite status of the current topic.

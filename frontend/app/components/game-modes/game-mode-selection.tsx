@@ -1,6 +1,7 @@
 import React from 'react';
 import { GameModeCard } from './game-mode-card';
 import type { GameMode, GameModeId } from '../../types/game';
+import { translate } from '../../utils/translations';
 
 interface GameModeSelectionProps {
   gameModes: GameMode[];
@@ -24,7 +25,7 @@ export function GameModeSelection({
   onModeSelect,
 }: GameModeSelectionProps) {
   return (
-    <nav role="navigation" aria-label="Game mode selection">
+    <nav role="navigation" aria-label={translate('gameModes.selectGameMode')}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-6">
         {gameModes.map(mode => (
           <GameModeCard

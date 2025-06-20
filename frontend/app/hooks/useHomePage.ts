@@ -1,7 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/auth';
-import type { HomeTopic } from '../data/home-topics';
+
+// Update the import to use the new API data structure
+interface HomeTopic {
+  id: string;
+  title: string;
+  image: string;
+  description: string;
+}
 
 interface UseHomePageOptions {
   topics: HomeTopic[];

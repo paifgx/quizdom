@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { translate } from '../../utils/translations';
 
 export interface AuthActionsProps {
   isSignupMode: boolean;
@@ -37,14 +38,14 @@ export function AuthActions({
               htmlFor="remember-me"
               className="ml-2 block text-sm text-gray-700"
             >
-              Angemeldet bleiben
+              {translate('auth.rememberMe')}
             </label>
           </div>
           <Link
             to="/forgot-password"
             className="text-[#FCC822] hover:text-[#FFCD2E] text-sm"
           >
-            Passwort vergessen?
+            {translate('auth.forgotPassword')}
           </Link>
         </div>
       )}
@@ -78,12 +79,14 @@ export function AuthActions({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              {isSignupMode ? 'Konto wird erstellt...' : 'Anmeldung läuft...'}
+              {isSignupMode
+                ? translate('auth.accountCreationInProgress')
+                : translate('auth.loginInProgress')}
             </span>
           ) : isSignupMode ? (
-            'Konto erstellen'
+            translate('auth.createAccountButton')
           ) : (
-            'Anmelden'
+            translate('auth.login')
           )}
         </button>
 
@@ -91,7 +94,9 @@ export function AuthActions({
           to={isSignupMode ? '/login' : '/signup'}
           className="w-full py-3 px-4 border border-gray-300 text-gray-700 bg-white rounded-lg text-base font-medium hover:bg-gray-50 transition-all duration-300 text-center block"
         >
-          {isSignupMode ? 'Zurück zur Anmeldung' : 'Registrieren'}
+          {isSignupMode
+            ? translate('auth.backToLogin')
+            : translate('auth.signup')}
         </Link>
       </div>
     </div>

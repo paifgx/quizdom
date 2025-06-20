@@ -15,7 +15,9 @@ import {
   BackNavigation,
 } from '../components/topic-detail';
 import { useTopicDetail } from '../hooks/useTopicDetail';
-import { sampleAchievements } from '../data/topic-detail-data';
+import { fetchAchievements } from '../api';
+import { useState, useEffect } from 'react';
+import type { Achievement } from '../types/topic-detail';
 
 export function meta() {
   return [
@@ -36,8 +38,27 @@ export function meta() {
  */
 export default function TopicDetailPage() {
   const { topicId } = useParams();
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const { topic, toggleFavorite, handleBack, navigateToGameModes } =
     useTopicDetail({ topicId });
+
+  // Load achievements data
+  useEffect(() => {
+    const loadAchievements = async () => {
+      try {
+        const achievementsData = await fetchAchievements();
+        setAchievements(achievementsData);
+      } catch {
+        // Error intentionally ignored
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAchievements();
+  }, []);
 
   // Early return for missing topic ID
   if (!topicId) {
@@ -48,6 +69,17 @@ export default function TopicDetailPage() {
           <p className="text-gray-300">
             The requested topic could not be found. Please try again.
           </p>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading topic details...</p>
         </div>
       </ProtectedRoute>
     );
@@ -83,7 +115,7 @@ export default function TopicDetailPage() {
 
             {/* Achievements and Play Button */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end space-y-4 lg:space-y-0">
-              <TopicAchievements achievements={sampleAchievements} />
+              <TopicAchievements achievements={achievements} />
               <PlayButton onClick={navigateToGameModes} />
             </div>
           </div>

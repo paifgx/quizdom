@@ -1,5 +1,11 @@
-import type { TopicFilters, SortOption } from '../../types/topics';
-import { categories, difficultyNames } from '../../data/topics-data';
+import { useEffect, useState } from 'react';
+import type {
+  TopicFilters,
+  SortOption,
+  DifficultyLevel,
+} from '../../types/topics';
+import { fetchCategories, fetchDifficultyNames } from '../../api';
+import { translate } from '../../utils/translations';
 
 interface TopicsFiltersProps {
   filters: TopicFilters;
@@ -25,6 +31,40 @@ export function TopicsFilters({
   onUpdateFilters,
   onToggleFilters,
 }: TopicsFiltersProps) {
+  const [categories, setCategories] = useState<string[]>([]);
+  const [difficultyNames, setDifficultyNames] = useState<DifficultyLevel[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load filter data
+  useEffect(() => {
+    const loadFilterData = async () => {
+      try {
+        const [categoriesData, difficultyData] = await Promise.all([
+          fetchCategories(),
+          fetchDifficultyNames(),
+        ]);
+        setCategories(categoriesData);
+        setDifficultyNames(difficultyData);
+      } catch {
+        // Error intentionally ignored
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFilterData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-gray-800 bg-opacity-30 rounded-xl p-4 mb-8 border border-gray-700/50">
+        <div className="flex justify-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FCC822]"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-800 bg-opacity-30 rounded-xl p-4 mb-8 border border-gray-700/50">
       <div className="flex flex-col gap-4">
@@ -39,6 +79,8 @@ export function TopicsFilters({
           <AdvancedFilters
             filters={filters}
             onUpdateFilters={onUpdateFilters}
+            categories={categories}
+            difficultyNames={difficultyNames}
           />
         )}
       </div>
@@ -69,7 +111,7 @@ function SearchAndToggleRow({
         <input
           type="text"
           id="search"
-          placeholder="Search topics..."
+          placeholder={translate('topics.searchTopics')}
           value={searchTerm}
           onChange={e => onSearchChange(e.target.value)}
           className="w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
@@ -83,7 +125,11 @@ function SearchAndToggleRow({
               ? 'bg-[#FCC822] border-[#FCC822] text-gray-900'
               : 'bg-gray-700/50 border-gray-600/50 text-gray-300 hover:border-[#FCC822] hover:text-[#FCC822]'
           }`}
-          title={showFilters ? 'Hide filters' : 'Show filters'}
+          title={
+            showFilters
+              ? translate('nav.hideFilters')
+              : translate('nav.showFilters')
+          }
         >
           <div className="flex items-center gap-2">
             <svg
@@ -98,7 +144,9 @@ function SearchAndToggleRow({
                 clipRule="evenodd"
               />
             </svg>
-            <span className="hidden sm:inline">Filters</span>
+            <span className="hidden sm:inline">
+              {translate('topics.filters')}
+            </span>
           </div>
         </button>
       </div>
@@ -109,33 +157,40 @@ function SearchAndToggleRow({
 interface AdvancedFiltersProps {
   filters: TopicFilters;
   onUpdateFilters: (updates: Partial<TopicFilters>) => void;
+  categories: string[];
+  difficultyNames: DifficultyLevel[];
 }
 
 /**
  * Advanced filter controls for category, difficulty, and sorting.
  * Provides dropdown selections for detailed topic filtering.
  */
-function AdvancedFilters({ filters, onUpdateFilters }: AdvancedFiltersProps) {
+function AdvancedFilters({
+  filters,
+  onUpdateFilters,
+  categories,
+  difficultyNames,
+}: AdvancedFiltersProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
       <FilterSelect
         id="category"
-        label="Category"
+        label={translate('topics.category')}
         value={filters.category}
         onChange={value => onUpdateFilters({ category: value })}
         options={[
-          { value: 'all', label: 'All Categories' },
+          { value: 'all', label: translate('topics.allCategories') },
           ...categories.map(category => ({ value: category, label: category })),
         ]}
       />
 
       <FilterSelect
         id="difficulty"
-        label="Difficulty"
+        label={translate('topics.difficulty')}
         value={filters.difficulty}
         onChange={value => onUpdateFilters({ difficulty: value })}
         options={[
-          { value: 'all', label: 'All Difficulties' },
+          { value: 'all', label: translate('topics.allDifficulties') },
           ...difficultyNames.map(difficulty => ({
             value: difficulty,
             label: difficulty,
@@ -145,14 +200,14 @@ function AdvancedFilters({ filters, onUpdateFilters }: AdvancedFiltersProps) {
 
       <FilterSelect
         id="sort"
-        label="Sort by"
+        label={translate('topics.sortBy')}
         value={filters.sortBy}
         onChange={value => onUpdateFilters({ sortBy: value as SortOption })}
         options={[
-          { value: 'popularity', label: 'Popularity' },
-          { value: 'difficulty', label: 'Difficulty' },
-          { value: 'title', label: 'Title' },
-          { value: 'progress', label: 'Progress' },
+          { value: 'popularity', label: translate('topics.popularity') },
+          { value: 'difficulty', label: translate('topics.difficultySort') },
+          { value: 'title', label: translate('topics.title') },
+          { value: 'progress', label: translate('topics.progress') },
         ]}
       />
     </div>

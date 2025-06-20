@@ -1,12 +1,13 @@
 import { ProtectedRoute } from '../components/auth/protected-route';
 import { useAuth } from '../contexts/auth';
+import { translate } from '../utils/translations';
 
 export function meta() {
   return [
-    { title: 'Fortschritt & Badges | Quizdom' },
+    { title: translate('pageTitles.progress') },
     {
       name: 'description',
-      content: 'Verfolgen Sie Ihren Fortschritt und Ihre Erfolge.',
+      content: translate('pageTitles.progressDescription'),
     },
   ];
 }

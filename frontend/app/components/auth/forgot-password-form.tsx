@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { ValidatedInput } from './validated-input';
+import { translate } from '../../utils/translations';
 
 export interface ForgotPasswordFormProps {
   email: string;
@@ -43,7 +44,7 @@ export function ForgotPasswordForm({
           id="email"
           name="email"
           type="email"
-          placeholder="Geben Sie Ihre E-Mail-Adresse ein"
+          placeholder={translate('passwordReset.enterEmail')}
           value={email}
           onChange={onEmailChange}
           error={emailError}
@@ -79,10 +80,10 @@ export function ForgotPasswordForm({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                E-Mail zum Zurücksetzen senden...
+                {translate('passwordReset.sendingResetEmail')}
               </span>
             ) : (
-              'E-Mail zum Zurücksetzen senden'
+              translate('passwordReset.sendResetEmail')
             )}
           </button>
 
@@ -90,7 +91,7 @@ export function ForgotPasswordForm({
             to="/login"
             className="block w-full py-3 px-4 text-center border border-gray-300 text-gray-700 bg-white rounded-lg text-base font-medium hover:bg-gray-50 transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
           >
-            Zurück zur Anmeldung
+            {translate('auth.backToLogin')}
           </Link>
         </div>
       </form>
@@ -98,9 +99,8 @@ export function ForgotPasswordForm({
       {/* Help Text */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>Brauchen Sie Hilfe?</strong> Falls Sie die E-Mail innerhalb
-          weniger Minuten nicht erhalten, überprüfen Sie Ihren Spam-Ordner oder
-          versuchen Sie es mit einer anderen E-Mail-Adresse.
+          <strong>{translate('passwordReset.needHelp')}</strong>{' '}
+          {translate('passwordReset.helpText')}
         </p>
       </div>
     </>

@@ -1,5 +1,6 @@
 import type { FormEvent } from 'react';
 import { ValidatedInput } from './validated-input';
+import { translate } from '../../utils/translations';
 
 export interface LoginFormProps {
   email: string;
@@ -44,7 +45,7 @@ export function LoginForm({
         id="password"
         name="password"
         type="password"
-        placeholder="Ihr Passwort"
+        placeholder={translate('auth.yourPassword')}
         value={password}
         onChange={onPasswordChange}
         error={getError('password')}

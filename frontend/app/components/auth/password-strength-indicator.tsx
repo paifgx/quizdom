@@ -1,4 +1,5 @@
 import { useFormValidation } from '../../hooks/useFormValidation';
+import { translate } from '../../utils/translations';
 
 export interface PasswordStrengthIndicatorProps {
   password: string;
@@ -24,10 +25,10 @@ export function PasswordStrengthIndicator({
   } as const;
 
   const strengthLabels = {
-    weak: 'Schwach',
-    fair: 'Ausreichend',
-    good: 'Gut',
-    strong: 'Stark',
+    weak: translate('passwordStrength.weak'),
+    fair: translate('passwordStrength.fair'),
+    good: translate('passwordStrength.good'),
+    strong: translate('passwordStrength.strong'),
   } as const;
 
   return (
@@ -48,7 +49,9 @@ export function PasswordStrengthIndicator({
         ))}
       </div>
       <p className="text-xs text-gray-600 mt-1" aria-live="polite">
-        Passwortstärke: {strengthLabels[strength]}
+        {translate('passwordStrength.passwordStrength', {
+          strength: strengthLabels[strength],
+        })}
       </p>
     </div>
   );

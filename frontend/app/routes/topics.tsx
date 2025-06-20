@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '../components/auth/protected-route';
 import {
   TopicsHeader,
@@ -7,7 +7,8 @@ import {
   TopicsGrid,
 } from '../components';
 import { useTopicsPage } from '../hooks/useTopicsPage';
-import { topics } from '../data/topics-data';
+import { fetchTopics } from '../api';
+import type { Topic } from '../types/topics';
 
 export function meta() {
   return [
@@ -34,6 +35,9 @@ export function meta() {
  * @returns Topics page JSX element
  */
 export default function TopicsPage() {
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const {
     filters,
     showFilters,
@@ -44,11 +48,34 @@ export default function TopicsPage() {
     toggleFilters,
   } = useTopicsPage({ topics });
 
-  // Initialize topics data
+  // Load topics data
   useEffect(() => {
-    // In a real application, this would fetch from an API
-    // For now, we use the static data from topics-data.ts
+    const loadTopics = async () => {
+      try {
+        const topicsData = await fetchTopics();
+        setTopics(topicsData);
+      } catch {
+        // Error intentionally ignored
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTopics();
   }, []);
+
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading topics...</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>

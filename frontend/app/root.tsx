@@ -12,6 +12,7 @@ import type { Route } from './+types/root';
 import { AuthProvider } from './contexts/auth';
 import { BackgroundProvider } from './contexts/background';
 import { useReturnMessage } from './hooks/useReturnMessage';
+import { translate } from './utils/translations';
 import './app.css';
 
 export const links: Route.LinksFunction = () => [
@@ -62,18 +63,21 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = 'Ups!';
-  let details = 'Ein unerwarteter Fehler ist aufgetreten.';
+  let message = translate('errors.oops');
+  let details = translate('errors.somethingWentWrong');
   let stack: string | undefined;
 
   if (
     isRouteErrorResponse(error) ||
     (error && typeof (error as { status?: number }).status === 'number')
   ) {
-    message = (error as { status: number }).status === 404 ? '404' : 'Fehler';
+    message =
+      (error as { status: number }).status === 404
+        ? '404'
+        : translate('errors.error');
     details =
       (error as { status: number }).status === 404
-        ? 'Die angeforderte Seite konnte nicht gefunden werden.'
+        ? translate('errors.pageNotFound')
         : (error as { statusText?: string }).statusText || details;
   } else if (
     process.env.NODE_ENV !== 'production' &&
@@ -105,7 +109,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
           href="/"
           className="btn-gradient inline-block px-6 py-3 rounded-lg text-base font-medium transition-all duration-200 mt-4"
         >
-          Zur Startseite
+          {translate('errors.goHome')}
         </a>
       </div>
     </div>

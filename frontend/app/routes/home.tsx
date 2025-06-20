@@ -8,7 +8,16 @@ import { LandingPage } from '../components/landing-page';
 import { Dashboard } from '../components/dashboard';
 import { LoadingSpinner } from '../components/home/loading-spinner';
 import { useHomePage } from '../hooks/useHomePage';
-import { homeTopics } from '../data/home-topics';
+import { fetchHomeTopics } from '../api';
+import { useEffect, useState } from 'react';
+
+// Add type definition for HomeTopic
+interface HomeTopic {
+  id: string;
+  title: string;
+  image: string;
+  description: string;
+}
 
 /**
  * Meta function for home page SEO and routing.
@@ -38,6 +47,25 @@ export function meta(_args: Route.MetaArgs) {
  * - Error boundary ready
  */
 export default function HomePage() {
+  const [homeTopics, setHomeTopics] = useState<HomeTopic[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  // Load home topics data
+  useEffect(() => {
+    const loadHomeTopics = async () => {
+      try {
+        const topics = await fetchHomeTopics();
+        setHomeTopics(topics);
+      } catch {
+        // Error intentionally ignored
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    loadHomeTopics();
+  }, []);
+
   const {
     isAuthenticated,
     loading,
@@ -46,8 +74,8 @@ export default function HomePage() {
     handleSearchChange,
   } = useHomePage({ topics: homeTopics });
 
-  // Show loading state during authentication check
-  if (loading) {
+  // Show loading state during authentication check or data loading
+  if (loading || dataLoading) {
     return <LoadingSpinner />;
   }
 

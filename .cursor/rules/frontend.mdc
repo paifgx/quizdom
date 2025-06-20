@@ -79,3 +79,10 @@ alwaysApply: false
 - `pnpm start` → serve production build
 - `pnpm typecheck` → React Router typegen + `tsc`
 - `pnpm lint` → run ESLint + Prettier
+
+## Localization
+- All user-facing content must be written in **German**
+  - This includes labels, buttons, tooltips, help text, error messages, etc.
+- All internal code (variable names, comments, filenames, etc.) must be written in **English**
+- Mock data and test content must simulate real German-language usage
+- Avoid mixed-language UI by ensuring all displayed text is consistently localized

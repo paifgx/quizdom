@@ -13,7 +13,9 @@ import { TopicSelection } from '../components/game-modes/topic-selection';
 import { ActionButtons } from '../components/game-modes/action-buttons';
 import { HelpText } from '../components/game-modes/help-text';
 import { useGameModeSelection } from '../hooks/useGameModeSelection';
-import { gameModes, topics } from '../data/game-data';
+import { fetchGameModes, fetchGameTopics } from '../api';
+import { useEffect, useState } from 'react';
+import type { GameMode, Topic } from '../types/game';
 
 export function meta() {
   return [
@@ -38,6 +40,30 @@ export function meta() {
  * - Responsive design
  */
 export default function GameModesPage() {
+  const [gameModes, setGameModes] = useState<GameMode[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [gameModesData, topicsData] = await Promise.all([
+          fetchGameModes(),
+          fetchGameTopics(),
+        ]);
+        setGameModes(gameModesData);
+        setTopics(topicsData);
+      } catch {
+        // Error intentionally ignored
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
   const {
     currentStep,
     selectedMode,
@@ -55,6 +81,19 @@ export default function GameModesPage() {
   const selectedModeData = selectedMode
     ? (gameModes.find(m => m.id === selectedMode) ?? null)
     : null;
+
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading game modes...</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>

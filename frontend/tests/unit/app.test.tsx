@@ -117,9 +117,7 @@ describe('ErrorBoundary', () => {
     render(<ErrorBoundary error={routeError} params={{}} />);
 
     expect(screen.getByText('404')).toBeDefined();
-    expect(
-      screen.getByText('Die angeforderte Seite konnte nicht gefunden werden.')
-    ).toBeDefined();
+    expect(screen.getByText('Seite nicht gefunden.')).toBeDefined();
   });
 
   it('renders other route errors correctly', () => {
@@ -197,9 +195,7 @@ describe('ErrorBoundary', () => {
     render(<ErrorBoundary error={error} params={{}} />);
 
     // In production mode, the default German error message should be shown
-    expect(
-      screen.getByText('Ein unerwarteter Fehler ist aufgetreten.')
-    ).toBeDefined();
+    expect(screen.getByText('Etwas ist schiefgelaufen.')).toBeDefined();
     // The stack trace should not be shown
     expect(screen.queryByText('Error stack trace')).toBeNull();
     // The specific error message should not be shown
