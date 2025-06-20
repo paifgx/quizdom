@@ -9,6 +9,7 @@ import {
 import { useTopicsPage } from '../hooks/useTopicsPage';
 import { fetchTopics } from '../api';
 import type { Topic } from '../types/topics';
+import { translate } from '../utils/translations';
 
 export function meta() {
   return [
@@ -37,6 +38,7 @@ export function meta() {
 export default function TopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     filters,
@@ -52,10 +54,11 @@ export default function TopicsPage() {
   useEffect(() => {
     const loadTopics = async () => {
       try {
+        setError(null);
         const topicsData = await fetchTopics();
         setTopics(topicsData);
       } catch {
-        // Error intentionally ignored
+        setError('Fehler beim Laden der Themen');
       } finally {
         setLoading(false);
       }
@@ -70,7 +73,25 @@ export default function TopicsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading topics...</p>
+            <p className="text-gray-300">{translate('common.loading')}</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-8">
+            <p className="text-red-400 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-gradient px-4 py-2 rounded-lg"
+            >
+              Neu laden
+            </button>
           </div>
         </div>
       </ProtectedRoute>
@@ -91,6 +112,16 @@ export default function TopicsPage() {
         />
 
         <TopicsGrid topics={sortedTopics} onToggleFavorite={toggleFavorite} />
+
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 p-4 bg-gray-800 rounded-lg text-sm text-gray-300">
+            <p>Debug Info:</p>
+            <p>Total topics loaded: {topics.length}</p>
+            <p>Sorted topics count: {sortedTopics.length}</p>
+            <p>Filters: {JSON.stringify(filters, null, 2)}</p>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );

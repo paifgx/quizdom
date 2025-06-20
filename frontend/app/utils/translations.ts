@@ -113,6 +113,11 @@ export const translations = {
     difficultySort: 'Schwierigkeit',
     title: 'Titel',
     progress: 'Fortschritt',
+    availableTopics: 'Verfügbare Themen',
+    myFavorites: 'Meine Favoriten',
+    completed: 'Abgeschlossen',
+    totalProgress: 'Gesamtfortschritt',
+    yourWisecoins: 'Meine Wisecoins',
   },
 
   // Game Modes

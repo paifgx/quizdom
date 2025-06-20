@@ -1,4 +1,5 @@
 import type { TopicStatistics } from '../../types/topics';
+import { translate } from '../../utils/translations';
 
 interface TopicsStatisticsProps {
   statistics: TopicStatistics;
@@ -17,22 +18,22 @@ export function TopicsStatistics({ statistics }: TopicsStatisticsProps) {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-6 text-sm">
       <StatCard
         value={statistics.totalTopics}
-        label="Available Topics"
+        label={translate('topics.availableTopics')}
         color="text-[#FCC822]"
       />
       <StatCard
         value={statistics.favoriteTopics}
-        label="My Favorites"
+        label={translate('topics.myFavorites')}
         color="text-red-400"
       />
       <StatCard
         value={statistics.completedTopics}
-        label="Completed"
+        label={translate('topics.completed')}
         color="text-green-400"
       />
       <StatCard
         value={`${statistics.totalProgress}%`}
-        label="Total Progress"
+        label={translate('topics.totalProgress')}
         color="text-[#FCC822]"
       />
       <WisecoinCard wisecoins={statistics.userWisecoins} />
@@ -74,7 +75,7 @@ function WisecoinCard({ wisecoins }: WisecoinCardProps) {
         <img src="/wisecoin/wisecoin.png" alt="Wisecoins" className="h-5 w-5" />
         <div className="text-xl font-semibold text-[#FCC822]">{wisecoins}</div>
       </div>
-      <div className="text-gray-400">Your Wisecoins</div>
+      <div className="text-gray-400">{translate('topics.yourWisecoins')}</div>
     </div>
   );
 }

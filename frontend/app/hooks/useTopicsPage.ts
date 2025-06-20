@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/auth';
 import type { Topic, TopicFilters } from '../types/topics';
 import {
@@ -51,6 +51,11 @@ export function useTopicsPage({
     sortBy: 'popularity',
   });
   const [showFilters, setShowFilters] = useState(false);
+
+  // Sync local state when topics prop changes (when API data loads)
+  useEffect(() => {
+    setLocalTopics(topics);
+  }, [topics]);
 
   // Computed values
   const filteredTopics = useMemo(

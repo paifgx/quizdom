@@ -28,7 +28,6 @@ import {
   createNotFoundError,
   isValidTopicId,
   isValidStarRating,
-  isValidGameModeId,
   isValidAchievementId,
   simulateDelay,
   generateCacheKey,
@@ -82,52 +81,6 @@ export function getDifficultyName(stars: number): string {
   }
 
   return difficultyNameMap[stars] || difficultyNameMap[1];
-}
-
-// ============================================================================
-// GAME MODES API
-// ============================================================================
-
-/**
- * Fetches available game modes.
- * @returns Promise resolving to array of game modes
- */
-export async function fetchGameModes(): Promise<GameMode[]> {
-  const cacheKey = 'game-modes';
-  const cached = cacheUtils.get<GameMode[]>(cacheKey);
-  if (cached) return cached;
-
-  await simulateDelay();
-  const result = [...gameModes];
-  cacheUtils.set(cacheKey, result);
-  return result;
-}
-
-/**
- * Fetches game mode by ID.
- * @param modeId - Game mode identifier
- * @returns Promise resolving to game mode or null if not found
- * @throws ApiError if modeId is invalid
- */
-export async function fetchGameModeById(
-  modeId: string
-): Promise<GameMode | null> {
-  if (!isValidGameModeId(modeId)) {
-    throw createValidationError(
-      'modeId',
-      modeId,
-      'valid game mode ID (solo, duel, team)'
-    );
-  }
-
-  const cacheKey = generateCacheKey('game-mode', modeId);
-  const cached = cacheUtils.get<GameMode | null>(cacheKey);
-  if (cached !== null) return cached;
-
-  await simulateDelay();
-  const result = gameModes.find(mode => mode.id === modeId) || null;
-  cacheUtils.set(cacheKey, result);
-  return result;
 }
 
 // ============================================================================
@@ -387,6 +340,7 @@ export async function fetchAchievementById(
 /**
  * Fetches all initial data needed for the application.
  * Useful for preloading common data during app initialization.
+ * Note: Game modes are hardcoded and returned directly from data.ts
  * @returns Promise resolving to object containing all common data
  */
 export async function fetchInitialData(): Promise<{
@@ -405,10 +359,10 @@ export async function fetchInitialData(): Promise<{
   // Use retry logic for batch loading
   const result = await withRetry(async () => {
     // Simulate batch loading with parallel requests
+    // Game modes are hardcoded and returned directly
     const [
       categoriesData,
       difficultyNamesData,
-      gameModesData,
       gameTopicsData,
       homeTopicsData,
       topicsData,
@@ -416,7 +370,6 @@ export async function fetchInitialData(): Promise<{
     ] = await Promise.all([
       fetchCategories(),
       fetchDifficultyNames(),
-      fetchGameModes(),
       fetchGameTopics(),
       fetchHomeTopics(),
       fetchTopics(),
@@ -426,7 +379,7 @@ export async function fetchInitialData(): Promise<{
     return {
       categories: categoriesData,
       difficultyNames: difficultyNamesData,
-      gameModes: gameModesData,
+      gameModes: [...gameModes], // Hardcoded game modes
       gameTopics: gameTopicsData,
       homeTopics: homeTopicsData,
       topics: topicsData,

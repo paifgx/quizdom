@@ -3,7 +3,6 @@
  * Orchestrates the two-step flow: mode selection → topic selection → game start.
  * Follows clean code principles with proper separation of concerns.
  */
-import React from 'react';
 import { ProtectedRoute } from '../components/auth/protected-route';
 import { PageHeader } from '../components/game-modes/page-header';
 import { ProgressIndicator } from '../components/game-modes/progress-indicator';
@@ -13,9 +12,10 @@ import { TopicSelection } from '../components/game-modes/topic-selection';
 import { ActionButtons } from '../components/game-modes/action-buttons';
 import { HelpText } from '../components/game-modes/help-text';
 import { useGameModeSelection } from '../hooks/useGameModeSelection';
-import { fetchGameModes, fetchGameTopics } from '../api';
+import { fetchGameTopics } from '../api';
+import { gameModes } from '../api/data';
 import { useEffect, useState } from 'react';
-import type { GameMode, Topic } from '../types/game';
+import type { Topic } from '../types/game';
 
 export function meta() {
   return [
@@ -32,6 +32,9 @@ export function meta() {
  * Provides a clean, accessible interface for selecting game mode and topic.
  * Uses extracted components and custom hook for state management.
  *
+ * Game modes are hardcoded since they contain logic and UI behavior,
+ * while topics are fetched dynamically as they represent user data.
+ *
  * Features:
  * - Two-step selection flow (mode → topic)
  * - Support for pre-selected topics via URL parameters
@@ -40,19 +43,15 @@ export function meta() {
  * - Responsive design
  */
 export default function GameModesPage() {
-  const [gameModes, setGameModes] = useState<GameMode[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load data on component mount
+  // Load topics data on component mount
+  // Game modes are hardcoded and imported directly
   useEffect(() => {
-    const loadData = async () => {
+    const loadTopics = async () => {
       try {
-        const [gameModesData, topicsData] = await Promise.all([
-          fetchGameModes(),
-          fetchGameTopics(),
-        ]);
-        setGameModes(gameModesData);
+        const topicsData = await fetchGameTopics();
         setTopics(topicsData);
       } catch {
         // Error intentionally ignored
@@ -61,7 +60,7 @@ export default function GameModesPage() {
       }
     };
 
-    loadData();
+    loadTopics();
   }, []);
 
   const {
@@ -82,6 +81,7 @@ export default function GameModesPage() {
     ? (gameModes.find(m => m.id === selectedMode) ?? null)
     : null;
 
+  // Show loading state while topics are loading, especially important for preselected topics
   if (loading) {
     return (
       <ProtectedRoute>

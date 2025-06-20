@@ -44,8 +44,9 @@ export function useGameModeSelection({
     ? (topics.find(t => t.id === preSelectedTopicId) ?? null)
     : null;
 
-  // Throw error if topic ID from URL doesn't match any available topics
-  if (preSelectedTopicId && !preSelectedTopic) {
+  // Only validate preselected topic after topics have loaded
+  // If topics array is empty, we're still loading, so don't validate yet
+  if (preSelectedTopicId && topics.length > 0 && !preSelectedTopic) {
     throw new Error(
       `Topic with id "${preSelectedTopicId}" not found. Available topics: ${topics.map(t => t.id).join(', ')}`
     );
