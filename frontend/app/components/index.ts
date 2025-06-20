@@ -51,3 +51,12 @@ export { TopicsStatistics } from './topics/topics-statistics';
 export { TopicsFilters } from './topics/topics-filters';
 export { TopicsTopicCard } from './topics/topic-card';
 export { TopicsGrid } from './topics/topics-grid';
+
+// Topic detail components
+export { TopicHeader } from './topic-detail/topic-header';
+export { TopicStats } from './topic-detail/topic-stats';
+export { TopicAchievements } from './topic-detail/topic-achievements';
+export { PlayButton } from './topic-detail/play-button';
+export { TopicQuestions } from './topic-detail/topic-questions';
+export { QuestionCard } from './topic-detail/question-card';
+export { BackNavigation } from './topic-detail/back-navigation';
