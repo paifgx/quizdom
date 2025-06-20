@@ -71,10 +71,8 @@ class User(UserBase, table=True):
     """Application users."""
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    email: str = Field(unique=True, index=True)
     password_hash: str
     nickname: str
-    is_verified: bool = Field(default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     deleted_at: Optional[datetime] = None
     role_id: Optional[int] = Field(default=None, foreign_key="role.id")

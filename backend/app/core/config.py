@@ -1,5 +1,8 @@
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
+from pathlib import Path
+
+env_path = Path(__file__).resolve().parent.parent.parent / ".env.example"
 
 
 class Settings(BaseSettings):
@@ -22,7 +25,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str  # Must be provided via environment variables
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    model_config = ConfigDict(env_file=".env.example", env_file_encoding="utf-8")
+    model_config = ConfigDict(
+        env_file=str(env_path), env_file_encoding="utf-8")  # TODO: change to .env
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

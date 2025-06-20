@@ -94,4 +94,4 @@ volumes:
 networks:
   quizdom-network:
     driver: bridge
-    name: quizdom-dev-network 
+    name: quizdom-dev-network
