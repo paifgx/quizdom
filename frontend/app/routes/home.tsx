@@ -75,12 +75,12 @@ export default function HomePage() {
     handleSearchChange,
   } = useHomePage({ topics: homeTopics });
 
-  // Show loading state during authentication check or data loading
-  if (loading || dataLoading) {
+  // Show loading state only during authentication check
+  if (loading) {
     return <LoadingSpinner />;
   }
 
-  // Render authenticated user dashboard
+  // Render authenticated user dashboard with skeleton loading for topics
   if (isAuthenticated) {
     return (
       <Dashboard
@@ -88,6 +88,7 @@ export default function HomePage() {
         onSearchChange={handleSearchChange}
         topics={homeTopics}
         filteredTopics={filteredTopics}
+        isTopicsLoading={dataLoading}
       />
     );
   }

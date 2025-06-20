@@ -17,3 +17,29 @@ export function LoadingSkeleton() {
     </div>
   );
 }
+
+/**
+ * Topic card skeleton component for loading states
+ * Mimics the appearance of actual topic cards during data loading
+ */
+export function TopicCardSkeleton() {
+  return (
+    <div className="bg-gray-800/70 rounded-xl overflow-hidden border border-gray-600 backdrop-blur-sm animate-pulse">
+      <div className="w-full h-40 sm:h-48 bg-gray-700 rounded-xl"></div>
+    </div>
+  );
+}
+
+/**
+ * Grid of topic card skeletons
+ * Shows multiple skeleton cards while topics are loading
+ */
+export function TopicsGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+      {Array.from({ length: count }, (_, index) => (
+        <TopicCardSkeleton key={index} />
+      ))}
+    </div>
+  );
+}
