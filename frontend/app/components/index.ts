@@ -27,7 +27,7 @@ export { QuizContainer } from './nine-slice-quiz/quiz-container';
 export { QuizQuestion } from './nine-slice-quiz/quiz-question';
 
 // UI components
-export { LoadingSkeleton } from './ui/loading-skeleton';
+export { LoadingSkeleton, TopicDetailSkeleton } from './ui/loading-skeleton';
 export { HomeLoading } from './ui/home-loading';
 
 // Home components

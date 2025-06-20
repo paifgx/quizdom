@@ -1,13 +1,13 @@
 /**
  * Question card component displaying individual question information.
- * Shows question number, bookmark status, difficulty, and completion status.
+ * Shows question title, bookmark status, difficulty, and completion status.
  */
 
 import type { QuestionCardProps } from '../../types/topic-detail';
 
 /**
  * Displays individual question information in a card format.
- * Shows question number, bookmark status, difficulty level, and completion status.
+ * Shows question title, bookmark status, difficulty level, and completion status.
  *
  * @param props - Component properties including question data
  * @returns JSX element for question card
@@ -15,8 +15,8 @@ import type { QuestionCardProps } from '../../types/topic-detail';
 export function QuestionCard({ question }: QuestionCardProps) {
   return (
     <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-[#FCC822] transition-all duration-200 cursor-pointer hover:scale-105">
-      <div className="flex items-center justify-between mb-2">
-        <QuestionNumber number={question.number} />
+      <div className="flex items-center justify-between mb-3">
+        <QuestionTitle title={question.title} />
         <BookmarkIndicator isBookmarked={question.isBookmarked} />
       </div>
 
@@ -28,20 +28,24 @@ export function QuestionCard({ question }: QuestionCardProps) {
   );
 }
 
-interface QuestionNumberProps {
-  /** Question number to display */
-  number: number;
+interface QuestionTitleProps {
+  /** Question title to display */
+  title: string;
 }
 
 /**
- * Question number component displaying large, prominent question identifier.
- * Uses golden color to highlight the question number.
+ * Question title component displaying the question's short title.
+ * Uses golden color to highlight the question title with proper text wrapping.
  *
- * @param props - Number properties including question number
- * @returns JSX element for question number
+ * @param props - Title properties including question title
+ * @returns JSX element for question title
  */
-function QuestionNumber({ number }: QuestionNumberProps) {
-  return <div className="text-4xl font-bold text-[#FCC822]">{number}</div>;
+function QuestionTitle({ title }: QuestionTitleProps) {
+  return (
+    <div className="text-lg font-bold text-[#FCC822] leading-tight">
+      {title}
+    </div>
+  );
 }
 
 interface BookmarkIndicatorProps {
@@ -60,7 +64,11 @@ function BookmarkIndicator({ isBookmarked }: BookmarkIndicatorProps) {
   if (!isBookmarked) return null;
 
   return (
-    <img src="/stars/star_full.png" alt="Bookmarked" className="h-5 w-5" />
+    <img
+      src="/stars/star_full.png"
+      alt="Markiert"
+      className="h-5 w-5 flex-shrink-0"
+    />
   );
 }
 
@@ -90,11 +98,24 @@ function DifficultyBadge({ difficulty }: DifficultyBadgeProps) {
     }
   };
 
+  const getDifficultyText = (diff: string) => {
+    switch (diff) {
+      case 'easy':
+        return 'Einfach';
+      case 'medium':
+        return 'Mittel';
+      case 'hard':
+        return 'Schwer';
+      default:
+        return diff;
+    }
+  };
+
   return (
     <div
       className={`text-xs px-2 py-1 rounded ${getDifficultyStyles(difficulty)}`}
     >
-      {difficulty}
+      {getDifficultyText(difficulty)}
     </div>
   );
 }
@@ -114,5 +135,7 @@ interface CompletionIndicatorProps {
 function CompletionIndicator({ isCompleted }: CompletionIndicatorProps) {
   if (!isCompleted) return null;
 
-  return <img src="/buttons/Accept.png" alt="Completed" className="h-4 w-4" />;
+  return (
+    <img src="/buttons/Accept.png" alt="Abgeschlossen" className="h-4 w-4" />
+  );
 }

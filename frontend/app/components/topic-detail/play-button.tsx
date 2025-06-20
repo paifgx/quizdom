@@ -25,7 +25,7 @@ export function PlayButton({ onClick }: PlayButtonProps) {
         className="cursor-pointer hover:scale-105 transition-all duration-200"
         onClick={onClick}
       >
-        <span className="text-base lg:text-lg font-bold">PLAY</span>
+        <span className="text-base lg:text-lg font-bold">SPIELEN</span>
       </NineSlicePanel>
     </div>
   );

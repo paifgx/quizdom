@@ -14,6 +14,7 @@ import {
   TopicQuestions,
   BackNavigation,
 } from '../components/topic-detail';
+import { TopicDetailSkeleton } from '../components/ui/loading-skeleton';
 import { useTopicDetail } from '../hooks/useTopicDetail';
 import { fetchAchievements } from '../api';
 import { useState, useEffect } from 'react';
@@ -21,10 +22,10 @@ import type { Achievement } from '../types/topic-detail';
 
 export function meta() {
   return [
-    { title: 'Topic Detail | Quizdom' },
+    { title: 'Thema Details | Quizdom' },
     {
       name: 'description',
-      content: 'Detailed view of quiz topic with questions and progress.',
+      content: 'Detailansicht des Quiz-Themas mit Fragen und Fortschritt.',
     },
   ];
 }
@@ -65,9 +66,10 @@ export default function TopicDetailPage() {
     return (
       <ProtectedRoute>
         <div className="text-center text-white py-8">
-          <h1 className="text-2xl font-bold mb-4">Topic Not Found</h1>
+          <h1 className="text-2xl font-bold mb-4">Thema nicht gefunden</h1>
           <p className="text-gray-300">
-            The requested topic could not be found. Please try again.
+            Das angeforderte Thema konnte nicht gefunden werden. Bitte versuchen
+            Sie es erneut.
           </p>
         </div>
       </ProtectedRoute>
@@ -77,10 +79,7 @@ export default function TopicDetailPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading topic details...</p>
-        </div>
+        <TopicDetailSkeleton />
       </ProtectedRoute>
     );
   }
@@ -124,7 +123,6 @@ export default function TopicDetailPage() {
         <TopicQuestions
           questions={topic.questions}
           bookmarkedCount={topic.bookmarkedQuestions}
-          topicId={topic.id}
         />
 
         <BackNavigation onBack={handleBack} />

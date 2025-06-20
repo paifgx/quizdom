@@ -20,8 +20,8 @@ export function BackNavigation({ onBack }: BackNavigationProps) {
         onClick={onBack}
         className="inline-flex items-center space-x-2 text-[#FCC822] hover:text-[#FFCD2E] transition-colors font-medium"
       >
-        <img src="/buttons/Left.png" alt="Back" className="h-5 w-5" />
-        <span>Back</span>
+        <img src="/buttons/Left.png" alt="Zurück" className="h-5 w-5" />
+        <span>Zurück</span>
       </button>
     </div>
   );

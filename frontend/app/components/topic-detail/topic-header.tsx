@@ -52,8 +52,10 @@ function FavoriteButton({ isFavorite, onToggle }: FavoriteButtonProps) {
     <button
       onClick={onToggle}
       className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-      aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      title={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+      aria-label={
+        isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'
+      }
     >
       <svg
         className={`h-5 w-5 transition-colors duration-200 ${
@@ -83,12 +85,12 @@ function DeleteButton() {
   return (
     <button
       className="p-1 hover:bg-gray-700 rounded-lg transition-colors"
-      title="Delete topic"
-      aria-label="Delete topic"
+      title="Thema löschen"
+      aria-label="Thema löschen"
     >
       <img
         src="/buttons/Delete.png"
-        alt="Delete"
+        alt="Löschen"
         className="h-5 w-5"
         aria-hidden="true"
       />

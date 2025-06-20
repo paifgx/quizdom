@@ -105,6 +105,7 @@ interface ComprehensiveTopic {
   questions?: Array<{
     id: string;
     number: number;
+    title: string;
     isBookmarked: boolean;
     isCompleted: boolean;
     difficulty: 'easy' | 'medium' | 'hard';
@@ -135,6 +136,7 @@ const masterTopics: ComprehensiveTopic[] = [
       {
         id: '1',
         number: 1,
+        title: 'Agile Grundlagen',
         isBookmarked: true,
         isCompleted: true,
         difficulty: 'easy',
@@ -142,6 +144,7 @@ const masterTopics: ComprehensiveTopic[] = [
       {
         id: '2',
         number: 2,
+        title: 'Scrum Framework',
         isBookmarked: true,
         isCompleted: false,
         difficulty: 'medium',
@@ -149,9 +152,26 @@ const masterTopics: ComprehensiveTopic[] = [
       {
         id: '3',
         number: 3,
+        title: 'Waterfall Methodik',
         isBookmarked: false,
         isCompleted: false,
         difficulty: 'hard',
+      },
+      {
+        id: '4',
+        number: 4,
+        title: 'DevOps Praktiken',
+        isBookmarked: false,
+        isCompleted: true,
+        difficulty: 'medium',
+      },
+      {
+        id: '5',
+        number: 5,
+        title: 'Kanban Boards',
+        isBookmarked: false,
+        isCompleted: false,
+        difficulty: 'easy',
       },
     ],
   },
@@ -193,6 +213,7 @@ const masterTopics: ComprehensiveTopic[] = [
       {
         id: '1',
         number: 1,
+        title: 'Newtonsche Gesetze',
         isBookmarked: true,
         isCompleted: true,
         difficulty: 'easy',
@@ -200,8 +221,41 @@ const masterTopics: ComprehensiveTopic[] = [
       {
         id: '2',
         number: 2,
+        title: 'Thermodynamik Basics',
         isBookmarked: false,
         isCompleted: true,
+        difficulty: 'medium',
+      },
+      {
+        id: '3',
+        number: 3,
+        title: 'Quantenmechanik',
+        isBookmarked: true,
+        isCompleted: false,
+        difficulty: 'hard',
+      },
+      {
+        id: '4',
+        number: 4,
+        title: 'Elektromagnetismus',
+        isBookmarked: true,
+        isCompleted: true,
+        difficulty: 'medium',
+      },
+      {
+        id: '5',
+        number: 5,
+        title: 'Relativitätstheorie',
+        isBookmarked: true,
+        isCompleted: false,
+        difficulty: 'hard',
+      },
+      {
+        id: '6',
+        number: 6,
+        title: 'Wellenmechanik',
+        isBookmarked: true,
+        isCompleted: false,
         difficulty: 'medium',
       },
     ],

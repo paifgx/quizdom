@@ -8,6 +8,8 @@ export interface TopicQuestion {
   id: string;
   /** Question number for display */
   number: number;
+  /** Short descriptive title of the question */
+  title: string;
   /** Whether the question is bookmarked by the user */
   isBookmarked: boolean;
   /** Whether the question has been completed */
@@ -68,8 +70,6 @@ export interface TopicQuestionsProps {
   questions: TopicQuestion[];
   /** Number of bookmarked questions */
   bookmarkedCount: number;
-  /** Topic ID for navigation */
-  topicId: string;
 }
 
 export interface QuestionCardProps {

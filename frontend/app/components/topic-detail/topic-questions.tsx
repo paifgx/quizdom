@@ -1,28 +1,31 @@
 /**
  * Topic questions component displaying bookmarked questions section.
- * Shows questions grid with navigation to view all bookmarked questions.
+ * Shows only bookmarked questions in a grid layout.
  */
 
-import { Link } from 'react-router';
 import type { TopicQuestionsProps } from '../../types/topic-detail';
 import { QuestionCard } from './question-card';
 
 /**
- * Displays bookmarked questions section with grid layout and navigation.
- * Shows question count and provides link to view all bookmarked questions.
+ * Displays bookmarked questions section with grid layout.
+ * Shows question count and displays only bookmarked questions directly.
  *
- * @param props - Component properties including questions data and navigation info
+ * @param props - Component properties including questions data
  * @returns JSX element for questions section
  */
 export function TopicQuestions({
   questions,
   bookmarkedCount,
-  topicId,
 }: TopicQuestionsProps) {
+  // Filter to show only bookmarked questions
+  const bookmarkedQuestions = questions.filter(
+    question => question.isBookmarked
+  );
+
   return (
     <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-600 backdrop-blur-sm mb-6">
-      <QuestionsHeader bookmarkedCount={bookmarkedCount} topicId={topicId} />
-      <QuestionsGrid questions={questions} />
+      <QuestionsHeader bookmarkedCount={bookmarkedCount} />
+      <QuestionsGrid questions={bookmarkedQuestions} />
     </div>
   );
 }
@@ -30,29 +33,21 @@ export function TopicQuestions({
 interface QuestionsHeaderProps {
   /** Number of bookmarked questions */
   bookmarkedCount: number;
-  /** Topic ID for navigation */
-  topicId: string;
 }
 
 /**
- * Questions section header with count and navigation link.
- * Displays bookmarked questions count and link to view all.
+ * Questions section header with count in German.
+ * Displays bookmarked questions count without navigation link.
  *
- * @param props - Header properties including count and topic ID
+ * @param props - Header properties including count
  * @returns JSX element for questions header
  */
-function QuestionsHeader({ bookmarkedCount, topicId }: QuestionsHeaderProps) {
+function QuestionsHeader({ bookmarkedCount }: QuestionsHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-xl font-bold text-white">
-        Bookmarked Questions: {bookmarkedCount}
+        Markierte Fragen: {bookmarkedCount}
       </h2>
-      <Link
-        to={`/quizzes?topic=${topicId}&bookmarked=true`}
-        className="text-[#FCC822] hover:text-[#FFCD2E] text-sm font-medium transition-colors"
-      >
-        View All
-      </Link>
     </div>
   );
 }
@@ -65,11 +60,23 @@ interface QuestionsGridProps {
 /**
  * Questions grid component displaying question cards in responsive layout.
  * Arranges question cards in a grid with proper spacing and responsive design.
+ * Shows a message when no bookmarked questions are available.
  *
  * @param props - Grid properties including questions array
  * @returns JSX element for questions grid
  */
 function QuestionsGrid({ questions }: QuestionsGridProps) {
+  if (questions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">
+          Keine markierten Fragen verfügbar. Markiere Fragen, um sie hier zu
+          sehen.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {questions.map(question => (

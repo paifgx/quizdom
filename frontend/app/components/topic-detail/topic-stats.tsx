@@ -47,7 +47,7 @@ function DifficultyStars({ stars }: DifficultyStarsProps) {
         <img
           key={index}
           src={index < stars ? '/stars/star_full.png' : '/stars/star_empty.png'}
-          alt={`Star ${index + 1}`}
+          alt={`Stern ${index + 1}`}
           className="h-6 w-6 lg:h-8 lg:w-8"
         />
       ))}
@@ -70,7 +70,7 @@ interface DifficultyTextProps {
 function DifficultyText({ stars }: DifficultyTextProps) {
   return (
     <div className="text-sm text-gray-400">
-      Difficulty: {getDifficultyName(stars)}
+      Schwierigkeit: {getDifficultyName(stars)}
     </div>
   );
 }
@@ -92,7 +92,7 @@ interface CompletionStatusProps {
 function CompletionStatus({ completed, total }: CompletionStatusProps) {
   return (
     <div className="text-sm text-gray-400">
-      {completed}/{total} Questions
+      {completed}/{total} Fragen
     </div>
   );
 }
