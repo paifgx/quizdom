@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Topic } from '../../types/game';
 import { handleKeyDown } from '../../utils/keyboard';
 

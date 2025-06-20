@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet } from 'react-router';
 import { useAuth } from '../contexts/auth';
 import { HomeLoading } from '../components/ui/home-loading';

@@ -3,7 +3,6 @@
  * Shows questions grid with navigation to view all bookmarked questions.
  */
 
-import React from 'react';
 import { Link } from 'react-router';
 import type { TopicQuestionsProps } from '../../types/topic-detail';
 import { QuestionCard } from './question-card';

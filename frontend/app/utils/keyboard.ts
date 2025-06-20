@@ -1,4 +1,4 @@
-import React from 'react';
+import type { KeyboardEvent } from 'react';
 
 /**
  * Keyboard interaction utilities for accessibility.
@@ -12,10 +12,7 @@ import React from 'react';
  * @param e - The keyboard event
  * @param action - The action to execute
  */
-export function handleKeyDown(
-  e: React.KeyboardEvent,
-  action: () => void
-): void {
+export function handleKeyDown(e: KeyboardEvent, action: () => void): void {
   if (e.key === 'Enter' || e.key === ' ') {
     e.preventDefault();
     action();

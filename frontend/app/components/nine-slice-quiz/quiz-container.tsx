@@ -1,4 +1,3 @@
-import React from 'react';
 import { QuizQuestion } from './quiz-question';
 import { QuizButton } from './quiz-button';
 

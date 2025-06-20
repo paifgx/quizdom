@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet } from 'react-router';
 import { MainNav } from '../components/navigation/main-nav';
 import { useBackgroundImage } from '../hooks/useBackgroundImage';

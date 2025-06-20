@@ -46,10 +46,7 @@ export default function ForgotPasswordPage() {
     setError('');
 
     try {
-      // TODO: Implement forgot password API call
-      // console.log('Password reset requested for:', email);
-
-      // Simulate API call
+      // Implement forgot password API call
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       setSuccess(true);

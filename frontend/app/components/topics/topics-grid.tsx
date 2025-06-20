@@ -1,10 +1,10 @@
-import React from 'react';
+import type { MouseEvent } from 'react';
 import type { Topic } from '../../types/topics';
 import { TopicsTopicCard } from './topic-card';
 
 interface TopicsGridProps {
   topics: Topic[];
-  onToggleFavorite: (topicId: string, event: React.MouseEvent) => void;
+  onToggleFavorite: (topicId: string, event: MouseEvent) => void;
 }
 
 /**

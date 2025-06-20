@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { ProtectedRoute } from '../components/auth/protected-route';
 import {
   TopicsHeader,

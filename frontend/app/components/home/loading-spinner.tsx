@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Loading spinner component for home page authentication check.
  * Displays a centered spinner with consistent styling.

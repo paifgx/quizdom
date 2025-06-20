@@ -3,7 +3,6 @@
  * Shows question number, bookmark status, difficulty, and completion status.
  */
 
-import React from 'react';
 import type { QuestionCardProps } from '../../types/topic-detail';
 
 /**

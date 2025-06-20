@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Header component for the topics page.
  * Displays the main title and description with English content.

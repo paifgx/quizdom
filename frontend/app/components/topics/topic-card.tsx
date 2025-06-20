@@ -1,4 +1,4 @@
-import React from 'react';
+import type { MouseEvent } from 'react';
 import { Link } from 'react-router';
 import type { Topic } from '../../types/topics';
 import {
@@ -9,7 +9,7 @@ import {
 
 interface TopicsTopicCardProps {
   topic: Topic;
-  onToggleFavorite: (topicId: string, event: React.MouseEvent) => void;
+  onToggleFavorite: (topicId: string, event: MouseEvent) => void;
 }
 
 /**
@@ -49,7 +49,7 @@ export function TopicsTopicCard({
 
 interface TopicBannerProps {
   topic: Topic;
-  onToggleFavorite: (topicId: string, event: React.MouseEvent) => void;
+  onToggleFavorite: (topicId: string, event: MouseEvent) => void;
 }
 
 /**
@@ -101,7 +101,7 @@ function DifficultyBadge({ stars }: DifficultyBadgeProps) {
 interface FavoriteButtonProps {
   topicId: string;
   isFavorite: boolean;
-  onToggle: (topicId: string, event: React.MouseEvent) => void;
+  onToggle: (topicId: string, event: MouseEvent) => void;
 }
 
 /**

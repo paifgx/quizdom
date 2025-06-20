@@ -29,7 +29,6 @@ export { QuizQuestion } from './nine-slice-quiz/quiz-question';
 // UI components
 export { LoadingSkeleton } from './ui/loading-skeleton';
 export { HomeLoading } from './ui/home-loading';
-export { BackgroundControls } from './ui/background-controls';
 
 // Home components
 export { LoadingSpinner } from './home/loading-spinner';
@@ -53,10 +52,12 @@ export { TopicsTopicCard } from './topics/topic-card';
 export { TopicsGrid } from './topics/topics-grid';
 
 // Topic detail components
-export { TopicHeader } from './topic-detail/topic-header';
-export { TopicStats } from './topic-detail/topic-stats';
-export { TopicAchievements } from './topic-detail/topic-achievements';
-export { PlayButton } from './topic-detail/play-button';
-export { TopicQuestions } from './topic-detail/topic-questions';
-export { QuestionCard } from './topic-detail/question-card';
-export { BackNavigation } from './topic-detail/back-navigation';
+export {
+  TopicHeader,
+  TopicStats,
+  TopicAchievements,
+  PlayButton,
+  TopicQuestions,
+  QuestionCard,
+  BackNavigation,
+} from './topic-detail';

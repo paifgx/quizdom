@@ -1,4 +1,3 @@
-import React from 'react';
 import { NineSlicePanel } from './nine-slice-panel';
 
 export interface QuizButtonProps {

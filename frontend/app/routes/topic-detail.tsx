@@ -4,7 +4,6 @@
  * statistics, achievements, bookmarked questions, and navigation options.
  */
 
-import React from 'react';
 import { useParams } from 'react-router';
 import { ProtectedRoute } from '../components/auth/protected-route';
 import {

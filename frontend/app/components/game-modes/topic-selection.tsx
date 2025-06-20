@@ -1,4 +1,3 @@
-import React from 'react';
 import { TopicCard } from './topic-card';
 import type { Topic, GameMode } from '../../types/game';
 

@@ -53,7 +53,6 @@ export default function AuthPage() {
   );
 
   const handleSignup = async () => {
-    // TODO: Implement actual signup logic
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);

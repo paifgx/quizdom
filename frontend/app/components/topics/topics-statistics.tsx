@@ -1,4 +1,3 @@
-import React from 'react';
 import type { TopicStatistics } from '../../types/topics';
 
 interface TopicsStatisticsProps {

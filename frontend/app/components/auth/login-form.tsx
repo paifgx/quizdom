@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FormEvent } from 'react';
 import { ValidatedInput } from './validated-input';
 
 export interface LoginFormProps {
@@ -11,7 +11,7 @@ export interface LoginFormProps {
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onRememberMeChange: (checked: boolean) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: FormEvent) => void;
   getError: (field: string) => string | undefined;
 }
 

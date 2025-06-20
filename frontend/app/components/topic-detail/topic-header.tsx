@@ -3,7 +3,6 @@
  * Provides favorite toggle and delete functionality with proper accessibility.
  */
 
-import React from 'react';
 import type { TopicHeaderProps } from '../../types/topic-detail';
 
 /**
