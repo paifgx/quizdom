@@ -8,6 +8,8 @@ import { TimerBar } from './timer-bar';
 import { HeartsDisplay } from './hearts-display';
 import { ScoreDisplay } from './score-display';
 import { GameResultScreen } from './game-result';
+import { CharacterDisplay } from './character-display';
+import { ScreenEffects } from './screen-effects';
 import { useGameState } from '../../hooks/useGameState';
 import type { GameResult, PlayerState, Question } from '../../types/game';
 
@@ -28,6 +30,94 @@ export function QuizGameContainer({
   onGameEnd,
   onQuit,
 }: QuizGameContainerProps) {
+  // Enhanced state for visual effects
+  const [screenEffects, setScreenEffects] = useState({
+    showDamageFlash: false,
+    showScreenShake: false,
+  });
+
+  const [playerDamageStates, setPlayerDamageStates] = useState<{
+    [playerId: string]: {
+      hearts: number;
+      previousHearts: number;
+      onDamage: boolean;
+    };
+  }>({});
+
+  // Initialize player damage states
+  useEffect(() => {
+    const initialStates: typeof playerDamageStates = {};
+    players.forEach(player => {
+      initialStates[player.id] = {
+        hearts: player.hearts,
+        previousHearts: player.hearts,
+        onDamage: false,
+      };
+    });
+    setPlayerDamageStates(initialStates);
+  }, [players]);
+
+  const handleHeartLoss = (playerId?: string) => {
+    // Trigger screen effects
+    setScreenEffects({
+      showDamageFlash: true,
+      showScreenShake: true,
+    });
+
+    // Update player damage state if specific player
+    if (playerId) {
+      setPlayerDamageStates(prev => ({
+        ...prev,
+        [playerId]: {
+          ...prev[playerId],
+          onDamage: true,
+        },
+      }));
+
+      // Clear player damage flag
+      setTimeout(() => {
+        setPlayerDamageStates(prev => ({
+          ...prev,
+          [playerId]: {
+            ...prev[playerId],
+            onDamage: false,
+          },
+        }));
+      }, 100);
+    }
+  };
+
+  const handleScreenEffectComplete = () => {
+    setScreenEffects({
+      showDamageFlash: false,
+      showScreenShake: false,
+    });
+  };
+
+  const { gameState, currentQuestion, timeRemaining, startGame, handleAnswer } =
+    useGameState({
+      mode,
+      questions,
+      players,
+      onGameOver: onGameEnd,
+      onHeartLoss: event => {
+        handleHeartLoss(event.playerId);
+
+        // Update player damage tracking
+        if (event.playerId) {
+          setPlayerDamageStates(prev => ({
+            ...prev,
+            [event.playerId!]: {
+              hearts: event.heartsRemaining,
+              previousHearts:
+                prev[event.playerId!]?.hearts || event.heartsRemaining + 1,
+              onDamage: false,
+            },
+          }));
+        }
+      },
+    });
+
   const [showResult, setShowResult] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | undefined>(
@@ -40,26 +130,32 @@ export function QuizGameContainer({
 
   const currentPlayer = players[0]; // For solo mode, or current player in multiplayer
 
-  const { gameState, currentQuestion, timeRemaining, startGame, handleAnswer } =
-    useGameState({
-      mode,
-      questions,
-      players,
-      onGameOver: result => {
-        setGameResult(result);
-        setShowResult(true);
-        onGameEnd(result);
+  // Handle game start
+  useEffect(() => {
+    if (gameState.status === 'waiting') {
+      startGame();
+    }
+  }, [gameState.status, startGame]);
 
-        // Save bookmarked questions to localStorage
-        if (bookmarkedQuestions.size > 0) {
-          const bookmarks = Array.from(bookmarkedQuestions);
-          localStorage.setItem(
-            `bookmarked_${topicTitle}`,
-            JSON.stringify(bookmarks)
-          );
-        }
-      },
-    });
+  // Handle game over
+  useEffect(() => {
+    if (gameState.status === 'finished') {
+      const result: GameResult = {
+        mode,
+        result: 'win', // This will be determined by the game logic
+        score:
+          mode === 'collaborative'
+            ? gameState.teamScore || 0
+            : gameState.players[0].score,
+        heartsRemaining:
+          mode === 'collaborative'
+            ? gameState.teamHearts || 0
+            : gameState.players[0].hearts,
+      };
+      setGameResult(result);
+      setShowResult(true);
+    }
+  }, [gameState.status, gameState, mode]);
 
   // Load bookmarked questions from localStorage
   useEffect(() => {
@@ -68,11 +164,6 @@ export function QuizGameContainer({
       setBookmarkedQuestions(new Set(JSON.parse(stored)));
     }
   }, [topicTitle]);
-
-  // Start game on mount
-  useEffect(() => {
-    startGame();
-  }, [startGame]);
 
   // Reset answer selection on new question
   useEffect(() => {
@@ -124,6 +215,10 @@ export function QuizGameContainer({
     }, 100);
   }, []);
 
+  const isBookmarked = currentQuestion
+    ? bookmarkedQuestions.has(currentQuestion.id)
+    : false;
+
   if (showResult && gameResult) {
     return (
       <GameResultScreen
@@ -151,55 +246,45 @@ export function QuizGameContainer({
     })),
   };
 
-  const isBookmarked = currentQuestion
-    ? bookmarkedQuestions.has(currentQuestion.id)
-    : false;
-
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Game Header - Compact and Clean */}
-      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 px-4 py-2">
-        <div className="max-w-7xl mx-auto">
-          {/* Top Row - Title, Progress, Quit */}
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg md:text-xl font-bold text-[#FCC822]">
-              {topicTitle} - {mode.toUpperCase()}
-            </h2>
-            <div className="flex items-center gap-4">
-              <span className="text-white font-medium text-sm md:text-base">
-                Frage {gameState.currentQuestionIndex + 1}/{questions.length}
-              </span>
-              <button
-                onClick={onQuit}
-                className="text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-1"
-                title="Quiz beenden (ESC)"
-              >
-                <span className="hidden sm:inline">Beenden</span>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+      <ScreenEffects
+        showDamageFlash={screenEffects.showDamageFlash}
+        showScreenShake={screenEffects.showScreenShake}
+        onEffectComplete={handleScreenEffectComplete}
+      />
+
+      {/* Header with Timer and Quit */}
+      <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-sm border-b border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onQuit}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors text-white"
+            >
+              <img src="/buttons/Home.png" alt="" className="w-5 h-5" />
+              <span className="font-bold text-sm">QUIT</span>
+            </button>
+            <div className="text-center">
+              <h1 className="text-[#FCC822] font-bold text-lg md:text-xl">
+                {topicTitle}
+              </h1>
+              <p className="text-gray-400 text-sm">
+                Question {gameState.currentQuestionIndex + 1} von{' '}
+                {gameState.questions.length}
+              </p>
             </div>
+            <div className="w-24" /> {/* Spacer for balance */}
           </div>
 
-          {/* Timer */}
-          <TimerBar
-            timeRemaining={timeRemaining}
-            timeLimit={gameState.timeLimit}
-            className="mb-2"
-          />
+          {/* Timer Bar */}
+          <div className="py-4">
+            <TimerBar
+              timeRemaining={timeRemaining}
+              timeLimit={gameState.timeLimit}
+            />
+          </div>
 
-          {/* Game Stats - Compact */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 md:gap-6">
               {/* Stats moved to player display - keeping empty for layout balance */}
@@ -213,6 +298,7 @@ export function QuizGameContainer({
                     hearts={gameState.teamHearts || 0}
                     maxHearts={3}
                     isTeamHearts
+                    onHeartLoss={() => handleHeartLoss()}
                   />
                   <div className="hidden md:flex gap-2">
                     {gameState.players.map(player => (
@@ -238,66 +324,82 @@ export function QuizGameContainer({
       {/* Main Quiz Content Area with Character - Fills remaining space and centers content */}
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-7xl py-8">
-          <div className="flex items-center justify-center gap-8">
+          <div className="flex items-center justify-center gap-4 lg:gap-6">
             {/* Character Display - Left Side */}
             {mode === 'solo' && (
               <div className="flex-shrink-0">
                 <div className="text-center flex flex-col items-center gap-8">
                   <ScoreDisplay score={gameState.players[0].score} />
-                  <img
+                  <CharacterDisplay
                     src="/avatars/player_male_with_greataxe.png"
                     alt="Dein Charakter"
-                    className="h-32 md:h-40 lg:h-48 w-auto"
+                    hearts={gameState.players[0].hearts}
+                    previousHearts={
+                      playerDamageStates[gameState.players[0].id]
+                        ?.previousHearts
+                    }
+                    onDamage={
+                      playerDamageStates[gameState.players[0].id]?.onDamage
+                    }
                   />
                   <HeartsDisplay
                     hearts={gameState.players[0].hearts}
                     maxHearts={3}
+                    onHeartLoss={() => handleHeartLoss(gameState.players[0].id)}
                   />
                 </div>
               </div>
             )}
 
             {mode === 'competitive' && (
-              <div className="flex-shrink-0">
-                <div className="text-center flex flex-col items-center gap-8">
+              <div className="flex-shrink-0 w-32 lg:w-40">
+                <div className="text-center flex flex-col items-center gap-6">
                   <ScoreDisplay score={gameState.players[0].score} />
-                  <img
+                  <CharacterDisplay
                     src="/avatars/player_male_with_greataxe.png"
                     alt="Alex"
-                    className="h-24 md:h-32 w-auto"
+                    className="h-full w-auto"
+                    hearts={gameState.players[0].hearts}
+                    previousHearts={
+                      playerDamageStates[gameState.players[0].id]
+                        ?.previousHearts
+                    }
+                    onDamage={
+                      playerDamageStates[gameState.players[0].id]?.onDamage
+                    }
                   />
                   <HeartsDisplay
                     hearts={gameState.players[0].hearts}
                     maxHearts={3}
+                    onHeartLoss={() => handleHeartLoss(gameState.players[0].id)}
                   />
                 </div>
               </div>
             )}
 
             {/* Quiz Content - Centered */}
-            <div className="flex-1 flex justify-center">
-              <div className="w-full max-w-4xl">
-                <div className="relative">
-                  <QuizContainer
-                    quizData={quizData}
-                    selectedAnswer={
-                      selectedAnswer !== undefined
-                        ? selectedAnswer.toString()
-                        : undefined
-                    }
-                    onAnswerSelect={handleAnswerSelect}
-                    disabled={isAnswerDisabled}
-                    showCorrectAnswer={
-                      isAnswerDisabled
-                        ? {
-                            correct: currentQuestion.correctAnswer,
-                            selected: selectedAnswer,
-                          }
-                        : undefined
-                    }
-                  />
+            <div className="flex-1 max-w-4xl">
+              <div className="relative">
+                <QuizContainer
+                  quizData={quizData}
+                  selectedAnswer={
+                    selectedAnswer !== undefined
+                      ? selectedAnswer.toString()
+                      : undefined
+                  }
+                  onAnswerSelect={handleAnswerSelect}
+                  disabled={isAnswerDisabled}
+                  showCorrectAnswer={
+                    isAnswerDisabled
+                      ? {
+                          correct: currentQuestion.correctAnswer,
+                          selected: selectedAnswer,
+                        }
+                      : undefined
+                  }
+                />
 
-                  {/* Bookmark button - Pixel Art Style */}
+                <div className="py-4">
                   <button
                     onClick={toggleBookmark}
                     className={`absolute -top-10 right-0 px-3 py-1 rounded-lg transition-all flex items-center gap-2 ${
@@ -330,17 +432,26 @@ export function QuizGameContainer({
 
             {/* Right side character for competitive mode */}
             {mode === 'competitive' && (
-              <div className="flex-shrink-0">
-                <div className="text-center flex flex-col items-center gap-8">
+              <div className="flex-shrink-0 w-32 lg:w-40">
+                <div className="text-center flex flex-col items-center gap-6">
                   <ScoreDisplay score={gameState.players[1].score} />
-                  <img
+                  <CharacterDisplay
                     src="/avatars/player_female_sword_magic.png"
                     alt="Sophia"
-                    className="h-24 md:h-32 w-auto"
+                    className="h-full w-auto"
+                    hearts={gameState.players[1].hearts}
+                    previousHearts={
+                      playerDamageStates[gameState.players[1].id]
+                        ?.previousHearts
+                    }
+                    onDamage={
+                      playerDamageStates[gameState.players[1].id]?.onDamage
+                    }
                   />
                   <HeartsDisplay
                     hearts={gameState.players[1].hearts}
                     maxHearts={3}
+                    onHeartLoss={() => handleHeartLoss(gameState.players[1].id)}
                   />
                 </div>
               </div>
