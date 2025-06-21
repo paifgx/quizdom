@@ -64,14 +64,14 @@ export const gameModes: GameMode[] = [
     icon: '/playmodi/solo.png',
   },
   {
-    id: 'duel',
+    id: 'competitive',
     name: 'Duell',
     description:
       'Fordere einen anderen Spieler in Echtzeit-Wettbewerb heraus. Schnell und aufregend!',
     icon: '/playmodi/competitive.png',
   },
   {
-    id: 'team',
+    id: 'collaborative',
     name: 'Team Battle',
     description:
       'Schließe dich mit Teamkollegen zusammen, um gegen andere anzutreten. Arbeite zusammen und entwickle Strategien.',

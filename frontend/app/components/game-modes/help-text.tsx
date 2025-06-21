@@ -31,8 +31,8 @@ export function HelpText({ selectedMode }: HelpTextProps) {
 function getHelpMessage(selectedMode: GameModeId): string {
   const helpMessages: Record<GameModeId, string> = {
     solo: 'Play at your own pace and improve your knowledge.',
-    duel: 'Challenge another player in real-time competition.',
-    team: 'Join forces with teammates to compete against others.',
+    competitive: 'Challenge another player in real-time competition.',
+    collaborative: 'Join forces with teammates to compete against others.',
   };
 
   return helpMessages[selectedMode];

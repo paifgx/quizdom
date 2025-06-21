@@ -23,6 +23,7 @@ export default [
     ]),
 
     // Other main routes (without dashboard sidebar)
+    route('/topics/:topicId/quiz-game', 'routes/quiz-game.tsx'),
     route('/topics', 'routes/topics.tsx'),
     route('/game-modes', 'routes/game-modes.tsx'),
     route('/progress', 'routes/progress.tsx'),
