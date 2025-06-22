@@ -4,12 +4,20 @@ Willkommen bei **QUIZDOM - Rise of the Wise!** Gratulation - es war eine weise E
 
 ---
 
+> _Entwicklernotiz:_
+>
 > **Anforderungen aus Spielerperspektive, deren Erläuterung im Benutzerhandbuch nicht sinnvoll sind:**
 >
 > - SCRUM-148: Latenz
 > - SCRUM-170: Pixel-Art Grafik
 > - SCRUM-153: kontinuierlicher Betrieb
 > - SCRUM-151: Benutzerhandbuch
+>
+> **Unbeantwortete Fragen: 21**
+>
+> **Beantwortete Fragen: 7**
+>
+> Stand: 22.06.2025
 
 ---
 
@@ -104,6 +112,22 @@ lorem ipsum
 
 ---
 
+### Wie kann ich mein Passwort ändern bzw. zurücksetzen?
+
+`relates to SCRUM-160`
+
+lorem ipsum
+
+---
+
+### Wie kann ich meine Profilinformationen (Profilbild, Benutzername, E-Mail-Adresse) ändern?
+
+`relates to SCRUM-160`
+
+lorem ipsum
+
+---
+
 ### Wie kann ich mein Konto und meine Daten löschen?
 
 `relates to SCRUM-162`
@@ -136,11 +160,20 @@ lorem ipsum
 
 ---
 
-### Wie funktioniert der Spielmodus _Duell / Competetive Mode_?
+### Wie funktioniert der Spielmodus _Duell / Competitive Mode_?
 
 `relates to SCRUM-179 && SCRUM-161`
 
 lorem ipsum
+
+---
+
+### Kann ich in QUIZDOM auch gegen meine Freunde spielen?
+
+`relates to SCRUM-190 && SCRUM-159 && SCRUM-179`
+
+Die kurze Anwort: Jein.
+In dieser prototypischen Umsetzung wird der bzw. die andere Spieler:in für den _Collaborative Mode_ oder den _Competitive Mode_ zufällig aus den Spieler:innen ausgewählt, die gerade online sind und dasselbe Thema/ Fach im selben Spielmodus spielen wollen. Du kannst dir deine:n Mitstreiter:in bzw. deine:n Gegner:in also nicht selbst aussuchen. Mit etwas "Glück" kann es jedoch sein, dass euch der Zufall beide für dasselbe Spiel auswählt.
 
 ---
 
@@ -229,5 +262,11 @@ lorem ipsum
 `relates to SCRUM-176 && SCRUM-174`
 
 lorem ipsum
+
+---
+
+### Gibt es einen Benutzersupport für QUIZDOM?
+
+In der aktuellen prototypischen Umsetzung gibt es keinen direkten Benutzersupport. Fragen, Wünsche, Fehler sowie Lob und Kritik kannst du uns gerne an example@quizdom.com senden. Bitte habe Verständnis dafür, dass wir es vermutlich nicht schaffen auf jede E-Mail zu antworten.
 
 ---
