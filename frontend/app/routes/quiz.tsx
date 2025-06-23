@@ -39,8 +39,8 @@ function QuizHeader({
         onClick={onBack}
         className="flex items-center text-white hover:text-[#FCC822] transition-colors duration-200 font-bold py-2 px-4 rounded-lg cursor-pointer"
       >
-        <img src="/buttons/Left.png" alt="Zurück" className="h-6 w-6 mr-2" />
-        <span>Zurück zum Thema</span>
+        <img src="/buttons/Left.png" alt={translations.backAlt} className="h-6 w-6 mr-2" />
+        <span>{translations.back}</span>
       </button>
       <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white text-center">
         {title}
