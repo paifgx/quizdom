@@ -64,14 +64,14 @@ export const gameModes: GameMode[] = [
     icon: '/playmodi/solo.png',
   },
   {
-    id: 'duel',
+    id: 'competitive',
     name: 'Duell',
     description:
       'Fordere einen anderen Spieler in Echtzeit-Wettbewerb heraus. Schnell und aufregend!',
     icon: '/playmodi/competitive.png',
   },
   {
-    id: 'team',
+    id: 'collaborative',
     name: 'Team Battle',
     description:
       'Schließe dich mit Teamkollegen zusammen, um gegen andere anzutreten. Arbeite zusammen und entwickle Strategien.',
@@ -106,6 +106,9 @@ interface ComprehensiveTopic {
     id: string;
     number: number;
     title: string;
+    questionText: string;
+    answers: Array<{ id: string; text: string }>;
+    correctAnswerId: string;
     isBookmarked: boolean;
     isCompleted: boolean;
     difficulty: 'easy' | 'medium' | 'hard';
@@ -137,6 +140,14 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '1',
         number: 1,
         title: 'Agile Grundlagen',
+        questionText: 'Was ist ein zentrales Prinzip des agilen Manifests?',
+        answers: [
+          { id: '1', text: 'Umfassende Dokumentation' },
+          { id: '2', text: 'Prozesse und Werkzeuge' },
+          { id: '3', text: 'Individuen und Interaktionen' },
+          { id: '4', text: 'Vertragsverhandlungen' },
+        ],
+        correctAnswerId: '3',
         isBookmarked: true,
         isCompleted: true,
         difficulty: 'easy',
@@ -145,6 +156,14 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '2',
         number: 2,
         title: 'Scrum Framework',
+        questionText: 'Welche Rolle ist NICHT Teil eines Scrum-Teams?',
+        answers: [
+          { id: '1', text: 'Product Owner' },
+          { id: '2', text: 'Scrum Master' },
+          { id: '3', text: 'Projektmanager' },
+          { id: '4', text: 'Entwickler' },
+        ],
+        correctAnswerId: '3',
         isBookmarked: true,
         isCompleted: false,
         difficulty: 'medium',
@@ -153,6 +172,21 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '3',
         number: 3,
         title: 'Waterfall Methodik',
+        questionText:
+          'Was ist ein Hauptmerkmal der Wasserfallmethode in der Softwareentwicklung?',
+        answers: [
+          { id: '1', text: 'Iterative Entwicklungszyklen' },
+          {
+            id: '2',
+            text: 'Lineare und sequenzielle Phasen',
+          },
+          { id: '3', text: 'Häufige Kundenrückmeldungen' },
+          {
+            id: '4',
+            text: 'Flexible Anpassung an Änderungen',
+          },
+        ],
+        correctAnswerId: '2',
         isBookmarked: false,
         isCompleted: false,
         difficulty: 'hard',
@@ -161,6 +195,14 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '4',
         number: 4,
         title: 'DevOps Praktiken',
+        questionText: 'Was ist DevOps?',
+        answers: [
+          { id: '1', text: 'Eine Softwareentwicklungsmethode' },
+          { id: '2', text: 'Eine Softwarequalitätsbewertungsmethode' },
+          { id: '3', text: 'Eine Softwareentwicklungsphilosophie' },
+          { id: '4', text: 'Eine Softwareentwicklungsstrategie' },
+        ],
+        correctAnswerId: '3',
         isBookmarked: false,
         isCompleted: true,
         difficulty: 'medium',
@@ -169,6 +211,14 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '5',
         number: 5,
         title: 'Kanban Boards',
+        questionText: 'Was ist ein Kanban Board?',
+        answers: [
+          { id: '1', text: 'Eine Softwareentwicklungsmethode' },
+          { id: '2', text: 'Eine Softwarequalitätsbewertungsmethode' },
+          { id: '3', text: 'Eine Softwareentwicklungsphilosophie' },
+          { id: '4', text: 'Eine Softwareentwicklungsstrategie' },
+        ],
+        correctAnswerId: '4',
         isBookmarked: false,
         isCompleted: false,
         difficulty: 'easy',
@@ -214,6 +264,15 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '1',
         number: 1,
         title: 'Newtonsche Gesetze',
+        questionText:
+          'Welche drei Gesetze beschreiben die Bewegung von Körpern?',
+        answers: [
+          { id: '1', text: 'Trägheit, Kraft und Beschleunigung' },
+          { id: '2', text: 'Gravitation, Trägheit und Beschleunigung' },
+          { id: '3', text: 'Gravitation, Trägheit und Reibung' },
+          { id: '4', text: 'Gravitation, Trägheit und Impuls' },
+        ],
+        correctAnswerId: '1',
         isBookmarked: true,
         isCompleted: true,
         difficulty: 'easy',
@@ -222,6 +281,14 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '2',
         number: 2,
         title: 'Thermodynamik Basics',
+        questionText: 'Was ist die Hauptsätze der Thermodynamik?',
+        answers: [
+          { id: '1', text: 'Zwei Hauptsätze' },
+          { id: '2', text: 'Drei Hauptsätze' },
+          { id: '3', text: 'Vier Hauptsätze' },
+          { id: '4', text: 'Fünf Hauptsätze' },
+        ],
+        correctAnswerId: '2',
         isBookmarked: false,
         isCompleted: true,
         difficulty: 'medium',
@@ -230,6 +297,14 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '3',
         number: 3,
         title: 'Quantenmechanik',
+        questionText: 'Was ist eine wichtige Eigenschaft von Quanten?',
+        answers: [
+          { id: '1', text: 'Sie sind deterministisch' },
+          { id: '2', text: 'Sie sind kontinuierlich' },
+          { id: '3', text: 'Sie sind quantisiert' },
+          { id: '4', text: 'Sie sind diskret' },
+        ],
+        correctAnswerId: '3',
         isBookmarked: true,
         isCompleted: false,
         difficulty: 'hard',
@@ -238,6 +313,26 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '4',
         number: 4,
         title: 'Elektromagnetismus',
+        questionText: 'Was ist das elektromagnetische Feld?',
+        answers: [
+          {
+            id: '1',
+            text: 'Ein Feld, das elektrische Ladungen und Magnete verbindet',
+          },
+          {
+            id: '2',
+            text: 'Ein Feld, das elektrische Ladungen und Magnete trennt',
+          },
+          {
+            id: '3',
+            text: 'Ein Feld, das elektrische Ladungen und Magnete verbindet und trennt',
+          },
+          {
+            id: '4',
+            text: 'Ein Feld, das elektrische Ladungen und Magnete trennt und verbindet',
+          },
+        ],
+        correctAnswerId: '1',
         isBookmarked: true,
         isCompleted: true,
         difficulty: 'medium',
@@ -246,6 +341,14 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '5',
         number: 5,
         title: 'Relativitätstheorie',
+        questionText: 'Was ist die Hauptsätze der Relativitätstheorie?',
+        answers: [
+          { id: '1', text: 'Zwei Hauptsätze' },
+          { id: '2', text: 'Drei Hauptsätze' },
+          { id: '3', text: 'Vier Hauptsätze' },
+          { id: '4', text: 'Fünf Hauptsätze' },
+        ],
+        correctAnswerId: '1',
         isBookmarked: true,
         isCompleted: false,
         difficulty: 'hard',
@@ -254,6 +357,14 @@ const masterTopics: ComprehensiveTopic[] = [
         id: '6',
         number: 6,
         title: 'Wellenmechanik',
+        questionText: 'Was ist eine wichtige Eigenschaft von Wellen?',
+        answers: [
+          { id: '1', text: 'Sie sind deterministisch' },
+          { id: '2', text: 'Sie sind kontinuierlich' },
+          { id: '3', text: 'Sie sind quantisiert' },
+          { id: '4', text: 'Sie sind diskret' },
+        ],
+        correctAnswerId: '3',
         isBookmarked: true,
         isCompleted: false,
         difficulty: 'medium',

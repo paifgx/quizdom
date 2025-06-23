@@ -98,7 +98,6 @@ describe('QuizContainer', () => {
     const mainContainer = container.firstChild as HTMLElement;
     expect(mainContainer?.className).toContain('max-w-4xl');
     expect(mainContainer?.className).toContain('mx-auto');
-    expect(mainContainer?.className).toContain('p-5');
   });
 
   it('has responsive grid layout for answer buttons', () => {

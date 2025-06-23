@@ -16,6 +16,7 @@ import { QuestionCard } from './question-card';
 export function TopicQuestions({
   questions,
   bookmarkedCount,
+  topicId,
 }: TopicQuestionsProps) {
   // Filter to show only bookmarked questions
   const bookmarkedQuestions = questions.filter(
@@ -25,7 +26,7 @@ export function TopicQuestions({
   return (
     <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-600 backdrop-blur-sm mb-6">
       <QuestionsHeader bookmarkedCount={bookmarkedCount} />
-      <QuestionsGrid questions={bookmarkedQuestions} />
+      <QuestionsGrid questions={bookmarkedQuestions} topicId={topicId} />
     </div>
   );
 }
@@ -55,6 +56,8 @@ function QuestionsHeader({ bookmarkedCount }: QuestionsHeaderProps) {
 interface QuestionsGridProps {
   /** Array of questions to display */
   questions: TopicQuestionsProps['questions'];
+  /** ID of the topic */
+  topicId: string;
 }
 
 /**
@@ -65,7 +68,7 @@ interface QuestionsGridProps {
  * @param props - Grid properties including questions array
  * @returns JSX element for questions grid
  */
-function QuestionsGrid({ questions }: QuestionsGridProps) {
+function QuestionsGrid({ questions, topicId }: QuestionsGridProps) {
   if (questions.length === 0) {
     return (
       <div className="text-center py-8">
@@ -80,7 +83,7 @@ function QuestionsGrid({ questions }: QuestionsGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {questions.map(question => (
-        <QuestionCard key={question.id} question={question} />
+        <QuestionCard key={question.id} question={question} topicId={topicId} />
       ))}
     </div>
   );

@@ -7,7 +7,11 @@
 
 import type { GameMode } from '../types/game';
 import type { GameTopic, DifficultyLevel } from '../types/topics';
-import type { TopicDetailData, Achievement } from '../types/topic-detail';
+import type {
+  TopicDetailData,
+  Achievement,
+  TopicQuestion,
+} from '../types/topic-detail';
 import {
   categories,
   difficultyNames,
@@ -236,6 +240,21 @@ export async function fetchTopicDetailData(
   cacheUtils.set(cacheKey, result);
 
   return result;
+}
+
+/**
+ * Fetches a single question from a topic.
+ * @param topicId - The ID of the topic.
+ * @param questionId - The ID of the question.
+ * @returns A promise that resolves to the question object or null if not found.
+ */
+export async function fetchQuestion(
+  topicId: string,
+  questionId: string
+): Promise<TopicQuestion | null> {
+  const topic = await fetchTopicDetailData(topicId);
+  if (!topic) return null;
+  return topic.questions.find(q => q.id === questionId) || null;
 }
 
 /**

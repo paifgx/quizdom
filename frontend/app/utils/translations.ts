@@ -270,6 +270,7 @@ export const translations = {
     reports: 'Berichte',
     user: 'Benutzer',
     selectGameMode: 'Spielmodus auswählen',
+    back: 'Zurück',
   },
 
   // Page Titles

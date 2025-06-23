@@ -107,7 +107,7 @@ export function useGameModeSelection({
       throw new Error('Selected topic has no questions available');
     }
 
-    navigate(`/play?mode=${selectedMode}&topic=${selectedTopicId}`);
+    navigate(`/topics/${selectedTopicId}/quiz-game?mode=${selectedMode}`);
   }, [selectedMode, selectedTopic, selectedTopicId, navigate]);
 
   const handleBack = useCallback(() => {
