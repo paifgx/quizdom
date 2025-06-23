@@ -3,7 +3,7 @@
  * Shows question title, bookmark status, difficulty, and completion status.
  */
 
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import type { QuestionCardProps } from '../../types/topic-detail';
 
 /**
