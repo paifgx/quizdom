@@ -9,6 +9,7 @@ import { QuizContainer } from '../components/nine-slice-quiz';
 import type { TopicQuestion } from '../types/topic-detail';
 import { fetchTopicDetailData } from '../api';
 import { LoadingSpinner } from '../components/home/loading-spinner';
+import { translations } from '../utils/translations';
 
 export function meta() {
   return [
@@ -39,8 +40,8 @@ function QuizHeader({
         onClick={onBack}
         className="flex items-center text-white hover:text-[#FCC822] transition-colors duration-200 font-bold py-2 px-4 rounded-lg cursor-pointer"
       >
-        <img src="/buttons/Left.png" alt={translations.backAlt} className="h-6 w-6 mr-2" />
-        <span>{translations.back}</span>
+        <img src="/buttons/Left.png" alt="Zurück" className="h-6 w-6 mr-2" />
+        <span>{translations.common.back}</span>
       </button>
       <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white text-center">
         {title}
