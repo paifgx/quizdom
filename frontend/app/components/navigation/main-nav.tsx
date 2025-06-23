@@ -73,7 +73,7 @@ export function MainNav() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        isUserMenuOpen &&
+        isUserMenuOpenRef.current &&
         !(event.target as Element).closest('.user-menu-container')
       ) {
         setIsUserMenuOpen(false);
