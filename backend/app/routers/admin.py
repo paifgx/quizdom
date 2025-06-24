@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlmodel import Session, select, delete
+from sqlmodel import Session, delete, select
 
-from app.dependencies import require_role
-from app.db.session import get_session
 from app.db.models import Role, User, UserRole
+from app.db.session import get_session
+from app.dependencies import require_role
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 

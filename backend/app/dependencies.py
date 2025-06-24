@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlmodel import Session, select
+
 from app.core.config import settings
 from app.core.security import ALGORITHM
 from app.db.models import Role, User, UserRole

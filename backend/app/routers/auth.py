@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlmodel import Session
 
-from app.services import auth as auth_service
 from app.core.security import create_access_token
 from app.db.models import User
 from app.db.session import get_session
+from app.services import auth as auth_service
 
 router = APIRouter()
 
