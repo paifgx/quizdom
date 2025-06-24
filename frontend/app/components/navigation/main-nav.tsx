@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/auth';
 import { translate } from '../../utils/translations';
@@ -14,8 +14,22 @@ const playerNavLinks: NavigationLink[] = [
   { label: translate('nav.start'), path: '/', role: 'player' },
   { label: translate('nav.topics'), path: '/topics', role: 'player' },
   { label: translate('nav.gameModes'), path: '/game-modes', role: 'player' },
-  { label: translate('nav.progress'), path: '/progress', role: 'player' },
-  { label: translate('nav.profile'), path: '/profile', role: 'player' },
+  { label: translate('nav.userManual'), path: '/user-manual', role: 'player' },
+];
+
+const userMenuLinks: NavigationLink[] = [
+  {
+    label: translate('nav.profile'),
+    path: '/profile',
+    role: 'player',
+    icon: '/buttons/Settings.png',
+  },
+  {
+    label: translate('nav.progress'),
+    path: '/progress',
+    role: 'player',
+    icon: '/badges/badge_1_64x64.png',
+  },
 ];
 
 const adminNavLinks: NavigationLink[] = [
@@ -35,6 +49,8 @@ const adminNavLinks: NavigationLink[] = [
 
 export function MainNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const isUserMenuOpenRef = useRef(false);
   const {
     user,
     isAuthenticated,
@@ -48,10 +64,31 @@ export function MainNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Close mobile menu when route changes
+  // Keep ref in sync with state
+  useEffect(() => {
+    isUserMenuOpenRef.current = isUserMenuOpen;
+  }, [isUserMenuOpen]);
+
+  // Close mobile menu and user menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
   }, [location.pathname]);
+
+  // Close user menu when clicking outside (register listener once on mount)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isUserMenuOpenRef.current &&
+        !(event.target as Element).closest('.user-menu-container')
+      ) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []); // Empty dependency array - register once on mount
 
   const isActiveLink = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -60,11 +97,17 @@ export function MainNav() {
 
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
   };
 
   const handleLogout = () => {
     logout();
     setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
+  };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
   };
 
   // Get navigation links based on active role
@@ -157,74 +200,163 @@ export function MainNav() {
 
           {/* User Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* User Avatar and Info */}
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <img
-                  src="/wisecoin/wisecoin.png"
-                  alt="Wisecoins"
-                  className="h-5 w-5"
-                />
-                <span className="text-[#FCC822] text-sm font-medium">
-                  {user?.wisecoins || 0}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
+            {/* Wisecoins Display */}
+            <div className="flex items-center space-x-2">
+              <img
+                src="/wisecoin/wisecoin.png"
+                alt="Wisecoins"
+                className="h-5 w-5"
+              />
+              <span className="text-[#FCC822] text-sm font-medium">
+                {user?.wisecoins || 0}
+              </span>
+            </div>
+
+            {/* User Dropdown Container */}
+            <div className="relative user-menu-container">
+              <button
+                onClick={toggleUserMenu}
+                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="true"
+              >
                 <img
                   src={user?.avatar || '/avatars/player_male_with_greataxe.png'}
                   alt={`${user?.username} Avatar`}
-                  className="h-8 w-8 rounded-full"
+                  className="h-8 w-8 rounded-full border-2 border-gray-600"
                 />
-                <span className="text-white text-sm font-medium">
-                  {user?.username}
-                </span>
-                {isAdmin && (
-                  <button
-                    onClick={
-                      isViewingAsAdmin
-                        ? handleSwitchToPlayerView
-                        : handleSwitchToAdminView
-                    }
-                    className={`flex items-center space-x-1 text-white text-xs px-2 py-1 rounded-full font-medium transition-all duration-200 hover:scale-105 cursor-pointer border ${
-                      isViewingAsAdmin
-                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 border-purple-400 hover:border-purple-300'
-                        : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 border-green-400 hover:border-green-300'
+                <div className="flex items-center space-x-1">
+                  <span className="text-white text-sm font-medium">
+                    {user?.username}
+                  </span>
+                  <svg
+                    className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${
+                      isUserMenuOpen ? 'rotate-180' : ''
                     }`}
-                    title={`Aktuell im ${isViewingAsAdmin ? translate('nav.admin') : translate('nav.player')}-Modus. Klicken Sie, um zur ${isViewingAsAdmin ? translate('nav.player') : translate('nav.admin')}-Ansicht zu wechseln.`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <span>
-                      {isViewingAsAdmin
-                        ? translate('nav.admin')
-                        : translate('nav.player')}
-                    </span>
-                    <svg
-                      className="w-3 h-3 opacity-80"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="p-2 text-gray-300 hover:text-[#FCC822] transition-colors duration-200"
-                aria-label={translate('accessibility.logout')}
-              >
-                <img
-                  src="/buttons/Logout.png"
-                  alt={translate('accessibility.logout')}
-                  className="h-5 w-5"
-                />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
               </button>
+
+              {/* Dropdown Menu */}
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-gray-800/95 backdrop-blur-sm border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="py-2">
+                    {/* User Info Header */}
+                    <div className="px-4 py-3 border-b border-gray-700">
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={
+                            user?.avatar ||
+                            '/avatars/player_male_with_greataxe.png'
+                          }
+                          alt={`${user?.username} Avatar`}
+                          className="h-10 w-10 rounded-full border-2 border-gray-600"
+                        />
+                        <div>
+                          <p className="text-white font-medium text-sm">
+                            {user?.username}
+                          </p>
+                          <p className="text-gray-400 text-xs">{user?.email}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* User Menu Links */}
+                    <div className="py-1">
+                      {userMenuLinks.map(link => (
+                        <Link
+                          key={link.path}
+                          to={link.path}
+                          onClick={handleLinkClick}
+                          className="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-200 group"
+                        >
+                          {link.icon && (
+                            <img
+                              src={link.icon}
+                              alt=""
+                              className="h-4 w-4 mr-3 opacity-70 group-hover:opacity-100"
+                            />
+                          )}
+                          <span className="text-sm font-medium">
+                            {link.label}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Admin Role Switcher */}
+                    {isAdmin && (
+                      <div className="border-t border-gray-700 py-2">
+                        <button
+                          onClick={
+                            isViewingAsAdmin
+                              ? handleSwitchToPlayerView
+                              : handleSwitchToAdminView
+                          }
+                          className={`flex items-center w-full px-4 py-3 text-white text-sm font-medium transition-all duration-200 hover:bg-gray-700/50 ${
+                            isViewingAsAdmin
+                              ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20'
+                              : 'bg-gradient-to-r from-green-500/20 to-teal-500/20'
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 mr-3 rounded-full ${
+                              isViewingAsAdmin
+                                ? 'bg-gradient-to-r from-purple-500 to-blue-500'
+                                : 'bg-gradient-to-r from-green-500 to-teal-500'
+                            }`}
+                          />
+                          <span>
+                            {isViewingAsAdmin
+                              ? `${translate('nav.admin')} Modus`
+                              : `${translate('nav.player')} Modus`}
+                          </span>
+                          <svg
+                            className="w-4 h-4 ml-auto opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Logout Button */}
+                    <div className="border-t border-gray-700 py-2">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-3 text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 group"
+                      >
+                        <img
+                          src="/buttons/Logout.png"
+                          alt=""
+                          className="h-4 w-4 mr-3 opacity-70 group-hover:opacity-100"
+                        />
+                        <span className="text-sm font-medium">
+                          {translate('nav.logout')}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -288,7 +420,7 @@ export function MainNav() {
                       user?.avatar || '/avatars/player_male_with_greataxe.png'
                     }
                     alt={`${user?.username} Avatar`}
-                    className="h-10 w-10 rounded-full"
+                    className="h-10 w-10 rounded-full border-2 border-gray-600"
                   />
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
@@ -342,10 +474,30 @@ export function MainNav() {
                     </div>
                   </div>
                 </div>
+
+                {/* Mobile User Menu Links */}
                 <div className="mt-3 px-2 space-y-1">
+                  {userMenuLinks.map(link => (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      onClick={handleLinkClick}
+                      className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700 rounded-md transition-colors duration-200"
+                    >
+                      {link.icon && (
+                        <img
+                          src={link.icon}
+                          alt=""
+                          className="h-5 w-5 mr-2 opacity-70"
+                        />
+                      )}
+                      {link.label}
+                    </Link>
+                  ))}
+
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-300 hover:text-[#FCC822] hover:bg-gray-700 rounded-md transition-colors duration-200"
+                    className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors duration-200"
                   >
                     <img
                       src="/buttons/Logout.png"

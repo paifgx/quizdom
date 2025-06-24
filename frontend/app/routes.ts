@@ -28,6 +28,7 @@ export default [
     route('/game-modes', 'routes/game-modes.tsx'),
     route('/progress', 'routes/progress.tsx'),
     route('/profile', 'routes/profile.tsx'),
+    route('/user-manual', 'routes/user-manual.tsx'),
 
     // Admin routes
     route('/admin/dashboard', 'routes/admin.dashboard.tsx'),
