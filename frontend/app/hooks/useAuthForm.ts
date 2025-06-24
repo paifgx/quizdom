@@ -5,8 +5,6 @@ export interface AuthFormState {
   email: string;
   password: string;
   confirmPassword: string;
-  firstName: string;
-  lastName: string;
   rememberMe: boolean;
 }
 
@@ -18,8 +16,6 @@ export function useAuthForm(isSignupMode: boolean) {
     email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
     rememberMe: false,
   });
 
@@ -50,19 +46,14 @@ export function useAuthForm(isSignupMode: boolean) {
   );
 
   const isFormValid = useMemo(() => {
-    const { email, password, firstName, lastName, confirmPassword } = formState;
+    const { email, password, confirmPassword } = formState;
 
     if (!email || !password || hasError('email') || hasError('password'))
       return false;
 
     if (isSignupMode) {
-      if (!firstName || !lastName || !confirmPassword) return false;
-      if (
-        hasError('firstName') ||
-        hasError('lastName') ||
-        hasError('confirmPassword')
-      )
-        return false;
+      if (!confirmPassword) return false;
+      if (hasError('confirmPassword')) return false;
     }
 
     return true;
@@ -73,8 +64,6 @@ export function useAuthForm(isSignupMode: boolean) {
       email: '',
       password: '',
       confirmPassword: '',
-      firstName: '',
-      lastName: '',
       rememberMe: false,
     });
     clearErrors();

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/auth';
 import { useAuthUI } from '../contexts/auth-ui';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { SlidingAuthContainer, LoadingSkeleton } from '../components';
+import { authService } from '../services/auth';
 
 export function meta() {
   return [
@@ -31,6 +32,44 @@ export default function AuthPage() {
   const { formState, handleFieldChange, isFormValid, resetForm, getError } =
     useAuthForm(isSignupMode);
 
+  const handleLogin = useCallback(async () => {
+    try {
+      const response = await authService.login({
+        email: formState.email,
+        password: formState.password,
+      });
+
+      console.log('Login successful:', response.user);
+
+      // Update auth context with real user data
+      await login(formState.email, formState.password);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  }, [formState.email, formState.password, login]);
+
+  const handleSignup = useCallback(async () => {
+    try {
+      const response = await authService.register({
+        email: formState.email,
+        password: formState.password,
+      });
+
+      console.log('Registration successful:', response.user);
+      setShowSuccess(true);
+
+      // Auto-login after successful registration
+      setTimeout(async () => {
+        setShowSuccess(false);
+        await login(formState.email, formState.password);
+      }, 2000);
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  }, [formState.email, formState.password, login]);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -41,31 +80,34 @@ export default function AuthPage() {
         if (isSignupMode) {
           await handleSignup();
         } else {
-          await login(formState.email, formState.password);
+          await handleLogin();
         }
-      } catch {
-        handleAuthError(isSignupMode);
+      } catch (error) {
+        handleAuthError(isSignupMode, error);
       } finally {
         setLoading(false);
       }
     },
-    [isSignupMode, formState, login]
+    [isSignupMode, handleLogin, handleSignup]
   );
 
-  const handleSignup = async () => {
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      setError('Registrierungsfunktion kommt bald!');
-    }, 2000);
-  };
+  const handleAuthError = (isSignup: boolean, error: unknown) => {
+    let errorMessage = isSignup
+      ? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+      : 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.';
 
-  const handleAuthError = (isSignup: boolean) => {
-    setError(
-      isSignup
-        ? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
-        : 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.'
-    );
+    // Extract error message from response if available
+    if (error instanceof Error) {
+      if (error.message.includes('400')) {
+        errorMessage = isSignup
+          ? 'Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.'
+          : 'Ungültige E-Mail-Adresse oder Passwort.';
+      } else if (error.message.includes('401')) {
+        errorMessage = 'Ungültige E-Mail-Adresse oder Passwort.';
+      }
+    }
+
+    setError(errorMessage);
   };
 
   const resetAuthState = () => {
@@ -115,7 +157,7 @@ export default function AuthPage() {
  */
 function getRedirectPath(
   location: { state?: { from?: { pathname?: string } } },
-  user: { role: string }
+  user: { role?: string }
 ): string {
   return (
     location.state?.from?.pathname ||

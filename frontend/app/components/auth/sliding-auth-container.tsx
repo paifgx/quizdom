@@ -3,8 +3,6 @@ import { AuthPanel } from './auth-panel';
 import { LogoPanel } from './logo-panel';
 
 interface FormState {
-  firstName?: string;
-  lastName?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;

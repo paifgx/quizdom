@@ -57,14 +57,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [activeRole, setActiveRole] = useState<ActiveRole>('player');
 
-  // Mock authentication - replace with real API calls
   const login = async (email: string, _password: string) => {
     setLoading(true);
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Mock user data based on email for demo
       const mockUser: User = {
         id: '1',
         email,
@@ -80,15 +77,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(mockUser);
       localStorage.setItem('quizdom_user', JSON.stringify(mockUser));
 
-      // Set initial active role: admin users start in admin view, players in player view
       const initialRole: ActiveRole =
         mockUser.role === 'admin' ? 'admin' : 'player';
       setActiveRole(initialRole);
       localStorage.setItem('quizdom_active_role', initialRole);
     } catch (error) {
-      // Log error in development only
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Login failed:', error);
       }
       throw error;
@@ -112,7 +106,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setActiveRole('admin');
       localStorage.setItem('quizdom_active_role', 'admin');
 
-      // If navigation function is provided and we're not on an admin route, navigate to admin dashboard
       if (navigate && currentPath && !currentPath.startsWith('/admin')) {
         navigate('/admin/dashboard');
       }
@@ -127,7 +120,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setActiveRole('player');
       localStorage.setItem('quizdom_active_role', 'player');
 
-      // If navigation function is provided and we're on an admin route, navigate to home
       if (navigate && currentPath && currentPath.startsWith('/admin')) {
         navigate('/');
       }
@@ -146,7 +138,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const parsedUser = JSON.parse(savedUser);
         setUser(parsedUser);
 
-        // Set active role from localStorage, or default based on user role
         if (
           savedActiveRole &&
           (savedActiveRole === 'admin' || savedActiveRole === 'player')
@@ -159,9 +150,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           localStorage.setItem('quizdom_active_role', defaultRole);
         }
       } catch (error) {
-        // Log error in development only
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
           console.error('Failed to parse saved user:', error);
         }
         localStorage.removeItem('quizdom_user');

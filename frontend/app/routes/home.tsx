@@ -4,21 +4,9 @@
  * Uses clean architecture with separated concerns and proper error handling.
  */
 import type { Route } from './+types/home';
-import { LandingPage } from '../components/landing-page';
 import { Dashboard } from '../components/dashboard';
-import { LoadingSpinner } from '../components/home/loading-spinner';
 import { useHomePage } from '../hooks/useHomePage';
-import { fetchHomeTopics } from '../api';
 import { translate } from '../utils/translations';
-import { useEffect, useState } from 'react';
-
-// Add type definition for HomeTopic
-interface HomeTopic {
-  id: string;
-  title: string;
-  image: string;
-  description: string;
-}
 
 /**
  * Meta function for home page SEO and routing.
@@ -35,6 +23,11 @@ export function meta(_args: Route.MetaArgs) {
   ];
 }
 
+export async function loader({ request: _request }: Route.LoaderArgs) {
+  // No special loading logic needed for home page
+  return {};
+}
+
 /**
  * Main home page component.
  * Acts as a smart container component that orchestrates authentication-based rendering.
@@ -47,52 +40,23 @@ export function meta(_args: Route.MetaArgs) {
  * - Topic search functionality
  * - Error boundary ready
  */
-export default function HomePage() {
-  const [homeTopics, setHomeTopics] = useState<HomeTopic[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
-
-  // Load home topics data
-  useEffect(() => {
-    const loadHomeTopics = async () => {
-      try {
-        const topics = await fetchHomeTopics();
-        setHomeTopics(topics);
-      } catch {
-        // Error intentionally ignored
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
-    loadHomeTopics();
-  }, []);
-
+export default function HomePage(_props: Route.ComponentProps) {
   const {
-    isAuthenticated,
+    isAuthenticated: _isAuthenticated,
+    isViewingAsAdmin: _isViewingAsAdmin,
     loading,
     searchTerm,
     filteredTopics,
     handleSearchChange,
-  } = useHomePage({ topics: homeTopics });
+  } = useHomePage({ topics: [] }); // Empty topics for now until connected to real API
 
-  // Show loading state only during authentication check
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
-  // Render authenticated user dashboard with skeleton loading for topics
-  if (isAuthenticated) {
-    return (
-      <Dashboard
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        topics={homeTopics}
-        filteredTopics={filteredTopics}
-        isTopicsLoading={dataLoading}
-      />
-    );
-  }
-
-  // Render landing page for unauthenticated users
-  return <LandingPage />;
+  return (
+    <Dashboard
+      searchTerm={searchTerm}
+      onSearchChange={handleSearchChange}
+      topics={[]}
+      filteredTopics={filteredTopics}
+      isTopicsLoading={loading}
+    />
+  );
 }
