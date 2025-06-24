@@ -5,8 +5,6 @@ import { AuthActions } from './auth-actions';
 import { translate } from '../../utils/translations';
 
 interface FormState {
-  firstName?: string;
-  lastName?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -79,8 +77,6 @@ export function AuthPanel({
         <form onSubmit={onSubmit} className="space-y-6">
           {isSignupMode ? (
             <SignupForm
-              firstName={formState.firstName || ''}
-              lastName={formState.lastName || ''}
               email={formState.email || ''}
               password={formState.password || ''}
               confirmPassword={formState.confirmPassword || ''}

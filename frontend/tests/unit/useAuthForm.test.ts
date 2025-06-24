@@ -8,8 +8,6 @@ describe('useAuthForm', () => {
 
     expect(result.current.formState.email).toBe('');
     expect(result.current.formState.password).toBe('');
-    expect(result.current.formState.firstName).toBe('');
-    expect(result.current.formState.lastName).toBe('');
     expect(result.current.formState.confirmPassword).toBe('');
     expect(result.current.formState.rememberMe).toBe(false);
   });
@@ -48,8 +46,6 @@ describe('useAuthForm', () => {
     act(() => {
       result.current.handleFieldChange('email', 'test@example.com');
       result.current.handleFieldChange('password', 'password123');
-      result.current.handleFieldChange('firstName', 'John');
-      result.current.handleFieldChange('lastName', 'Doe');
       result.current.handleFieldChange('confirmPassword', 'password123');
     });
 

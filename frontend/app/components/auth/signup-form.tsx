@@ -4,8 +4,6 @@ import { PasswordStrengthIndicator } from './password-strength-indicator';
 import { translate } from '../../utils/translations';
 
 export interface SignupFormProps {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -18,12 +16,10 @@ export interface SignupFormProps {
 }
 
 /**
- * Signup form component with all required user registration fields
- * Includes name, email, password, and confirmation with validation
+ * Signup form component with email and password registration fields
+ * Includes email, password, and confirmation with validation
  */
 export function SignupForm({
-  firstName,
-  lastName,
   email,
   password,
   confirmPassword,
@@ -33,29 +29,6 @@ export function SignupForm({
 }: SignupFormProps) {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <ValidatedInput
-          id="firstName"
-          name="firstName"
-          type="text"
-          placeholder={translate('auth.firstName')}
-          value={firstName}
-          onChange={value => onFieldChange('firstName', value)}
-          error={getError('firstName')}
-          required
-        />
-        <ValidatedInput
-          id="lastName"
-          name="lastName"
-          type="text"
-          placeholder={translate('auth.lastName')}
-          value={lastName}
-          onChange={value => onFieldChange('lastName', value)}
-          error={getError('lastName')}
-          required
-        />
-      </div>
-
       <ValidatedInput
         id="email"
         name="email"

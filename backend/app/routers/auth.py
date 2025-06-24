@@ -1,79 +1,187 @@
-from datetime import datetime
+"""Authentication router with login and registration endpoints."""
+
+from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
-from sqlmodel import Session
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlmodel import Session, select
 
-from app.core.security import create_access_token
+from app.core.security import (
+    create_access_token,
+    get_password_hash,
+    verify_password,
+    verify_token,
+)
 from app.db.models import User
 from app.db.session import get_session
-from app.services import auth as auth_service
+from app.schemas.auth import (
+    TokenResponse,
+    UserLoginRequest,
+    UserRegisterRequest,
+    UserResponse,
+)
 
 router = APIRouter()
 
-
-class RegisterRequest(BaseModel):
-    email: EmailStr
-    password: str
-    nickname: str
+# OAuth2 scheme for token authentication
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
-class TokenPair(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    session: Session = Depends(get_session),
+) -> User:
+    """Get current authenticated user from JWT token."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    token_data = verify_token(token)
+    if token_data is None or token_data.email is None:
+        raise credentials_exception
+
+    statement = select(User).where(User.email == token_data.email)
+    user = session.exec(statement).first()
+
+    if user is None:
+        raise credentials_exception
+
+    return user
 
 
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
+def get_user_by_email(session: Session, email: str) -> Optional[User]:
+    """Get user by email address."""
+    statement = select(User).where(User.email == email)
+    return session.exec(statement).first()
 
 
-class RefreshRequest(BaseModel):
-    refresh_token: str
+@router.post("/register", response_model=TokenResponse)
+def register_user(
+    user_data: UserRegisterRequest,
+    session: Session = Depends(get_session),
+) -> TokenResponse:
+    """Register a new user account."""
+    # Check if user already exists
+    existing_user = get_user_by_email(session, user_data.email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exists",
+        )
+
+    # Create new user - generate nickname from email if not provided
+    hashed_password = get_password_hash(user_data.password)
+    nickname = user_data.email.split("@")[0]
+
+    new_user = User(
+        email=user_data.email,
+        password_hash=hashed_password,
+        nickname=nickname,
+        is_verified=False,
+        created_at=datetime.now(timezone.utc),
+    )
+
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)
+
+    # Create access token
+    access_token = create_access_token(data={"sub": new_user.email})
+
+    # Return token and user data
+    user_response = UserResponse(
+        # Fallback to 0 if id is None (shouldn't happen after commit)
+        id=new_user.id or 0,
+        email=new_user.email,
+        nickname=new_user.nickname,
+        is_verified=new_user.is_verified,
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=user_response,
+    )
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(data: RegisterRequest, db: Session = Depends(get_session)) -> TokenPair:
-    try:
-        user = auth_service.register_user(db, data.email, data.password, data.nickname)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Email already registered")
+@router.post("/login", response_model=TokenResponse)
+def login_user(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    session: Session = Depends(get_session),
+) -> TokenResponse:
+    """Authenticate user and return access token."""
+    # Find user by email (username field in OAuth2 form)
+    user = get_user_by_email(session, form_data.username)
 
-    access, refresh = auth_service.create_token_pair(db, user.id)
-    return TokenPair(access_token=access, refresh_token=refresh)
+    if not user or not verify_password(form_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
+    # Create access token
+    access_token = create_access_token(data={"sub": user.email})
 
-@router.post("/login")
-def login(data: LoginRequest, db: Session = Depends(get_session)) -> TokenPair:
-    user = auth_service.authenticate_user(db, data.email, data.password)
-    if not user:
-        auth_service.record_login_attempt(db, None, False)
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+    # Return token and user data
+    user_response = UserResponse(
+        id=user.id or 0,  # Fallback to 0 if id is None
+        email=user.email,
+        nickname=user.nickname,
+        is_verified=user.is_verified,
+    )
 
-    if auth_service.too_many_failures(db, user.id):
-        raise HTTPException(status_code=429, detail="Account locked")
-
-    auth_service.record_login_attempt(db, user.id, True)
-    access, refresh = auth_service.create_token_pair(db, user.id)
-    return TokenPair(access_token=access, refresh_token=refresh)
-
-
-@router.post("/refresh")
-def refresh(data: RefreshRequest, db: Session = Depends(get_session)) -> TokenPair:
-    token = auth_service.get_valid_refresh_token(db, data.refresh_token)
-    if not token:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-    new_refresh = auth_service.rotate_refresh_token(db, token)
-    access = create_access_token(str(token.user_id))
-    return TokenPair(access_token=access, refresh_token=new_refresh)
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=user_response,
+    )
 
 
-@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(data: RefreshRequest, db: Session = Depends(get_session)) -> None:
-    token = auth_service.get_valid_refresh_token(db, data.refresh_token)
-    if token:
-        token.revoked_at = datetime.utcnow()
-        db.add(token)
-        db.commit()
-    return None
+@router.post("/login-json", response_model=TokenResponse)
+def login_user_json(
+    user_data: UserLoginRequest,
+    session: Session = Depends(get_session),
+) -> TokenResponse:
+    """Authenticate user with JSON payload and return access token."""
+    # Find user by email
+    user = get_user_by_email(session, user_data.email)
+
+    if not user or not verify_password(user_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+
+    # Create access token
+    access_token = create_access_token(data={"sub": user.email})
+
+    # Return token and user data
+    user_response = UserResponse(
+        id=user.id or 0,  # Fallback to 0 if id is None
+        email=user.email,
+        nickname=user.nickname,
+        is_verified=user.is_verified,
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=user_response,
+    )
+
+
+@router.get("/me", response_model=UserResponse)
+def get_current_user_info(
+    current_user: User = Depends(get_current_user),
+) -> UserResponse:
+    """Get current user information."""
+    return UserResponse(
+        id=current_user.id or 0,  # Fallback to 0 if id is None
+        email=current_user.email,
+        nickname=current_user.nickname,
+        is_verified=current_user.is_verified,
+    )

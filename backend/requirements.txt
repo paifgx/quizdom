@@ -8,4 +8,6 @@ httpx
 psycopg2-binary
 pre-commit
 python-jose[cryptography]
-argon2-cffi
+passlib[bcrypt]>=1.7.4
+python-multipart
+email-validator

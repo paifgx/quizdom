@@ -5,3 +5,17 @@ multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
 combine_as_imports = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quizdom-backend"
+version = "0.1.0"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning:passlib.*",
+    "ignore:'crypt' is deprecated:DeprecationWarning",
+]
