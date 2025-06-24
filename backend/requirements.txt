@@ -7,3 +7,5 @@ pytest
 httpx
 psycopg2-binary
 pre-commit
+python-jose[cryptography]
+argon2-cffi

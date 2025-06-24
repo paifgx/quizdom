@@ -61,7 +61,6 @@ class User(SQLModel, table=True):
     is_verified: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = None
-    role_id: Optional[int] = Field(default=None, foreign_key="role.id")
 
 
 class GameSession(SQLModel, table=True):
@@ -163,3 +162,42 @@ class RefreshToken(SQLModel, table=True):
     issued_at: datetime = Field(default_factory=datetime.utcnow)
     expires_at: datetime
     revoked_at: Optional[datetime] = None
+
+
+class UserRole(SQLModel, table=True):
+    """Association table for users and roles."""
+
+    user_id: int = Field(foreign_key="user.id", primary_key=True)
+    role_id: int = Field(foreign_key="role.id", primary_key=True)
+    granted_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class EmailToken(SQLModel, table=True):
+    """Tokens for email verification and password reset."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    token: str
+    type: str
+    expires_at: datetime
+
+
+class LoginAttempt(SQLModel, table=True):
+    """Record of login attempts."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    ip: str
+    attempted_at: datetime = Field(default_factory=datetime.utcnow)
+    success: bool
+
+
+class AuditLog(SQLModel, table=True):
+    """Audit log for security-relevant actions."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    actor_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    action: str
+    target_id: Optional[int] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    meta: Optional[str] = None  # Could be JSON
