@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/auth';
 import { translate } from '../../utils/translations';
@@ -50,6 +50,7 @@ const adminNavLinks: NavigationLink[] = [
 export function MainNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const isUserMenuOpenRef = useRef(false);
   const {
     user,
     isAuthenticated,
@@ -63,13 +64,18 @@ export function MainNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Keep ref in sync with state
+  useEffect(() => {
+    isUserMenuOpenRef.current = isUserMenuOpen;
+  }, [isUserMenuOpen]);
+
   // Close mobile menu and user menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsUserMenuOpen(false);
   }, [location.pathname]);
 
-  // Close user menu when clicking outside
+  // Close user menu when clicking outside (register listener once on mount)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -82,7 +88,7 @@ export function MainNav() {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isUserMenuOpen]);
+  }, []); // Empty dependency array - register once on mount
 
   const isActiveLink = (path: string) => {
     if (path === '/') return location.pathname === '/';
