@@ -8,6 +8,7 @@ httpx
 psycopg2-binary
 pre-commit
 python-jose[cryptography]
-passlib[bcrypt]>=1.7.4
+passlib[bcrypt]>=1.7.4,<2.0
+bcrypt>=3.2.0,<4.0.0
 python-multipart
 email-validator

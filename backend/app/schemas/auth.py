@@ -5,13 +5,6 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
 
-class UserLoginRequest(BaseModel):
-    """Request schema for user login."""
-
-    email: EmailStr = Field(..., description="User email address")
-    password: str = Field(..., min_length=6, description="User password")
-
-
 class UserRegisterRequest(BaseModel):
     """Request schema for user registration."""
 

@@ -15,12 +15,7 @@ from app.core.security import (
 )
 from app.db.models import User
 from app.db.session import get_session
-from app.schemas.auth import (
-    TokenResponse,
-    UserLoginRequest,
-    UserRegisterRequest,
-    UserResponse,
-)
+from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse
 
 router = APIRouter()
 
@@ -121,39 +116,6 @@ def login_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Create access token
-    access_token = create_access_token(data={"sub": user.email})
-
-    # Return token and user data
-    user_response = UserResponse(
-        id=user.id or 0,  # Fallback to 0 if id is None
-        email=user.email,
-        nickname=user.nickname,
-        is_verified=user.is_verified,
-    )
-
-    return TokenResponse(
-        access_token=access_token,
-        token_type="bearer",
-        user=user_response,
-    )
-
-
-@router.post("/login-json", response_model=TokenResponse)
-def login_user_json(
-    user_data: UserLoginRequest,
-    session: Session = Depends(get_session),
-) -> TokenResponse:
-    """Authenticate user with JSON payload and return access token."""
-    # Find user by email
-    user = get_user_by_email(session, user_data.email)
-
-    if not user or not verify_password(user_data.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
         )
 
     # Create access token

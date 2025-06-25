@@ -121,14 +121,11 @@ export const quizService = {
 
 /**
  * User service - handles user-related API calls.
+ * Note: Direct user access endpoints have been removed for security reasons.
+ * Use authentication endpoints (/auth/me) for user data instead.
  */
 export const userService = {
-  /**
-   * Get user by ID (for testing purposes).
-   */
-  async getById(id: string): Promise<unknown> {
-    return apiClient.get(`/users/${id}`);
-  },
+  // Removed getById method - use auth service for user data
 };
 
 /**

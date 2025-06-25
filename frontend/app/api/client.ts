@@ -19,12 +19,16 @@ class ApiClient {
   /**
    * Makes a GET request to the specified endpoint.
    */
-  async get<T>(endpoint: string): Promise<T> {
+  async get<T>(
+    endpoint: string,
+    options?: { headers?: Record<string, string> }
+  ): Promise<T> {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...options?.headers,
         },
         credentials: 'include', // Include cookies for authentication
       });
@@ -43,15 +47,24 @@ class ApiClient {
   /**
    * Makes a POST request to the specified endpoint.
    */
-  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+  async post<T>(
+    endpoint: string,
+    data?: unknown,
+    options?: { headers?: Record<string, string> }
+  ): Promise<T> {
     try {
+      // Determine if data is FormData to handle body and headers correctly
+      const isFormData = data instanceof FormData;
+      const headers: Record<string, string> = {
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...options?.headers,
+      };
+
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         credentials: 'include', // Include cookies for authentication
-        body: data ? JSON.stringify(data) : undefined,
+        body: isFormData ? data : data ? JSON.stringify(data) : undefined,
       });
 
       if (!response.ok) {
