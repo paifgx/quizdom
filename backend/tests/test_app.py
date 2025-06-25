@@ -16,7 +16,7 @@ def client() -> Iterator[TestClient]:
 def test_health_check(client: TestClient) -> None:
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {"status": "ok", "message": "Quizdom API is running"}
 
 
 def test_users_endpoint_removed(client: TestClient) -> None:

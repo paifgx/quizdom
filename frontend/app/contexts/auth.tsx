@@ -5,14 +5,18 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
+import { authService, type User as AuthUser } from '../services/auth';
 
 export type UserRole = 'player' | 'admin';
 export type ActiveRole = 'player' | 'admin';
 
+// Updated User interface to match backend response
 export interface User {
-  id: string;
+  id: number;
   email: string;
-  username: string;
+  is_verified: boolean;
+  // Additional frontend-specific fields
+  username: string; // Required for UI display
   role: UserRole;
   avatar?: string;
   wisecoins: number;
@@ -26,6 +30,7 @@ interface AuthContextType {
   activeRole: ActiveRole;
   isViewingAsAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   switchToAdminView: (
     navigate?: (path: string) => void,
@@ -52,39 +57,64 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Convert backend user to frontend user format
+function transformBackendUser(backendUser: AuthUser): User {
+  return {
+    id: backendUser.id,
+    email: backendUser.email,
+    is_verified: backendUser.is_verified,
+    username: backendUser.email.split('@')[0], // Generate username from email
+    // Determine role based on email (temporary logic)
+    role: backendUser.email.includes('admin') ? 'admin' : 'player',
+    avatar: backendUser.email.includes('admin')
+      ? '/avatars/ai_assistant_wizard.png'
+      : '/avatars/player_male_with_greataxe.png',
+    wisecoins: 500, // Default value, could be fetched from backend later
+    achievements: ['first_quiz', 'quiz_master'], // Default achievements
+  };
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeRole, setActiveRole] = useState<ActiveRole>('player');
 
-  const login = async (email: string, _password: string) => {
+  const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const authResponse = await authService.login({ email, password });
+      const frontendUser = transformBackendUser(authResponse.user);
 
-      const mockUser: User = {
-        id: '1',
-        email,
-        username: email.split('@')[0],
-        role: email.includes('admin') ? 'admin' : 'player',
-        avatar: email.includes('admin')
-          ? '/avatars/ai_assistant_wizard.png'
-          : '/avatars/player_male_with_greataxe.png',
-        wisecoins: 500,
-        achievements: ['first_quiz', 'quiz_master'],
-      };
-
-      setUser(mockUser);
-      localStorage.setItem('quizdom_user', JSON.stringify(mockUser));
+      setUser(frontendUser);
+      localStorage.setItem('quizdom_user', JSON.stringify(frontendUser));
 
       const initialRole: ActiveRole =
-        mockUser.role === 'admin' ? 'admin' : 'player';
+        frontendUser.role === 'admin' ? 'admin' : 'player';
       setActiveRole(initialRole);
       localStorage.setItem('quizdom_active_role', initialRole);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Login failed:', error);
-      }
+      console.error('Login failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const authResponse = await authService.register({ email, password });
+      const frontendUser = transformBackendUser(authResponse.user);
+
+      setUser(frontendUser);
+      localStorage.setItem('quizdom_user', JSON.stringify(frontendUser));
+
+      const initialRole: ActiveRole =
+        frontendUser.role === 'admin' ? 'admin' : 'player';
+      setActiveRole(initialRole);
+      localStorage.setItem('quizdom_active_role', initialRole);
+    } catch (error) {
+      console.error('Registration failed:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -94,6 +124,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     setUser(null);
     setActiveRole('player');
+    authService.logout(); // Clear auth service data
     localStorage.removeItem('quizdom_user');
     localStorage.removeItem('quizdom_active_role');
   };
@@ -126,38 +157,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Check for existing session on mount
+  // Check for existing session on mount and validate with backend
   useEffect(() => {
-    const savedUser = localStorage.getItem('quizdom_user');
-    const savedActiveRole = localStorage.getItem(
-      'quizdom_active_role'
-    ) as ActiveRole;
-
-    if (savedUser) {
+    const initializeAuth = async () => {
       try {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
+        // Check if we have a valid token and can get current user
+        if (authService.isAuthenticated()) {
+          const backendUser = await authService.getCurrentUser();
+          const frontendUser = transformBackendUser(backendUser);
+          setUser(frontendUser);
 
-        if (
-          savedActiveRole &&
-          (savedActiveRole === 'admin' || savedActiveRole === 'player')
-        ) {
-          setActiveRole(savedActiveRole);
-        } else {
-          const defaultRole: ActiveRole =
-            parsedUser.role === 'admin' ? 'admin' : 'player';
-          setActiveRole(defaultRole);
-          localStorage.setItem('quizdom_active_role', defaultRole);
+          // Restore active role from localStorage
+          const savedActiveRole = localStorage.getItem(
+            'quizdom_active_role'
+          ) as ActiveRole;
+
+          if (
+            savedActiveRole &&
+            (savedActiveRole === 'admin' || savedActiveRole === 'player')
+          ) {
+            setActiveRole(savedActiveRole);
+          } else {
+            const defaultRole: ActiveRole =
+              frontendUser.role === 'admin' ? 'admin' : 'player';
+            setActiveRole(defaultRole);
+            localStorage.setItem('quizdom_active_role', defaultRole);
+          }
         }
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to parse saved user:', error);
-        }
+        console.error('Failed to initialize auth:', error);
+        // Clear invalid session
+        authService.logout();
         localStorage.removeItem('quizdom_user');
         localStorage.removeItem('quizdom_active_role');
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const value: AuthContextType = {
@@ -167,6 +205,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     activeRole,
     isViewingAsAdmin: activeRole === 'admin' && user?.role === 'admin',
     login,
+    register,
     logout,
     switchToAdminView,
     switchToPlayerView,

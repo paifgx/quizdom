@@ -4,7 +4,14 @@
  */
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// In development, use relative URLs to leverage Vite proxy
+// In production, use the full API URL
+// In test environment, use a mock URL to prevent fetch errors
+const API_BASE_URL = import.meta.env.PROD
+  ? import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  : import.meta.env.MODE === 'test'
+    ? 'http://localhost:8000' // Mock URL for tests
+    : ''; // Empty string for relative URLs in development
 
 /**
  * HTTP client with error handling and JSON parsing.
@@ -14,6 +21,10 @@ class ApiClient {
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    console.log(
+      'API Client initialized with base URL:',
+      this.baseUrl || '(relative URLs)'
+    );
   }
 
   /**
@@ -23,8 +34,11 @@ class ApiClient {
     endpoint: string,
     options?: { headers?: Record<string, string> }
   ): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    console.log('API GET request to:', url);
+
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -52,20 +66,51 @@ class ApiClient {
     data?: unknown,
     options?: { headers?: Record<string, string> }
   ): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    console.log('API POST request to:', url);
+    console.log('Request data:', data);
+    console.log('Request headers:', options?.headers);
+
     try {
       // Determine if data is FormData to handle body and headers correctly
       const isFormData = data instanceof FormData;
+      const isUrlEncoded =
+        options?.headers?.['Content-Type'] ===
+        'application/x-www-form-urlencoded';
+
       const headers: Record<string, string> = {
-        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(isFormData
+          ? {}
+          : !isUrlEncoded
+            ? { 'Content-Type': 'application/json' }
+            : {}),
         ...options?.headers,
       };
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      console.log('Final headers:', headers);
+
+      // Determine the body based on content type
+      let body: string | FormData | undefined;
+      if (isFormData) {
+        body = data;
+      } else if (isUrlEncoded) {
+        body = data as string; // URL-encoded string should be passed as-is
+      } else if (data) {
+        body = JSON.stringify(data);
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
         headers,
         credentials: 'include', // Include cookies for authentication
-        body: isFormData ? data : data ? JSON.stringify(data) : undefined,
+        body,
       });
+
+      console.log('Response status:', response.status);
+      console.log(
+        'Response headers:',
+        Object.fromEntries(response.headers.entries())
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);

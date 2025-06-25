@@ -15,9 +15,11 @@ export default [
 
   // Main application routes (with nav and background)
   layout('layouts/main-layout.tsx', [
-    // Dashboard-style pages (with shared sidebar)
+    // Home route - handles both landing page and dashboard
+    index('routes/home.tsx'),
+
+    // Dashboard-style pages (with shared sidebar) - only for authenticated users
     layout('layouts/dashboard-layout.tsx', [
-      index('routes/home.tsx'),
       route('/topics/:topicId', 'routes/topic-detail.tsx'),
       route('/topics/:topicId/questions/:questionId', 'routes/quiz.tsx'),
     ]),

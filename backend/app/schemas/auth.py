@@ -17,7 +17,6 @@ class UserResponse(BaseModel):
 
     id: int = Field(..., description="User ID")
     email: str = Field(..., description="User email address")
-    nickname: Optional[str] = Field(None, description="User nickname")
     is_verified: bool = Field(..., description="Whether user email is verified")
 
 

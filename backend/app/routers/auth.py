@@ -1,4 +1,8 @@
-"""Authentication router with login and registration endpoints."""
+"""Authentication router with login and registration endpoints.
+
+This module provides secure authentication endpoints following OAuth2 standards.
+It handles user registration, login, and token-based authentication.
+"""
 
 from datetime import datetime, timezone
 from typing import Optional
@@ -17,7 +21,7 @@ from app.db.models import User
 from app.db.session import get_session
 from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse
 
-router = APIRouter()
+router = APIRouter(tags=["authentication"])
 
 # OAuth2 scheme for token authentication
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -27,7 +31,11 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     session: Session = Depends(get_session),
 ) -> User:
-    """Get current authenticated user from JWT token."""
+    """Get current authenticated user from JWT token.
+
+    Validates the JWT token and returns the corresponding user.
+    Used as a dependency for protected endpoints.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -48,7 +56,11 @@ async def get_current_user(
 
 
 def get_user_by_email(session: Session, email: str) -> Optional[User]:
-    """Get user by email address."""
+    """Get user by email address.
+
+    Used for authentication and user lookup operations.
+    Returns None if no user exists with the given email.
+    """
     statement = select(User).where(User.email == email)
     return session.exec(statement).first()
 
@@ -58,8 +70,11 @@ def register_user(
     user_data: UserRegisterRequest,
     session: Session = Depends(get_session),
 ) -> TokenResponse:
-    """Register a new user account."""
-    # Check if user already exists
+    """Register a new user account.
+
+    Creates a new user with hashed password and returns an access token.
+    """
+    # WHY: Check for existing user to prevent duplicates
     existing_user = get_user_by_email(session, user_data.email)
     if existing_user:
         raise HTTPException(
@@ -67,14 +82,11 @@ def register_user(
             detail="User with this email already exists",
         )
 
-    # Create new user - generate nickname from email if not provided
     hashed_password = get_password_hash(user_data.password)
-    nickname = user_data.email.split("@")[0]
 
     new_user = User(
         email=user_data.email,
         password_hash=hashed_password,
-        nickname=nickname,
         is_verified=False,
         created_at=datetime.now(timezone.utc),
     )
@@ -83,15 +95,11 @@ def register_user(
     session.commit()
     session.refresh(new_user)
 
-    # Create access token
     access_token = create_access_token(data={"sub": new_user.email})
 
-    # Return token and user data
     user_response = UserResponse(
-        # Fallback to 0 if id is None (shouldn't happen after commit)
         id=new_user.id or 0,
         email=new_user.email,
-        nickname=new_user.nickname,
         is_verified=new_user.is_verified,
     )
 
@@ -107,8 +115,12 @@ def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session),
 ) -> TokenResponse:
-    """Authenticate user and return access token."""
-    # Find user by email (username field in OAuth2 form)
+    """Authenticate user and return access token.
+
+    Validates credentials and returns a JWT token with user data.
+    Uses OAuth2 password flow for compatibility with frontend.
+    """
+    # WHY: OAuth2 form uses 'username' field for email
     user = get_user_by_email(session, form_data.username)
 
     if not user or not verify_password(form_data.password, user.password_hash):
@@ -118,14 +130,11 @@ def login_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Create access token
     access_token = create_access_token(data={"sub": user.email})
 
-    # Return token and user data
     user_response = UserResponse(
-        id=user.id or 0,  # Fallback to 0 if id is None
+        id=user.id or 0,  # WHY: Fallback for potential None values
         email=user.email,
-        nickname=user.nickname,
         is_verified=user.is_verified,
     )
 
@@ -140,10 +149,13 @@ def login_user(
 def get_current_user_info(
     current_user: User = Depends(get_current_user),
 ) -> UserResponse:
-    """Get current user information."""
+    """Get current user information.
+
+    Returns authenticated user details for profile display.
+    Requires valid JWT token in Authorization header.
+    """
     return UserResponse(
-        id=current_user.id or 0,  # Fallback to 0 if id is None
+        id=current_user.id or 0,
         email=current_user.email,
-        nickname=current_user.nickname,
         is_verified=current_user.is_verified,
     )

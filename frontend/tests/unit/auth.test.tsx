@@ -2,6 +2,18 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { AuthProvider, useAuth, type User } from '../../app/contexts/auth';
+import { authService } from '../../app/services/auth';
+
+// Mock the auth service
+vi.mock('../../app/services/auth', () => ({
+  authService: {
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    isAuthenticated: vi.fn(),
+    getCurrentUser: vi.fn(),
+  },
+}));
 
 // Mock localStorage
 const localStorageMock = {
@@ -20,6 +32,34 @@ describe('AuthProvider', () => {
     vi.clearAllMocks();
     // Reset localStorage mocks to return null by default
     localStorageMock.getItem.mockReturnValue(null);
+
+    // Set up default auth service mocks
+    (authService.login as any).mockResolvedValue({
+      access_token: 'mock-token',
+      token_type: 'bearer',
+      user: {
+        id: 1,
+        email: 'user@example.com',
+        is_verified: true,
+      },
+    });
+
+    (authService.register as any).mockResolvedValue({
+      access_token: 'mock-token',
+      token_type: 'bearer',
+      user: {
+        id: 1,
+        email: 'user@example.com',
+        is_verified: true,
+      },
+    });
+
+    (authService.isAuthenticated as any).mockReturnValue(false);
+    (authService.getCurrentUser as any).mockResolvedValue({
+      id: 1,
+      email: 'user@example.com',
+      is_verified: true,
+    });
   });
 
   afterEach(() => {
@@ -56,6 +96,17 @@ describe('AuthProvider', () => {
 
   describe('login functionality', () => {
     it('successfully logs in a regular user', async () => {
+      // Mock login response for regular user
+      (authService.login as any).mockResolvedValue({
+        access_token: 'mock-token',
+        token_type: 'bearer',
+        user: {
+          id: 1,
+          email: 'user@example.com',
+          is_verified: true,
+        },
+      });
+
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       // Wait for initial state
@@ -83,6 +134,17 @@ describe('AuthProvider', () => {
     });
 
     it('successfully logs in an admin user', async () => {
+      // Mock login response for admin user
+      (authService.login as any).mockResolvedValue({
+        access_token: 'mock-token',
+        token_type: 'bearer',
+        user: {
+          id: 2,
+          email: 'admin@example.com',
+          is_verified: true,
+        },
+      });
+
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       // Wait for initial state
@@ -154,6 +216,17 @@ describe('AuthProvider', () => {
 
   describe('role switching functionality', () => {
     it('allows admin to switch to admin view', async () => {
+      // Mock login response for admin user
+      (authService.login as any).mockResolvedValue({
+        access_token: 'mock-token',
+        token_type: 'bearer',
+        user: {
+          id: 2,
+          email: 'admin@example.com',
+          is_verified: true,
+        },
+      });
+
       const { result } = renderHook(() => useAuth(), { wrapper });
       const mockNavigate = vi.fn();
 
@@ -166,6 +239,10 @@ describe('AuthProvider', () => {
       await act(async () => {
         await result.current.login('admin@example.com', 'password');
       });
+
+      // Verify admin state is set up correctly
+      expect(result.current.user?.role).toBe('admin');
+      expect(result.current.isAdmin).toBe(true);
 
       // Switch to admin view
       act(() => {
@@ -182,6 +259,17 @@ describe('AuthProvider', () => {
     });
 
     it('allows admin to switch to player view', async () => {
+      // Mock login response for admin user
+      (authService.login as any).mockResolvedValue({
+        access_token: 'mock-token',
+        token_type: 'bearer',
+        user: {
+          id: 2,
+          email: 'admin@example.com',
+          is_verified: true,
+        },
+      });
+
       const { result } = renderHook(() => useAuth(), { wrapper });
       const mockNavigate = vi.fn();
 
@@ -194,6 +282,10 @@ describe('AuthProvider', () => {
       await act(async () => {
         await result.current.login('admin@example.com', 'password');
       });
+
+      // Verify admin state is set up correctly
+      expect(result.current.user?.role).toBe('admin');
+      expect(result.current.isAdmin).toBe(true);
 
       // Switch to player view
       act(() => {
@@ -235,18 +327,28 @@ describe('AuthProvider', () => {
   describe('localStorage persistence', () => {
     it('restores user from localStorage on initialization', async () => {
       const mockUser: User = {
-        id: '1',
+        id: 1,
         email: 'user@example.com',
         username: 'user',
         role: 'player',
-        wisecoins: 100,
-        achievements: [],
+        wisecoins: 500,
+        achievements: ['first_quiz', 'quiz_master'],
+        is_verified: true,
+        avatar: '/avatars/player_male_with_greataxe.png',
       };
 
       localStorageMock.getItem.mockImplementation(key => {
         if (key === 'quizdom_user') return JSON.stringify(mockUser);
         if (key === 'quizdom_active_role') return 'player';
         return null;
+      });
+
+      // Mock that user is authenticated
+      (authService.isAuthenticated as any).mockReturnValue(true);
+      (authService.getCurrentUser as any).mockResolvedValue({
+        id: 1,
+        email: 'user@example.com',
+        is_verified: true,
       });
 
       const { result } = renderHook(() => useAuth(), { wrapper });
@@ -267,6 +369,12 @@ describe('AuthProvider', () => {
         return null;
       });
 
+      // Mock that user is authenticated but getCurrentUser will fail
+      (authService.isAuthenticated as any).mockReturnValue(true);
+      (authService.getCurrentUser as any).mockRejectedValue(
+        new Error('Invalid token')
+      );
+
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       // Wait for useEffect to complete
@@ -276,6 +384,7 @@ describe('AuthProvider', () => {
 
       expect(result.current.user).toBe(null);
       expect(result.current.isAuthenticated).toBe(false);
+      // The auth context should clear localStorage when initialization fails
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('quizdom_user');
       expect(localStorageMock.removeItem).toHaveBeenCalledWith(
         'quizdom_active_role'

@@ -11,5 +11,20 @@ export default defineConfig({
     // watch: {
     //   usePolling: true,
     // },
+    // Proxy API requests to backend to avoid CORS
+    proxy: {
+      '/auth': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/quiz': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
   },
 });

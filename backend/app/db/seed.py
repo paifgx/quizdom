@@ -45,7 +45,6 @@ def create_test_users(session: Session) -> None:
         admin_user = User(
             email=admin_email,
             password_hash=get_password_hash("admin123"),
-            nickname="Admin",
             is_verified=True,
             created_at=datetime.now(timezone.utc),
             role_id=admin_role.id,
@@ -60,7 +59,6 @@ def create_test_users(session: Session) -> None:
         normal_user = User(
             email=user_email,
             password_hash=get_password_hash("user123"),
-            nickname="TestUser",
             is_verified=True,
             created_at=datetime.now(timezone.utc),
             role_id=user_role.id,

@@ -5,6 +5,7 @@
  */
 import type { Route } from './+types/home';
 import { Dashboard } from '../components/dashboard';
+import { LandingPage } from '../components/landing-page';
 import { useHomePage } from '../hooks/useHomePage';
 import { translate } from '../utils/translations';
 
@@ -42,7 +43,7 @@ export async function loader({ request: _request }: Route.LoaderArgs) {
  */
 export default function HomePage(_props: Route.ComponentProps) {
   const {
-    isAuthenticated: _isAuthenticated,
+    isAuthenticated,
     isViewingAsAdmin: _isViewingAsAdmin,
     loading,
     searchTerm,
@@ -50,13 +51,32 @@ export default function HomePage(_props: Route.ComponentProps) {
     handleSearchChange,
   } = useHomePage({ topics: [] }); // Empty topics for now until connected to real API
 
+  // Show loading state while authentication is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#061421] flex items-center justify-center">
+        <div className="text-[#FCC822] text-xl">Laden...</div>
+      </div>
+    );
+  }
+
+  // Show landing page for unauthenticated users
+  // Landing page handles its own layout and styling
+  if (!isAuthenticated) {
+    return <LandingPage />;
+  }
+
+  // Show dashboard for authenticated users
+  // Wrap in container with proper spacing since we're not in dashboard layout
   return (
-    <Dashboard
-      searchTerm={searchTerm}
-      onSearchChange={handleSearchChange}
-      topics={[]}
-      filteredTopics={filteredTopics}
-      isTopicsLoading={loading}
-    />
+    <div className="container mx-auto px-4 py-8">
+      <Dashboard
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        topics={[]}
+        filteredTopics={filteredTopics}
+        isTopicsLoading={loading}
+      />
+    </div>
   );
 }

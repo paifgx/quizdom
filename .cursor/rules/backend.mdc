@@ -132,3 +132,22 @@ uv run dev    # uvicorn app.main:app --reload
 uv run test   # pytest -q
 uv run lint   # ruff check . && ruff format . && mypy
 ```
+
+## Localization
+- **All API responses visible to users must be written in German**
+  - Error messages, validation errors, and success messages returned to frontend
+  - Database constraint violation messages
+  - Business logic error descriptions
+  - Email templates and notification content
+- **All internal code must remain in English**
+  - Variable names, function names, comments, filenames, and technical identifiers
+  - Database table names, column names, and constraint names
+  - API endpoint paths and parameter names
+  - Configuration keys and environment variables
+- **Use proper German grammar and terminology**
+  - Follow German capitalization rules for error messages
+  - Use appropriate formal/informal address (Sie/du) based on context
+  - Ensure proper pluralization and gender agreement
+- **Test data should simulate real German-language usage**
+  - Test fixtures should use realistic German names, addresses, and content
+  - Mock external API responses should be in German when simulating user-facing content
