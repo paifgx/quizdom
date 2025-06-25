@@ -115,23 +115,17 @@ class AuthService {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(
-      `${process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : ''}${endpoint}`,
-      {
-        method: 'GET',
+    try {
+      const response = await apiClient.get<T>(endpoint, {
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        credentials: 'include',
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      });
+      return response;
+    } catch (error) {
+      console.error(`Request to ${endpoint} failed:`, error);
+      throw error;
     }
-
-    return response.json();
   }
 
   /**
