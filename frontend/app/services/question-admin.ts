@@ -150,7 +150,7 @@ class QuestionAdminService {
       }
 
       const response = await apiClient.get<BackendQuestionResponse[]>(
-        `/v1/admin/questions?${params.toString()}`,
+        `/v1/admin/quiz/questions?${params.toString()}`,
         {
           headers: this.getAuthHeaders(),
         }
@@ -189,7 +189,7 @@ class QuestionAdminService {
   async getQuestionById(id: string): Promise<Question> {
     try {
       const response = await apiClient.get<BackendQuestionResponse>(
-        `/v1/admin/questions/${id}`,
+        `/v1/admin/quiz/questions/${id}`,
         {
           headers: this.getAuthHeaders(),
         }
@@ -219,7 +219,7 @@ class QuestionAdminService {
       };
 
       const response = await apiClient.post<BackendQuestionResponse>(
-        '/v1/admin/questions',
+        '/v1/admin/quiz/questions',
         backendPayload,
         {
           headers: this.getAuthHeaders(),
@@ -250,7 +250,7 @@ class QuestionAdminService {
         backendPayload.explanation = payload.explanation;
 
       const response = await apiClient.put<BackendQuestionResponse>(
-        `/v1/admin/questions/${id}`,
+        `/v1/admin/quiz/questions/${id}`,
         backendPayload,
         {
           headers: this.getAuthHeaders(),
@@ -269,7 +269,7 @@ class QuestionAdminService {
    */
   async deleteQuestion(id: string): Promise<void> {
     try {
-      await apiClient.delete(`/v1/admin/questions/${id}`, {
+      await apiClient.delete(`/v1/admin/quiz/questions/${id}`, {
         headers: this.getAuthHeaders(),
       });
     } catch (error) {
@@ -284,7 +284,7 @@ class QuestionAdminService {
   async getTopics(): Promise<Topic[]> {
     try {
       const response = await apiClient.get<BackendTopicResponse[]>(
-        '/v1/admin/topics',
+        '/v1/admin/quiz/topics',
         {
           headers: this.getAuthHeaders(),
         }
@@ -306,7 +306,7 @@ class QuestionAdminService {
   }): Promise<Topic> {
     try {
       const response = await apiClient.post<BackendTopicResponse>(
-        '/v1/admin/topics',
+        '/v1/admin/quiz/topics',
         {
           title: payload.title,
           description: payload.description || null,
@@ -332,7 +332,7 @@ class QuestionAdminService {
   ): Promise<Topic> {
     try {
       const response = await apiClient.put<BackendTopicResponse>(
-        `/v1/admin/topics/${id}`,
+        `/v1/admin/quiz/topics/${id}`,
         {
           ...(payload.title && { title: payload.title }),
           ...(payload.description !== undefined && {
@@ -356,7 +356,7 @@ class QuestionAdminService {
    */
   async deleteTopic(id: string): Promise<void> {
     try {
-      await apiClient.delete(`/v1/admin/topics/${id}`, {
+      await apiClient.delete(`/v1/admin/quiz/topics/${id}`, {
         headers: this.getAuthHeaders(),
       });
     } catch (error) {

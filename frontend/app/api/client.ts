@@ -4,14 +4,14 @@
  */
 
 // API Configuration
-// In development, use relative URLs to leverage Vite proxy
+// In development, use /api prefix to leverage Vite proxy
 // In production, use the full API URL
 // In test environment, use a mock URL to prevent fetch errors
 const API_BASE_URL = import.meta.env.PROD
   ? import.meta.env.VITE_API_URL || 'http://localhost:8000'
   : import.meta.env.MODE === 'test'
     ? 'http://localhost:8000' // Mock URL for tests
-    : ''; // Empty string for relative URLs in development
+    : '/api'; // Use /api prefix for development with Vite proxy
 
 // Global error handler for authentication failures
 let onAuthError: (() => void) | null = null;
