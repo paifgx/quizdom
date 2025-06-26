@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { ProtectedRoute } from '../components/auth/protected-route';
 
 export function meta() {
   return [
-    { title: 'Fragen verwalten | Quizdom Admin' },
+    { title: 'Fragenbank | Quizdom Admin' },
     {
       name: 'description',
-      content: 'Verwalten Sie Quiz-Fragen und -Kategorien.',
+      content: 'Verwalten Sie Ihre zentrale Fragenbank für Quiz-Erstellung.',
     },
   ];
 }
@@ -25,6 +26,7 @@ interface Question {
 }
 
 export default function AdminQuestionsPage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
@@ -131,16 +133,14 @@ export default function AdminQuestionsPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-[#FCC822] mb-4">
-              Fragen verwalten
+              Fragenbank
             </h1>
             <p className="text-gray-300 text-lg">
-              Erstellen, bearbeiten und verwalten Sie Quiz-Fragen.
+              Zentrale Verwaltung aller Fragen für die Quiz-Erstellung.
             </p>
           </div>
           <button
-            onClick={() => {
-              // Add question modal coming soon
-            }}
+            onClick={() => navigate('/admin/questions/new')}
             className="btn-gradient px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105"
           >
             <img
@@ -279,6 +279,9 @@ export default function AdminQuestionsPage() {
 
                   <div className="flex space-x-2 ml-4">
                     <button
+                      onClick={() =>
+                        navigate(`/admin/questions/${question.id}`)
+                      }
                       className="p-2 text-[#FCC822] hover:bg-[#FCC822] hover:bg-opacity-20 rounded-lg transition-colors duration-200"
                       title="Bearbeiten"
                     >

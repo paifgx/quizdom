@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { ProtectedRoute } from '../components/auth/protected-route';
 import { useAuth } from '../contexts/auth';
 import { translate } from '../utils/translations';
@@ -14,6 +15,7 @@ export function meta() {
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <ProtectedRoute requireAdmin>
@@ -135,15 +137,32 @@ export default function AdminDashboardPage() {
               Schnellaktionen
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
+              <button
+                onClick={() => navigate('/admin/quizzes/new')}
+                className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105"
+              >
                 <img
                   src="/buttons/Add.png"
                   alt={translate('accessibility.add')}
                   className="h-6 w-6 mx-auto mb-2"
                 />
-                {translate('admin.addNewQuestion')}
+                Neues Quiz erstellen
               </button>
-              <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
+              <button
+                onClick={() => navigate('/admin/questions')}
+                className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105"
+              >
+                <img
+                  src="/buttons/Filter.png"
+                  alt="Fragenbank"
+                  className="h-6 w-6 mx-auto mb-2"
+                />
+                Fragenbank verwalten
+              </button>
+              <button
+                onClick={() => navigate('/admin/users')}
+                className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105"
+              >
                 <img
                   src="/avatars/ai_assistant_wizard.png"
                   alt={translate('accessibility.user')}
@@ -151,21 +170,16 @@ export default function AdminDashboardPage() {
                 />
                 {translate('admin.manageUsers')}
               </button>
-              <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
-                <img
-                  src="/buttons/Settings.png"
-                  alt={translate('accessibility.settings')}
-                  className="h-6 w-6 mx-auto mb-2"
-                />
-                {translate('admin.systemSettings')}
-              </button>
-              <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
+              <button
+                onClick={() => navigate('/admin/logs')}
+                className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105"
+              >
                 <img
                   src="/buttons/Filter.png"
                   alt={translate('accessibility.reports')}
                   className="h-6 w-6 mx-auto mb-2"
                 />
-                {translate('admin.createReports')}
+                System-Logs anzeigen
               </button>
             </div>
           </div>

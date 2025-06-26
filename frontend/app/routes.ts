@@ -35,6 +35,9 @@ export default [
     // Admin routes
     route('/admin/dashboard', 'routes/admin.dashboard.tsx'),
     route('/admin/questions', 'routes/admin.questions.tsx'),
+    route('/admin/questions/:questionId', 'routes/admin.question-edit.tsx'),
+    route('/admin/quizzes', 'routes/admin.quizzes.tsx'),
+    route('/admin/quizzes/:quizId', 'routes/admin.quiz-edit.tsx'),
     route('/admin/users', 'routes/admin.users.tsx'),
     route('/admin/logs', 'routes/admin.logs.tsx'),
   ]),

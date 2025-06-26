@@ -39,7 +39,12 @@ const adminNavLinks: NavigationLink[] = [
     role: 'admin',
   },
   {
-    label: translate('nav.questions'),
+    label: 'Quizze',
+    path: '/admin/quizzes',
+    role: 'admin',
+  },
+  {
+    label: 'Fragenbank',
     path: '/admin/questions',
     role: 'admin',
   },
