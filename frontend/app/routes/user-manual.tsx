@@ -106,11 +106,6 @@ export default function UserManual() {
             {/* Welcome Section */}
             <div className="bg-[#0F1B2D] rounded-xl p-8 border border-gray-700 mb-8">
               <div className="flex items-center space-x-4 mb-6">
-                <img
-                  src="/avatars/ai_assistant_wizard.png"
-                  alt="AI Wizard"
-                  className="h-16 w-16 rounded-full"
-                />
                 <div>
                   <h2 className="text-2xl font-bold text-[#FCC822]">
                     🧙‍♂️ {translate('userManual.welcome')}
