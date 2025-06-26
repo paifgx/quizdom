@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ProtectedRoute } from '../components/auth/protected-route';
+import {
+  questionAdminService,
+  type Question,
+  type Topic,
+} from '../services/question-admin';
 
 export function meta() {
   return [
@@ -12,93 +17,87 @@ export function meta() {
   ];
 }
 
-interface Question {
-  id: string;
-  text: string;
-  category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  answers: {
-    text: string;
-    isCorrect: boolean;
-  }[];
-  createdAt: string;
-  createdBy: string;
-}
-
 export default function AdminQuestionsPage() {
   const navigate = useNavigate();
+
+  // State management
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  // Filter states
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedTopicId, setSelectedTopicId] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
 
-  const categories = [
-    'Wissenschaft',
-    'Geschichte',
-    'Geographie',
-    'Sport',
-    'Kunst & Kultur',
-    'Technologie',
-    'Natur',
-    'Mathematik',
-  ];
+  // Load initial data
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const sampleQuestions: Question[] = [
-    {
-      id: '1',
-      text: 'Welcher Planet ist der größte in unserem Sonnensystem?',
-      category: 'Wissenschaft',
-      difficulty: 'easy',
-      answers: [
-        { text: 'Jupiter', isCorrect: true },
-        { text: 'Saturn', isCorrect: false },
-        { text: 'Neptun', isCorrect: false },
-        { text: 'Uranus', isCorrect: false },
-      ],
-      createdAt: '2024-01-15',
-      createdBy: 'admin@quizdom.com',
-    },
-    {
-      id: '2',
-      text: 'In welchem Jahr fiel die Berliner Mauer?',
-      category: 'Geschichte',
-      difficulty: 'medium',
-      answers: [
-        { text: '1987', isCorrect: false },
-        { text: '1989', isCorrect: true },
-        { text: '1991', isCorrect: false },
-        { text: '1993', isCorrect: false },
-      ],
-      createdAt: '2024-01-14',
-      createdBy: 'admin@quizdom.com',
-    },
-    {
-      id: '3',
-      text: 'Was ist die chemische Formel für Wasser?',
-      category: 'Wissenschaft',
-      difficulty: 'easy',
-      answers: [
-        { text: 'H2O', isCorrect: true },
-        { text: 'CO2', isCorrect: false },
-        { text: 'NaCl', isCorrect: false },
-        { text: 'O2', isCorrect: false },
-      ],
-      createdAt: '2024-01-13',
-      createdBy: 'admin@quizdom.com',
-    },
-  ];
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  const filteredQuestions = sampleQuestions.filter(question => {
+      // Load questions and topics in parallel
+      const [questionsData, topicsData] = await Promise.all([
+        questionAdminService.getQuestions(),
+        questionAdminService.getTopics(),
+      ]);
+
+      setQuestions(questionsData);
+      setTopics(topicsData);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setError('Fehler beim Laden der Daten. Bitte versuchen Sie es erneut.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Apply filters
+  const filteredQuestions = questions.filter(question => {
     const matchesSearch =
-      question.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      question.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'all' || question.category === selectedCategory;
+      searchTerm === '' ||
+      question.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      question.topicTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (question.explanation &&
+        question.explanation.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesTopic =
+      selectedTopicId === 'all' || question.topicId === selectedTopicId;
     const matchesDifficulty =
       selectedDifficulty === 'all' ||
       question.difficulty === selectedDifficulty;
 
-    return matchesSearch && matchesCategory && matchesDifficulty;
+    return matchesSearch && matchesTopic && matchesDifficulty;
   });
+
+  const handleDelete = async (questionId: string) => {
+    if (
+      !window.confirm('Sind Sie sicher, dass Sie diese Frage löschen möchten?')
+    ) {
+      return;
+    }
+
+    try {
+      setDeleting(questionId);
+      await questionAdminService.deleteQuestion(questionId);
+
+      // Remove from local state
+      setQuestions(prev => prev.filter(q => q.id !== questionId));
+    } catch (err) {
+      console.error('Failed to delete question:', err);
+      window.alert(
+        'Fehler beim Löschen der Frage. Bitte versuchen Sie es erneut.'
+      );
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -125,6 +124,39 @@ export default function AdminQuestionsPage() {
         return difficulty;
     }
   };
+
+  if (loading) {
+    return (
+      <ProtectedRoute requireAdmin={true}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex justify-center items-center min-h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
+              <p className="text-gray-300">Lade Fragen...</p>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProtectedRoute requireAdmin={true}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-red-600 bg-opacity-20 border border-red-600 rounded-xl p-6 text-center">
+            <p className="text-red-300 mb-4">{error}</p>
+            <button
+              onClick={loadData}
+              className="btn-gradient px-4 py-2 rounded-lg font-medium"
+            >
+              Erneut versuchen
+            </button>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute requireAdmin={true}>
@@ -166,31 +198,31 @@ export default function AdminQuestionsPage() {
               <input
                 type="text"
                 id="search"
-                placeholder="Frage oder Kategorie suchen..."
+                placeholder="Frage oder Thema suchen..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
               />
             </div>
 
-            {/* Category Filter */}
+            {/* Topic Filter */}
             <div>
               <label
-                htmlFor="category"
+                htmlFor="topic"
                 className="block text-gray-300 font-medium mb-2"
               >
-                Kategorie
+                Thema
               </label>
               <select
-                id="category"
-                value={selectedCategory}
-                onChange={e => setSelectedCategory(e.target.value)}
+                id="topic"
+                value={selectedTopicId}
+                onChange={e => setSelectedTopicId(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
               >
-                <option value="all">Alle Kategorien</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
+                <option value="all">Alle Themen</option>
+                {topics.map(topic => (
+                  <option key={topic.id} value={topic.id}>
+                    {topic.title}
                   </option>
                 ))}
               </select>
@@ -242,25 +274,31 @@ export default function AdminQuestionsPage() {
                         {getDifficultyLabel(question.difficulty)}
                       </span>
                       <span className="px-3 py-1 bg-[#FCC822] bg-opacity-20 text-[#FCC822] rounded-full text-xs font-medium">
-                        {question.category}
+                        {question.topicTitle}
                       </span>
                     </div>
 
                     <h3 className="text-white font-medium text-lg mb-3">
-                      {question.text}
+                      {question.content}
                     </h3>
 
+                    {question.explanation && (
+                      <p className="text-gray-400 text-sm mb-3 italic">
+                        {question.explanation}
+                      </p>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-                      {question.answers.map((answer, index) => (
+                      {question.answers.map(answer => (
                         <div
-                          key={index}
+                          key={answer.id}
                           className={`p-2 rounded-lg text-sm ${
                             answer.isCorrect
                               ? 'bg-green-600 bg-opacity-20 text-green-300 border border-green-600'
                               : 'bg-gray-600 bg-opacity-20 text-gray-300 border border-gray-600'
                           }`}
                         >
-                          {answer.text}
+                          {answer.content}
                           {answer.isCorrect && (
                             <img
                               src="/buttons/Accept.png"
@@ -273,7 +311,8 @@ export default function AdminQuestionsPage() {
                     </div>
 
                     <div className="text-xs text-gray-400">
-                      Erstellt am {question.createdAt} von {question.createdBy}
+                      Erstellt am{' '}
+                      {new Date(question.createdAt).toLocaleDateString('de-DE')}
                     </div>
                   </div>
 
@@ -292,14 +331,20 @@ export default function AdminQuestionsPage() {
                       />
                     </button>
                     <button
-                      className="p-2 text-red-400 hover:bg-red-400 hover:bg-opacity-20 rounded-lg transition-colors duration-200"
+                      onClick={() => handleDelete(question.id)}
+                      disabled={deleting === question.id}
+                      className="p-2 text-red-400 hover:bg-red-400 hover:bg-opacity-20 rounded-lg transition-colors duration-200 disabled:opacity-50"
                       title="Löschen"
                     >
-                      <img
-                        src="/buttons/Delete.png"
-                        alt="Delete"
-                        className="h-5 w-5"
-                      />
+                      {deleting === question.id ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-400"></div>
+                      ) : (
+                        <img
+                          src="/buttons/Delete.png"
+                          alt="Delete"
+                          className="h-5 w-5"
+                        />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -316,38 +361,13 @@ export default function AdminQuestionsPage() {
               />
               <p className="text-gray-400 text-lg">Keine Fragen gefunden.</p>
               <p className="text-gray-500 text-sm mt-2">
-                Ändern Sie Ihre Suchkriterien oder fügen Sie neue Fragen hinzu.
+                {questions.length === 0
+                  ? 'Fügen Sie neue Fragen hinzu, um zu beginnen.'
+                  : 'Ändern Sie Ihre Suchkriterien oder fügen Sie neue Fragen hinzu.'}
               </p>
             </div>
           )}
         </div>
-
-        {/* Pagination */}
-        {filteredQuestions.length > 0 && (
-          <div className="flex justify-center mt-8">
-            <nav className="flex space-x-2">
-              <button className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors duration-200">
-                <img
-                  src="/buttons/Left.png"
-                  alt="Previous"
-                  className="h-4 w-4"
-                />
-              </button>
-              <button className="px-4 py-2 bg-[#FCC822] text-[#061421] rounded-lg font-medium">
-                1
-              </button>
-              <button className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors duration-200">
-                2
-              </button>
-              <button className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors duration-200">
-                3
-              </button>
-              <button className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors duration-200">
-                <img src="/buttons/Right.png" alt="Next" className="h-4 w-4" />
-              </button>
-            </nav>
-          </div>
-        )}
       </div>
     </ProtectedRoute>
   );
