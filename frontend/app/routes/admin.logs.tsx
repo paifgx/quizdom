@@ -206,11 +206,7 @@ export default function AdminLogsPage() {
                 <p className="text-gray-400 text-sm">Letzte 24h</p>
               </div>
               <div className="p-3 bg-[#FCC822] bg-opacity-20 rounded-lg">
-                <img
-                  src="/buttons/Logs.png"
-                  alt="Total"
-                  className="h-8 w-8"
-                />
+                <img src="/buttons/Logs.png" alt="Total" className="h-8 w-8" />
               </div>
             </div>
           </div>
@@ -265,7 +261,11 @@ export default function AdminLogsPage() {
                 <p className="text-gray-400 text-sm">Normale Aktivitäten</p>
               </div>
               <div className="p-3 bg-blue-500 bg-opacity-20 rounded-lg">
-                <img src="/buttons/Information.png" alt="Info" className="h-8 w-8" />
+                <img
+                  src="/buttons/Information.png"
+                  alt="Info"
+                  className="h-8 w-8"
+                />
               </div>
             </div>
           </div>
