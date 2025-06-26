@@ -1,0 +1,163 @@
+"""Pydantic schemas for quiz administration."""
+
+from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, Field, field_validator
+
+from app.db.models import Difficulty
+
+
+class TopicBase(BaseModel):
+    """Base schema for topics."""
+
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+
+
+class TopicCreate(TopicBase):
+    """Schema for creating a topic."""
+
+    pass
+
+
+class TopicUpdate(BaseModel):
+    """Schema for updating a topic."""
+
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+
+
+class TopicResponse(TopicBase):
+    """Schema for topic responses."""
+
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class AnswerBase(BaseModel):
+    """Base schema for answers."""
+
+    content: str = Field(..., min_length=1)
+    is_correct: bool = False
+
+
+class AnswerCreate(AnswerBase):
+    """Schema for creating an answer."""
+
+    pass
+
+
+class AnswerResponse(AnswerBase):
+    """Schema for answer responses."""
+
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class QuestionBase(BaseModel):
+    """Base schema for questions."""
+
+    topic_id: int
+    difficulty: Difficulty
+    content: str = Field(..., min_length=1)
+    explanation: Optional[str] = None
+
+
+class QuestionCreate(QuestionBase):
+    """Schema for creating a question with answers."""
+
+    answers: List[AnswerCreate]
+
+    @field_validator("answers")
+    @classmethod
+    def validate_answers_length(cls, v: List[AnswerCreate]) -> List[AnswerCreate]:
+        if len(v) < 2 or len(v) > 6:
+            raise ValueError("Fragen müssen zwischen 2 und 6 Antworten haben")
+        return v
+
+
+class QuestionUpdate(BaseModel):
+    """Schema for updating a question."""
+
+    topic_id: Optional[int] = None
+    difficulty: Optional[Difficulty] = None
+    content: Optional[str] = Field(None, min_length=1)
+    explanation: Optional[str] = None
+
+
+class QuestionResponse(QuestionBase):
+    """Schema for question responses."""
+
+    id: int
+    created_at: datetime
+    answers: List[AnswerResponse]
+    topic: TopicResponse
+
+    class Config:
+        from_attributes = True
+
+
+class QuizBase(BaseModel):
+    """Base schema for quizzes."""
+
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    topic_id: int
+    difficulty: Difficulty
+    time_limit_minutes: Optional[int] = Field(None, ge=1, le=180)
+
+
+class QuizCreate(QuizBase):
+    """Schema for creating a quiz."""
+
+    question_ids: List[int]
+
+    @field_validator("question_ids")
+    @classmethod
+    def validate_question_ids(cls, v: List[int]) -> List[int]:
+        if not v:
+            raise ValueError("Quiz muss mindestens eine Frage enthalten")
+        return v
+
+
+class QuizUpdate(BaseModel):
+    """Schema for updating a quiz."""
+
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    topic_id: Optional[int] = None
+    difficulty: Optional[Difficulty] = None
+    time_limit_minutes: Optional[int] = Field(None, ge=1, le=180)
+    question_ids: Optional[List[int]] = None
+
+
+class QuizResponse(QuizBase):
+    """Schema for quiz responses."""
+
+    id: int
+    created_at: datetime
+    topic: TopicResponse
+    question_count: int
+
+    class Config:
+        from_attributes = True
+
+
+class QuizDetailResponse(QuizResponse):
+    """Schema for detailed quiz response with questions."""
+
+    questions: List[QuestionResponse]
+
+
+class ErrorResponse(BaseModel):
+    """Schema for error responses."""
+
+    detail: str
+    code: Optional[str] = None
+    field: Optional[str] = None
+    hint: Optional[str] = None

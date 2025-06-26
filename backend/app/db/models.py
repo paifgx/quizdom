@@ -104,6 +104,27 @@ class Answer(SQLModel, table=True):
     is_correct: bool = False
 
 
+class Quiz(SQLModel, table=True):
+    """Quiz definitions."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str
+    description: Optional[str] = None
+    topic_id: int = Field(foreign_key="topic.id")
+    difficulty: Difficulty
+    time_limit_minutes: Optional[int] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class QuizQuestion(SQLModel, table=True):
+    """Relationship between quizzes and questions."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    quiz_id: int = Field(foreign_key="quiz.id")
+    question_id: int = Field(foreign_key="question.id")
+    order: int = Field(default=0)  # Order of questions in the quiz
+
+
 class PlayerAnswer(SQLModel, table=True):
     """Answers a player gave in a game session."""
 
