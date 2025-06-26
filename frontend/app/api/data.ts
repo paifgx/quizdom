@@ -58,24 +58,24 @@ export const difficultyNameMap: Record<number, string> = {
 export const gameModes: GameMode[] = [
   {
     id: 'solo',
-    name: 'Solo Quiz',
+    name: 'Solo Mission',
     description:
       'Spiele in deinem eigenen Tempo und verbessere dein Wissen. Perfekt zum Lernen und zur Selbsteinschätzung.',
-    icon: '/playmodi/solo.png',
+    icon: '/playmodi/SOLO_withoutText.PNG',
   },
   {
     id: 'competitive',
     name: 'Duell',
     description:
       'Fordere einen anderen Spieler in Echtzeit-Wettbewerb heraus. Schnell und aufregend!',
-    icon: '/playmodi/competitive.png',
+    icon: '/playmodi/COMP_withoutText.PNG',
   },
   {
     id: 'collaborative',
     name: 'Team Battle',
     description:
       'Schließe dich mit Teamkollegen zusammen, um gegen andere anzutreten. Arbeite zusammen und entwickle Strategien.',
-    icon: '/playmodi/collaborative.png',
+    icon: '/playmodi/COLL_withoutText.PNG',
   },
 ];
 

@@ -341,7 +341,7 @@ export const translations = {
     gameModesDesc:
       'QUIZDOM bietet verschiedene Spielmodi für unterschiedliche Präferenzen:',
     soloMode:
-      'Solo Quiz / Solo Mode: Spielen Sie alleine und testen Sie Ihr Wissen in Ihrem eigenen Tempo.',
+      'Solo Mission / Solo Mode: Spielen Sie alleine und testen Sie Ihr Wissen in Ihrem eigenen Tempo.',
     collaborativeMode:
       'Team Battle / Collaborative Mode: Arbeiten Sie mit anderen Spielern zusammen, um gemeinsam Fragen zu beantworten.',
     competitiveMode:
@@ -363,7 +363,7 @@ export const translations = {
     // Features Section
     wisecoins: 'Was sind Wisecoins und warum gibt es sie?',
     wisecoinsDesc:
-      'Wisecoins sind die Spielwährung in QUIZDOM. Sie werden für richtige Antworten vergeben und können für verschiedene Verbesserungen und Belohnungen eingesetzt werden.',
+      'Wisecoins sind die Spielwährung in QUIZDOM. Sie werden für richtige Antworten vergeben und sollen in Zukunft für verschiedene Verbesserungen und Belohnungen eingesetzt werden können.',
 
     hearts: 'Wofür gibt es während eines Quiz Herzen?',
     heartsDesc:
