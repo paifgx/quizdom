@@ -1,4 +1,5 @@
-@import 'tailwindcss';
+@import 'tailwindcss/preflight';
+@import 'tailwindcss/utilities';
 
 @font-face {
   font-family: 'Tiny5';
@@ -6,145 +7,149 @@
   font-display: swap;
 }
 
-@theme {
-  --font-sans:
-    'Tiny5', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
-    'DejaVu Sans Mono', monospace;
+@layer base {
+  :root {
+    --font-sans:
+      'Tiny5', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo,
+      Consolas, 'DejaVu Sans Mono', monospace;
 
-  --color-quizdom-gold: #fcc822;
-  --color-quizdom-blue: #061421;
-  --color-quizdom-gradient: linear-gradient(135deg, #ffcd2e 0%, #fcc822 100%);
-}
-
-html,
-body {
-  @apply bg-[var(--color-quizdom-blue)] text-white font-mono;
-  font-family: 'Tiny5', monospace;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-800;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-[var(--color-quizdom-gold)] rounded;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-[#FFCD2E];
-}
-
-/* Focus styles for accessibility */
-*:focus {
-  @apply outline-none ring-2 ring-[var(--color-quizdom-gold)]/50;
-}
-
-/* Button gradient */
-.btn-gradient {
-  background: var(--color-quizdom-gradient);
-  @apply text-[var(--color-quizdom-blue)] font-bold border-none shadow-lg;
-}
-
-.btn-gradient:hover {
-  background: linear-gradient(135deg, #fcc822 0%, #ffcd2e 100%);
-  @apply scale-105 transition-all duration-200;
-}
-
-.btn-gradient:active {
-  @apply scale-95;
-}
-
-/* Navigation active state */
-.nav-link-active {
-  @apply text-[var(--color-quizdom-gold)] border-b-2 border-[var(--color-quizdom-gold)];
-}
-
-/* Mobile menu animation */
-.mobile-menu-enter {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.mobile-menu-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity 200ms,
-    transform 200ms;
-}
-
-.mobile-menu-exit {
-  opacity: 1;
-}
-
-.mobile-menu-exit-active {
-  opacity: 0;
-  transform: translateY(-10px);
-  transition:
-    opacity 200ms,
-    transform 200ms;
-}
-
-/* Login/Signup Form Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+    --color-quizdom-gold: #fcc822;
+    --color-quizdom-blue: #061421;
+    --color-quizdom-gradient: linear-gradient(135deg, #ffcd2e 0%, #fcc822 100%);
   }
-  to {
+
+  html,
+  body {
+    @apply bg-[var(--color-quizdom-blue)] text-white font-mono;
+    font-family: 'Tiny5', monospace;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-[var(--color-quizdom-gold)] rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-[#FFCD2E];
+  }
+
+  /* Focus styles for accessibility */
+  *:focus {
+    @apply outline-none ring-2 ring-[var(--color-quizdom-gold)]/50;
+  }
+
+  /* Button gradient */
+  .btn-gradient {
+    background: var(--color-quizdom-gradient);
+    @apply text-[var(--color-quizdom-blue)] font-bold border-none shadow-lg;
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(135deg, #fcc822 0%, #ffcd2e 100%);
+    @apply scale-105 transition-all duration-200;
+  }
+
+  .btn-gradient:active {
+    @apply scale-95;
+  }
+
+  /* Navigation active state */
+  .nav-link-active {
+    @apply text-[var(--color-quizdom-gold)] border-b-2 border-[var(--color-quizdom-gold)];
+  }
+
+  /* Mobile menu animation */
+  .mobile-menu-enter {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  .mobile-menu-enter-active {
     opacity: 1;
     transform: translateY(0);
+    transition:
+      opacity 200ms,
+      transform 200ms;
   }
-}
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-    max-height: 0;
-  }
-  to {
+  .mobile-menu-exit {
     opacity: 1;
-    transform: translateY(0);
-    max-height: 200px;
   }
-}
 
-@keyframes slideUp {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-    max-height: 200px;
-  }
-  to {
+  .mobile-menu-exit-active {
     opacity: 0;
-    transform: translateY(-20px);
-    max-height: 0;
+    transform: translateY(-10px);
+    transition:
+      opacity 200ms,
+      transform 200ms;
   }
-}
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
+  /* Login/Signup Form Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-.animate-slide-down {
-  animation: slideDown 0.6s ease-out forwards;
-}
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 200px;
+    }
+  }
 
-.animate-slide-up {
-  animation: slideUp 0.4s ease-out forwards;
-}
+  @keyframes slideUp {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 200px;
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-20px);
+      max-height: 0;
+    }
+  }
 
-/* Smooth container transitions */
-.login-container {
-  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-}
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
 
-.logo-container {
-  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  .animate-slide-down {
+    animation: slideDown 0.6s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+
+  /* Smooth container transitions */
+  .login-container {
+    transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .logo-container {
+    transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }

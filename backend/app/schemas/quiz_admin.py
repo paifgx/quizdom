@@ -1,7 +1,7 @@
 """Pydantic schemas for quiz administration."""
 
 from datetime import datetime
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -174,7 +174,6 @@ class QuizUpdate(BaseModel):
     topic_id: Optional[int] = None
     difficulty: Optional[Difficulty] = None
     time_limit_minutes: Optional[int] = Field(None, ge=1, le=180)
-    question_ids: Optional[List[int]] = None
 
 
 class QuizResponse(QuizBase):
@@ -184,30 +183,44 @@ class QuizResponse(QuizBase):
     created_at: datetime
     topic: TopicResponse
     question_count: int
+    has_image: bool = False  # Indicates if quiz has an image
 
     class Config:
         from_attributes = True
 
 
 class QuizDetailResponse(QuizResponse):
-    """Schema for detailed quiz response with questions."""
+    """Schema for detailed quiz responses with questions."""
 
     questions: List[QuestionResponse]
 
+    class Config:
+        from_attributes = True
 
-class QuizBatchCreate(QuizBase):
-    """Schema for creating a quiz with questions in a single operation."""
 
-    questions: List[Union[QuestionCreate, int]]
+class QuizBatchCreate(BaseModel):
+    """Schema for creating a quiz with questions in a single batch."""
+
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    difficulty: Difficulty
+    time_limit_minutes: Optional[int] = Field(None, ge=1, le=180)
+    questions: List[QuestionCreate]
 
     @field_validator("questions")
     @classmethod
-    def validate_questions(
-        cls, v: List[Union[QuestionCreate, int]]
-    ) -> List[Union[QuestionCreate, int]]:
-        if not v:
-            raise ValueError("Quiz muss mindestens eine Frage enthalten")
+    def validate_questions(cls, v: List[QuestionCreate]) -> List[QuestionCreate]:
+        if len(v) == 0:
+            raise ValueError("Mindestens eine Frage ist erforderlich")
         return v
+
+
+class ImageUploadResponse(BaseModel):
+    """Response schema for image upload."""
+
+    message: str = Field(..., description="Upload success message")
+    filename: str = Field(..., description="Original filename")
+    quiz_id: int = Field(..., description="Quiz ID that image was uploaded to")
 
 
 class ErrorResponse(BaseModel):

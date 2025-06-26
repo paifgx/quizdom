@@ -261,6 +261,7 @@ class QuizAdminService:
                 "created_at": quiz.created_at,
                 "topic": topic,
                 "question_count": question_count,
+                "has_image": quiz.image_data is not None,
             }
             quiz_responses.append(quiz_dict)
 
@@ -319,6 +320,7 @@ class QuizAdminService:
             "topic": topic,
             "questions": question_responses,
             "question_count": len(question_responses),
+            "has_image": quiz.image_data is not None,
         }
 
         return quiz_dict
@@ -462,3 +464,35 @@ class QuizAdminService:
             raise ValueError("Failed to retrieve created quiz")
 
         return result
+
+    # Image operations
+    def upload_quiz_image(self, quiz_id: int, image_data: bytes, filename: str) -> None:
+        """Upload an image for a quiz."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            raise ValueError("Quiz nicht gefunden")
+
+        quiz.image_data = image_data
+        quiz.image_filename = filename
+        self.db.commit()
+        self.db.refresh(quiz)
+
+    def get_quiz_image(self, quiz_id: int) -> tuple[Optional[bytes], Optional[str]]:
+        """Get the image for a quiz."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            return None, None
+
+        return quiz.image_data, quiz.image_filename
+
+    def delete_quiz_image(self, quiz_id: int) -> bool:
+        """Delete the image for a quiz."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            return False
+
+        quiz.image_data = None
+        quiz.image_filename = None
+        self.db.commit()
+        self.db.refresh(quiz)
+        return True

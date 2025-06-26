@@ -169,7 +169,7 @@ class QuizAdminService {
       }
 
       const response = await apiClient.get<BackendQuizResponse[]>(
-        `/v1/admin/quiz/quizzes?${params.toString()}`,
+        `/v1/admin/quizzes?${params.toString()}`,
         {
           headers: this.getAuthHeaders(),
         }
@@ -208,7 +208,7 @@ class QuizAdminService {
   async getQuizById(id: string): Promise<Quiz> {
     try {
       const response = await apiClient.get<BackendQuizDetailResponse>(
-        `/v1/admin/quiz/quizzes/${id}`,
+        `/v1/admin/quizzes/${id}`,
         {
           headers: this.getAuthHeaders(),
         }
@@ -258,7 +258,7 @@ class QuizAdminService {
       };
 
       const response = await apiClient.post<BackendQuizDetailResponse>(
-        '/v1/admin/quiz/quizzes',
+        '/v1/admin/quizzes',
         backendPayload,
         {
           headers: this.getAuthHeaders(),
@@ -293,7 +293,7 @@ class QuizAdminService {
       if (payload.difficulty) backendPayload.difficulty = payload.difficulty;
 
       const response = await apiClient.put<BackendQuizDetailResponse>(
-        `/v1/admin/quiz/quizzes/${id}`,
+        `/v1/admin/quizzes/${id}`,
         backendPayload,
         {
           headers: this.getAuthHeaders(),
@@ -314,7 +314,7 @@ class QuizAdminService {
    */
   async deleteQuiz(id: string): Promise<void> {
     try {
-      await apiClient.delete(`/v1/admin/quiz/quizzes/${id}`, {
+      await apiClient.delete(`/v1/admin/quizzes/${id}`, {
         headers: this.getAuthHeaders(),
       });
     } catch (error) {
@@ -481,7 +481,7 @@ class QuizAdminService {
     Array<{ id: number; title: string; description: string | null }>
   > {
     try {
-      return await apiClient.get('/v1/admin/quiz/topics', {
+      return await apiClient.get('/v1/admin/topics', {
         headers: this.getAuthHeaders(),
       });
     } catch (error) {
@@ -497,7 +497,7 @@ class QuizAdminService {
     title: string;
     description: string;
   }): Promise<{ id: number; title: string; description: string | null }> {
-    return apiClient.post('/v1/admin/quiz/topics', payload, {
+    return apiClient.post('/v1/admin/topics', payload, {
       headers: this.getAuthHeaders(),
     });
   }
@@ -539,7 +539,7 @@ class QuizAdminService {
       };
 
       const response = await apiClient.post<BackendQuizDetailResponse>(
-        '/v1/admin/quiz/quizzes/batch',
+        '/v1/admin/quizzes/batch',
         backendPayload,
         {
           headers: this.getAuthHeaders(),

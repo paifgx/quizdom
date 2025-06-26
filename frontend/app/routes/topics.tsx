@@ -97,16 +97,6 @@ export default function TopicsPage() {
           onToggleFavorite={toggleFavorite}
           isLoading={loading}
         />
-
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && !loading && (
-          <div className="mt-8 p-4 bg-gray-800 rounded-lg text-sm text-gray-300">
-            <p>Debug Info:</p>
-            <p>Total topics loaded: {topics.length}</p>
-            <p>Sorted topics count: {sortedTopics.length}</p>
-            <p>Filters: {JSON.stringify(filters, null, 2)}</p>
-          </div>
-        )}
       </div>
     </ProtectedRoute>
   );

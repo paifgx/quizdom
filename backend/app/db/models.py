@@ -113,6 +113,8 @@ class Quiz(SQLModel, table=True):
     topic_id: int = Field(foreign_key="topic.id")
     difficulty: Difficulty
     time_limit_minutes: Optional[int] = None
+    image_data: Optional[bytes] = None  # Binary image data
+    image_filename: Optional[str] = None  # Original filename for downloads
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 

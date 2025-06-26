@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 from sqlmodel import Session
 from starlette import status
 
@@ -10,6 +10,7 @@ from app.db.models import User
 from app.db.session import get_session
 from app.routers.user import require_admin
 from app.schemas.quiz_admin import (
+    ImageUploadResponse,
     QuestionCreate,
     QuestionResponse,
     QuestionUpdate,
@@ -24,7 +25,7 @@ from app.schemas.quiz_admin import (
 )
 from app.services.quiz_admin_service import QuizAdminService
 
-router = APIRouter(prefix="/v1/admin/quiz", tags=["admin-quiz"])
+router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
 
 # Topic endpoints
@@ -279,3 +280,91 @@ async def delete_quiz(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
         )
+
+
+# Image upload endpoints
+@router.post("/quizzes/{quiz_id}/image", response_model=ImageUploadResponse)
+async def upload_quiz_image(
+    quiz_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_session),
+):
+    """Upload an image for a quiz."""
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nur Bilddateien sind erlaubt",
+        )
+
+    # Validate file size (5MB max)
+    if file.size and file.size > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datei ist zu groß (maximal 5MB)",
+        )
+
+    service = QuizAdminService(db)
+    try:
+        image_data = await file.read()
+        service.upload_quiz_image(quiz_id, image_data, file.filename or "image")
+        return ImageUploadResponse(
+            message="Bild erfolgreich hochgeladen",
+            filename=file.filename or "image",
+            quiz_id=quiz_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/quizzes/{quiz_id}/image")
+async def get_quiz_image(
+    quiz_id: int,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_session),
+):
+    """Get the image for a quiz."""
+    service = QuizAdminService(db)
+    image_data, filename = service.get_quiz_image(quiz_id)
+
+    if not image_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Kein Bild für dieses Quiz gefunden",
+        )
+
+    # Determine content type from filename
+    content_type = "image/jpeg"  # Default
+    if filename:
+        if filename.lower().endswith(".png"):
+            content_type = "image/png"
+        elif filename.lower().endswith(".gif"):
+            content_type = "image/gif"
+        elif filename.lower().endswith(".webp"):
+            content_type = "image/webp"
+
+    return Response(
+        content=image_data,
+        media_type=content_type,
+        headers={"Content-Disposition": f"inline; filename={filename}"},
+    )
+
+
+@router.delete("/quizzes/{quiz_id}/image")
+async def delete_quiz_image(
+    quiz_id: int,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_session),
+):
+    """Delete the image for a quiz."""
+    service = QuizAdminService(db)
+    success = service.delete_quiz_image(quiz_id)
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz oder Bild nicht gefunden",
+        )
+
+    return {"message": "Bild erfolgreich gelöscht"}

@@ -66,6 +66,13 @@ export default function AdminQuizEditPage() {
     search: '',
   });
 
+  // Image upload state
+  const [uploadedImage, setUploadedImage] = useState<{
+    file: File;
+    preview: string;
+    filename: string;
+  } | null>(null);
+
   // Inline question creation state
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [newQuestion, setNewQuestion] = useState({
@@ -130,6 +137,15 @@ export default function AdminQuizEditPage() {
     loadData();
   }, [loadData]);
 
+  // Cleanup image preview on unmount
+  useEffect(() => {
+    return () => {
+      if (uploadedImage) {
+        URL.revokeObjectURL(uploadedImage.preview);
+      }
+    };
+  }, [uploadedImage]);
+
   const handleInputChange = (
     field: keyof typeof formData,
     value: string | number | string[] | QuizDifficulty
@@ -150,6 +166,60 @@ export default function AdminQuizEditPage() {
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0);
     setFormData(prev => ({ ...prev, tags }));
+  };
+
+  // Image upload handlers
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Nur Bilddateien sind erlaubt.');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Datei ist zu groß (maximal 5MB).');
+      return;
+    }
+
+    // Create preview URL
+    const preview = URL.createObjectURL(file);
+    setUploadedImage({
+      file,
+      preview,
+      filename: file.name,
+    });
+
+    // Clear any existing image URL
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
+    setError(null);
+  };
+
+  const removeImage = () => {
+    if (uploadedImage) {
+      URL.revokeObjectURL(uploadedImage.preview);
+      setUploadedImage(null);
+    }
+  };
+
+  const removeExistingImage = async () => {
+    if (!isNewQuiz && quizId) {
+      try {
+        await fetch(`/api/v1/admin/quizzes/${quizId}/image`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+        setFormData(prev => ({ ...prev, imageUrl: '' }));
+      } catch (err) {
+        console.error('Failed to delete image:', err);
+        setError('Fehler beim Löschen des Bildes.');
+      }
+    }
   };
 
   const toggleQuestionSelection = (questionId: string) => {
@@ -344,6 +414,8 @@ export default function AdminQuizEditPage() {
       setSaving(true);
       setError(null);
 
+      let savedQuizId: string | undefined = quizId;
+
       if (isNewQuiz) {
         if (createdQuestions.length > 0) {
           const payload: CreateQuizBatchPayload = {
@@ -354,18 +426,19 @@ export default function AdminQuizEditPage() {
             questions: createdQuestions,
           };
 
-          await quizAdminService.createQuizBatch(payload);
+          const result = await quizAdminService.createQuizBatch(payload);
+          savedQuizId = result.id;
         } else {
           const payload: CreateQuizPayload = {
             title: formData.title.trim(),
             description: formData.description.trim(),
             difficulty: formData.difficulty,
             tags: formData.tags,
-            imageUrl: formData.imageUrl.trim() || undefined,
             settings,
           };
 
-          await quizAdminService.createQuiz(payload);
+          const result = await quizAdminService.createQuiz(payload);
+          savedQuizId = result.id;
         }
       } else if (quizId) {
         const payload: UpdateQuizPayload = {
@@ -373,11 +446,24 @@ export default function AdminQuizEditPage() {
           description: formData.description.trim(),
           difficulty: formData.difficulty,
           tags: formData.tags,
-          imageUrl: formData.imageUrl.trim() || undefined,
           settings,
         };
 
         await quizAdminService.updateQuiz(quizId, payload);
+      }
+
+      // Upload image if one was selected
+      if (uploadedImage && savedQuizId) {
+        const formData = new FormData();
+        formData.append('file', uploadedImage.file);
+
+        await fetch(`/api/v1/admin/quizzes/${savedQuizId}/image`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+          body: formData,
+        });
       }
 
       navigate('/admin/quizzes');
@@ -540,22 +626,81 @@ export default function AdminQuizEditPage() {
                 />
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
                 <label
-                  htmlFor="imageUrl"
+                  htmlFor="imageFile"
                   className="block text-gray-300 font-medium mb-2"
                 >
-                  Bild-URL (optional)
+                  Bild hochladen (optional)
                 </label>
-                <input
-                  type="url"
-                  id="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={e => handleInputChange('imageUrl', e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-                />
+                <div className="flex flex-col space-y-3">
+                  <input
+                    type="file"
+                    id="imageFile"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#FCC822] file:text-black hover:file:bg-[#E6B11F] focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
+                  />
+                  {uploadedImage && (
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={uploadedImage.preview}
+                        alt="Hochgeladenes Bild"
+                        className="h-20 w-20 object-cover rounded-lg border border-gray-600"
+                      />
+                      <div className="flex-1">
+                        <p className="text-white text-sm font-medium">
+                          {uploadedImage.filename}
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          {Math.round(uploadedImage.file.size / 1024)} KB
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="p-2 text-red-400 hover:bg-red-400 hover:bg-opacity-20 rounded-lg transition-colors duration-200"
+                        title="Bild entfernen"
+                      >
+                        <img
+                          src="/buttons/Delete.png"
+                          alt="Entfernen"
+                          className="h-4 w-4"
+                        />
+                      </button>
+                    </div>
+                  )}
+                  {!uploadedImage && formData.imageUrl && (
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={`/api/v1/admin/quizzes/${quizId}/image`}
+                        alt="Quiz Bild"
+                        className="h-20 w-20 object-cover rounded-lg border border-gray-600"
+                        onError={e => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      <div className="flex-1">
+                        <p className="text-white text-sm font-medium">
+                          Vorhandenes Bild
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeExistingImage}
+                        className="p-2 text-red-400 hover:bg-red-400 hover:bg-opacity-20 rounded-lg transition-colors duration-200"
+                        title="Bild entfernen"
+                      >
+                        <img
+                          src="/buttons/Delete.png"
+                          alt="Entfernen"
+                          className="h-4 w-4"
+                        />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Tags */}
