@@ -131,15 +131,15 @@ export default function AdminLogsPage() {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'user':
-        return '/avatars/player_male_with_greataxe.png';
+        return '/buttons/User.png';
       case 'quiz':
-        return '/badges/badge_book_1.png';
+        return '/button/Leaderboard.png';
       case 'system':
         return '/buttons/Settings.png';
       case 'security':
         return '/buttons/Close.png';
       case 'performance':
-        return '/buttons/Filter.png';
+        return '/buttons/Progress.png';
       default:
         return '/buttons/Home.png';
     }
@@ -177,7 +177,7 @@ export default function AdminLogsPage() {
           <div className="flex space-x-4">
             <button className="btn-gradient px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105">
               <img
-                src="/buttons/Filter.png"
+                src="/buttons/Logs.png"
                 alt="Export"
                 className="inline h-5 w-5 mr-2"
               />
@@ -207,7 +207,7 @@ export default function AdminLogsPage() {
               </div>
               <div className="p-3 bg-[#FCC822] bg-opacity-20 rounded-lg">
                 <img
-                  src="/buttons/Filter.png"
+                  src="/buttons/Logs.png"
                   alt="Total"
                   className="h-8 w-8"
                 />
@@ -247,7 +247,7 @@ export default function AdminLogsPage() {
               </div>
               <div className="p-3 bg-yellow-500 bg-opacity-20 rounded-lg">
                 <img
-                  src="/buttons/Filter.png"
+                  src="/buttons/Warning.png"
                   alt="Warnings"
                   className="h-8 w-8"
                 />
@@ -265,7 +265,7 @@ export default function AdminLogsPage() {
                 <p className="text-gray-400 text-sm">Normale Aktivitäten</p>
               </div>
               <div className="p-3 bg-blue-500 bg-opacity-20 rounded-lg">
-                <img src="/buttons/Accept.png" alt="Info" className="h-8 w-8" />
+                <img src="/buttons/Information.png" alt="Info" className="h-8 w-8" />
               </div>
             </div>
           </div>

@@ -145,7 +145,7 @@ export default function AdminDashboardPage() {
               </button>
               <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
                 <img
-                  src="/avatars/ai_assistant_wizard.png"
+                  src="/buttons/User.png"
                   alt={translate('accessibility.user')}
                   className="h-6 w-6 mx-auto mb-2"
                 />
@@ -161,7 +161,7 @@ export default function AdminDashboardPage() {
               </button>
               <button className="btn-gradient p-4 rounded-xl text-center font-medium transition-all duration-200 hover:scale-105">
                 <img
-                  src="/buttons/Filter.png"
+                  src="/buttons/Report.png"
                   alt={translate('accessibility.reports')}
                   className="h-6 w-6 mx-auto mb-2"
                 />
