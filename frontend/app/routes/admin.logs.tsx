@@ -133,7 +133,7 @@ export default function AdminLogsPage() {
       case 'user':
         return '/buttons/User.png';
       case 'quiz':
-        return '/button/Leaderboard.png';
+        return '/buttons/Leaderboard.png';
       case 'system':
         return '/buttons/Settings.png';
       case 'security':
