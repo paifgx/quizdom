@@ -46,10 +46,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router, prefix="/auth", tags=["authentication"])
-app.include_router(quiz.router, prefix="/quiz", tags=["quizzes"])
-app.include_router(user.router, prefix="/admin", tags=["user-management"])
-app.include_router(admin_router, tags=["admin"])
+app.include_router(auth.router)
+app.include_router(quiz.router)
+app.include_router(user.router)
+app.include_router(admin_router)
 
 
 @app.get("/", tags=["health"])

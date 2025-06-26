@@ -97,7 +97,7 @@ class AuthService {
   async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
       const response = await apiClient.post<AuthResponse>(
-        '/auth/register',
+        '/v1/auth/register',
         userData
       );
 
@@ -125,7 +125,7 @@ class AuthService {
       formBody.append('password', credentials.password);
 
       const response = await apiClient.post<AuthResponse>(
-        '/auth/login',
+        '/v1/auth/login',
         formBody.toString(),
         {
           headers: {
@@ -157,7 +157,7 @@ class AuthService {
         throw new Error('No authentication token found');
       }
 
-      const user = await this.makeAuthenticatedRequest<User>('/auth/me');
+      const user = await this.makeAuthenticatedRequest<User>('/v1/auth/me');
       this.setUser(user);
 
       return user;

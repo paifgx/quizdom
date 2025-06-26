@@ -65,7 +65,7 @@ class UserAdminService {
    * Get user statistics for admin dashboard
    */
   async getUserStats(): Promise<UserStats> {
-    return apiClient.get<UserStats>('/admin/users/stats', {
+    return apiClient.get<UserStats>('/v1/admin/users/stats', {
       headers: this.getAuthHeaders(),
     });
   }
@@ -85,7 +85,7 @@ class UserAdminService {
     if (params.status_filter)
       searchParams.set('status_filter', params.status_filter);
 
-    const url = `/admin/users${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `/v1/admin/users${searchParams.toString() ? `?${searchParams}` : ''}`;
 
     return apiClient.get<UserAdminData[]>(url, {
       headers: this.getAuthHeaders(),
@@ -96,7 +96,7 @@ class UserAdminService {
    * Get a specific user by ID
    */
   async getUser(userId: number): Promise<UserAdminData> {
-    return apiClient.get<UserAdminData>(`/admin/users/${userId}`, {
+    return apiClient.get<UserAdminData>(`/v1/admin/users/${userId}`, {
       headers: this.getAuthHeaders(),
     });
   }
@@ -105,7 +105,7 @@ class UserAdminService {
    * Create a new user
    */
   async createUser(userData: CreateUserRequest): Promise<UserAdminData> {
-    return apiClient.post<UserAdminData>('/admin/users', userData, {
+    return apiClient.post<UserAdminData>('/v1/admin/users', userData, {
       headers: this.getAuthHeaders(),
     });
   }
@@ -117,7 +117,7 @@ class UserAdminService {
     userId: number,
     userData: UpdateUserRequest
   ): Promise<UserAdminData> {
-    return apiClient.put<UserAdminData>(`/admin/users/${userId}`, userData, {
+    return apiClient.put<UserAdminData>(`/v1/admin/users/${userId}`, userData, {
       headers: this.getAuthHeaders(),
     });
   }
@@ -130,7 +130,7 @@ class UserAdminService {
     isActive: boolean
   ): Promise<UserAdminData> {
     return apiClient.put<UserAdminData>(
-      `/admin/users/${userId}/status`,
+      `/v1/admin/users/${userId}/status`,
       {
         deleted_at: isActive ? null : new Date().toISOString(),
       },
@@ -144,7 +144,7 @@ class UserAdminService {
    * Permanently delete a user
    */
   async deleteUser(userId: number): Promise<{ message: string }> {
-    return apiClient.delete<{ message: string }>(`/admin/users/${userId}`, {
+    return apiClient.delete<{ message: string }>(`/v1/admin/users/${userId}`, {
       headers: this.getAuthHeaders(),
     });
   }
@@ -153,7 +153,7 @@ class UserAdminService {
    * Get all available roles
    */
   async getRoles(): Promise<Role[]> {
-    return apiClient.get<Role[]>('/admin/roles', {
+    return apiClient.get<Role[]>('/v1/admin/roles', {
       headers: this.getAuthHeaders(),
     });
   }

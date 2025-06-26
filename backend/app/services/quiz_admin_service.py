@@ -8,6 +8,7 @@ from app.db.models import Answer, Question, Quiz, QuizQuestion, Topic
 from app.schemas.quiz_admin import (
     QuestionCreate,
     QuestionUpdate,
+    QuizBatchCreate,
     QuizCreate,
     QuizUpdate,
     TopicCreate,
@@ -277,8 +278,7 @@ class QuizAdminService:
         return quiz_dict
 
     def create_quiz(self, quiz_data: QuizCreate) -> dict:
-        """Create a new quiz with questions."""
-        # Verify all question IDs exist
+        """Create a new quiz with questions (or empty for preparation)."""
         for qid in quiz_data.question_ids:
             if not self.db.get(Question, qid):
                 raise ValueError(f"Frage mit ID {qid} existiert nicht")
@@ -287,9 +287,8 @@ class QuizAdminService:
         quiz_dict = quiz_data.dict(exclude={"question_ids"})
         quiz = Quiz(**quiz_dict)
         self.db.add(quiz)
-        self.db.flush()  # Get the quiz ID
+        self.db.flush()
 
-        # Create quiz-question relationships
         for order, question_id in enumerate(quiz_data.question_ids):
             quiz_question = QuizQuestion(
                 quiz_id=quiz.id, question_id=question_id, order=order
@@ -298,7 +297,12 @@ class QuizAdminService:
 
         self.db.commit()
         self.db.refresh(quiz)
-        return self.get_quiz(quiz.id)
+
+        result = self.get_quiz(quiz.id)
+        if result is None:
+            raise ValueError("Failed to retrieve created quiz")
+
+        return result
 
     def update_quiz(self, quiz_id: int, quiz_data: QuizUpdate) -> Optional[dict]:
         """Update an existing quiz."""
@@ -349,3 +353,63 @@ class QuizAdminService:
         self.db.delete(quiz)
         self.db.commit()
         return True
+
+    def create_quiz_batch(self, quiz_data: QuizBatchCreate) -> dict:
+        """Create a new quiz with questions in a single batch operation."""
+        # Create quiz first (without questions)
+        quiz_dict = quiz_data.dict(exclude={"questions"})
+        quiz = Quiz(**quiz_dict)
+        self.db.add(quiz)
+        self.db.flush()  # Get the quiz ID
+
+        if quiz.id is None:
+            raise ValueError("Failed to create quiz")
+
+        created_question_ids = []
+
+        # Process each question (either create new or use existing)
+        for order, question_item in enumerate(quiz_data.questions):
+            if isinstance(question_item, int):
+                # Existing question ID - verify it exists
+                if not self.db.get(Question, question_item):
+                    raise ValueError(f"Frage mit ID {question_item} existiert nicht")
+                question_id = question_item
+            else:
+                question_create = question_item
+
+                if not self.db.get(Topic, question_create.topic_id):
+                    raise ValueError(
+                        f"Thema mit ID {question_create.topic_id} existiert nicht"
+                    )
+
+                question_dict = question_create.dict(exclude={"answers"})
+                question = Question(**question_dict)
+                self.db.add(question)
+                self.db.flush()
+
+                if question.id is None:
+                    raise ValueError("Failed to create question")
+
+                # Create answers
+                for answer_data in question_create.answers:
+                    answer = Answer(question_id=question.id, **answer_data.dict())
+                    self.db.add(answer)
+
+                question_id = question.id
+
+            created_question_ids.append(question_id)
+
+            # Create quiz-question relationship
+            quiz_question = QuizQuestion(
+                quiz_id=quiz.id, question_id=question_id, order=order
+            )
+            self.db.add(quiz_question)
+
+        self.db.commit()
+        self.db.refresh(quiz)
+
+        result = self.get_quiz(quiz.id)
+        if result is None:
+            raise ValueError("Failed to retrieve created quiz")
+
+        return result

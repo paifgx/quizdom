@@ -8,27 +8,8 @@ export default defineConfig({
   server: {
     host: true,
     strictPort: true,
-    // Proxy API requests to backend to avoid CORS
     proxy: {
-      // Handle all /v1 routes (includes /v1/admin)
       '/v1': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-      // Handle other API routes
-      '/auth': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-      '/quiz': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-      '/admin': {
         target: 'http://localhost:8000',
         changeOrigin: true,
       },

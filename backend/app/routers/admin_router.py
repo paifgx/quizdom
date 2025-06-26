@@ -13,6 +13,7 @@ from app.schemas.quiz_admin import (
     QuestionCreate,
     QuestionResponse,
     QuestionUpdate,
+    QuizBatchCreate,
     QuizCreate,
     QuizDetailResponse,
     QuizResponse,
@@ -23,7 +24,7 @@ from app.schemas.quiz_admin import (
 )
 from app.services.quiz_admin_service import QuizAdminService
 
-router = APIRouter(prefix="/v1/admin", tags=["admin"])
+router = APIRouter(prefix="/v1/admin/quiz", tags=["admin-quiz"])
 
 
 # Topic endpoints
@@ -226,6 +227,24 @@ async def create_quiz(
     service = QuizAdminService(db)
     try:
         return service.create_quiz(quiz_data)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post(
+    "/quizzes/batch",
+    response_model=QuizDetailResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_quiz_batch(
+    quiz_data: QuizBatchCreate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_session),
+):
+    """Create a new quiz with questions in a single batch operation."""
+    service = QuizAdminService(db)
+    try:
+        return service.create_quiz_batch(quiz_data)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

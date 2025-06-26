@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { ProtectedRoute } from '../components/auth/protected-route';
 import { QuizList } from '../components/admin/quiz-list';
 import { quizAdminService } from '../services/quiz-admin';
-import type { QuizSummary, QuizStatus } from '../types/quiz';
+import type { QuizSummary, QuizStatus, QuizDifficulty } from '../types/quiz';
 
 export function meta() {
   return [
@@ -22,13 +22,11 @@ export default function AdminQuizzesPage() {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<string[]>([]);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<
-    'all' | 'easy' | 'medium' | 'hard'
+    'all' | QuizDifficulty
   >('all');
   const [selectedStatus, setSelectedStatus] = useState<'all' | QuizStatus>(
     'all'
@@ -44,14 +42,9 @@ export default function AdminQuizzesPage() {
       setLoading(true);
       setError(null);
 
-      // Load quizzes and categories in parallel
-      const [quizzesData, categoriesData] = await Promise.all([
-        quizAdminService.getQuizzes(),
-        quizAdminService.getCategories(),
-      ]);
-
+      // Load quizzes
+      const quizzesData = await quizAdminService.getQuizzes();
       setQuizzes(quizzesData);
-      setCategories(categoriesData);
     } catch (err) {
       console.error('Failed to load data:', err);
       setError('Fehler beim Laden der Daten. Bitte versuchen Sie es erneut.');
@@ -67,16 +60,12 @@ export default function AdminQuizzesPage() {
       quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       quiz.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCategory =
-      selectedCategory === 'all' || quiz.category === selectedCategory;
     const matchesDifficulty =
       selectedDifficulty === 'all' || quiz.difficulty === selectedDifficulty;
     const matchesStatus =
       selectedStatus === 'all' || quiz.status === selectedStatus;
 
-    return (
-      matchesSearch && matchesCategory && matchesDifficulty && matchesStatus
-    );
+    return matchesSearch && matchesDifficulty && matchesStatus;
   });
 
   const handleStatusChange = async (quizId: string, newStatus: QuizStatus) => {
@@ -199,7 +188,7 @@ export default function AdminQuizzesPage() {
 
         {/* Filters */}
         <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 mb-8 border border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
             <div>
               <label
@@ -218,29 +207,6 @@ export default function AdminQuizzesPage() {
               />
             </div>
 
-            {/* Category Filter */}
-            <div>
-              <label
-                htmlFor="category"
-                className="block text-gray-300 font-medium mb-2"
-              >
-                Kategorie
-              </label>
-              <select
-                id="category"
-                value={selectedCategory}
-                onChange={e => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
-              >
-                <option value="all">Alle Kategorien</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* Difficulty Filter */}
             <div>
               <label
@@ -254,15 +220,19 @@ export default function AdminQuizzesPage() {
                 value={selectedDifficulty}
                 onChange={e =>
                   setSelectedDifficulty(
-                    e.target.value as 'all' | 'easy' | 'medium' | 'hard'
+                    e.target.value === 'all'
+                      ? 'all'
+                      : (parseInt(e.target.value) as QuizDifficulty)
                   )
                 }
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
               >
                 <option value="all">Alle Schwierigkeiten</option>
-                <option value="easy">Einfach</option>
-                <option value="medium">Mittel</option>
-                <option value="hard">Schwer</option>
+                <option value={1}>1 - Anfänger</option>
+                <option value={2}>2 - Lehrling</option>
+                <option value={3}>3 - Geselle</option>
+                <option value={4}>4 - Meister</option>
+                <option value={5}>5 - Großmeister</option>
               </select>
             </div>
 

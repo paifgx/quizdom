@@ -84,7 +84,7 @@ class TestUserRegistration:
     def test_register_new_user_success(self, client: TestClient):
         """Test successful user registration."""
         response = client.post(
-            "/auth/register",
+            "/v1/auth/register",
             json={"email": "newuser@example.com", "password": "newpassword123"},
         )
 
@@ -101,7 +101,7 @@ class TestUserRegistration:
     def test_register_existing_user_failure(self, client: TestClient, test_user: User):
         """Test registration with existing email fails."""
         response = client.post(
-            "/auth/register",
+            "/v1/auth/register",
             json={"email": test_user.email, "password": "somepassword123"},
         )
 
@@ -111,7 +111,8 @@ class TestUserRegistration:
     def test_register_invalid_email(self, client: TestClient):
         """Test registration with invalid email format."""
         response = client.post(
-            "/auth/register", json={"email": "invalid-email", "password": "password123"}
+            "/v1/auth/register",
+            json={"email": "invalid-email", "password": "password123"},
         )
 
         assert response.status_code == 422
@@ -119,7 +120,7 @@ class TestUserRegistration:
     def test_register_weak_password(self, client: TestClient):
         """Test registration with weak password."""
         response = client.post(
-            "/auth/register", json={"email": "test@example.com", "password": "123"}
+            "/v1/auth/register", json={"email": "test@example.com", "password": "123"}
         )
 
         assert response.status_code == 422
@@ -131,7 +132,7 @@ class TestUserLogin:
     def test_login_success(self, client: TestClient, test_user: User):
         """Test successful user login."""
         response = client.post(
-            "/auth/login",
+            "/v1/auth/login",
             data={"username": test_user.email, "password": "testpassword123"},
         )
 
@@ -146,7 +147,7 @@ class TestUserLogin:
     def test_login_admin_user_with_role(self, client: TestClient, admin_user: User):
         """Test admin user login includes role information."""
         response = client.post(
-            "/auth/login",
+            "/v1/auth/login",
             data={"username": admin_user.email, "password": "adminpassword123"},
         )
 
@@ -160,7 +161,7 @@ class TestUserLogin:
     def test_login_wrong_password(self, client: TestClient, test_user: User):
         """Test login with wrong password fails."""
         response = client.post(
-            "/auth/login",
+            "/v1/auth/login",
             data={"username": test_user.email, "password": "wrongpassword"},
         )
 
@@ -170,7 +171,7 @@ class TestUserLogin:
     def test_login_nonexistent_user(self, client: TestClient):
         """Test login with nonexistent user fails."""
         response = client.post(
-            "/auth/login",
+            "/v1/auth/login",
             data={"username": "nonexistent@example.com", "password": "somepassword"},
         )
 
@@ -179,7 +180,7 @@ class TestUserLogin:
 
     def test_login_missing_credentials(self, client: TestClient):
         """Test login with missing credentials."""
-        response = client.post("/auth/login", data={})
+        response = client.post("/v1/auth/login", data={})
 
         assert response.status_code == 422
 
@@ -192,7 +193,7 @@ class TestCurrentUser:
         token = create_access_token(data={"sub": test_user.email})
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = client.get("/auth/me", headers=headers)
+        response = client.get("/v1/auth/me", headers=headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -206,7 +207,7 @@ class TestCurrentUser:
         token = create_access_token(data={"sub": admin_user.email})
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = client.get("/auth/me", headers=headers)
+        response = client.get("/v1/auth/me", headers=headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -217,7 +218,7 @@ class TestCurrentUser:
 
     def test_get_current_user_no_token(self, client: TestClient):
         """Test getting current user without token fails."""
-        response = client.get("/auth/me")
+        response = client.get("/v1/auth/me")
 
         assert response.status_code == 401
 
@@ -225,7 +226,7 @@ class TestCurrentUser:
         """Test getting current user with invalid token fails."""
         headers = {"Authorization": "Bearer invalid_token"}
 
-        response = client.get("/auth/me", headers=headers)
+        response = client.get("/v1/auth/me", headers=headers)
 
         assert response.status_code == 401
 
@@ -239,7 +240,7 @@ class TestCurrentUser:
         )
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = client.get("/auth/me", headers=headers)
+        response = client.get("/v1/auth/me", headers=headers)
 
         assert response.status_code == 401
 
@@ -248,7 +249,7 @@ class TestCurrentUser:
         token = create_access_token(data={"sub": "nonexistent@example.com"})
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = client.get("/auth/me", headers=headers)
+        response = client.get("/v1/auth/me", headers=headers)
 
         assert response.status_code == 401
 

@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
 import type { QuizSummary, QuizStatus, QuizDifficulty } from '../../types/quiz';
+import { getDifficultyName } from '../../utils/difficulty';
 
 interface QuizListProps {
   quizzes: QuizSummary[];
@@ -51,7 +52,15 @@ export function QuizList({
     }
   };
 
-  const getDifficultyColor = (difficulty: QuizDifficulty) => {
+  const getDifficultyColor = (difficulty: QuizDifficulty | string | number) => {
+    // Handle numeric difficulties
+    if (typeof difficulty === 'number') {
+      if (difficulty <= 2) return 'bg-green-600 text-green-100';
+      if (difficulty <= 3) return 'bg-yellow-600 text-yellow-100';
+      return 'bg-red-600 text-red-100';
+    }
+
+    // Handle legacy string difficulties
     switch (difficulty) {
       case 'easy':
         return 'bg-green-600 text-green-100';
@@ -61,19 +70,6 @@ export function QuizList({
         return 'bg-red-600 text-red-100';
       default:
         return 'bg-gray-600 text-gray-100';
-    }
-  };
-
-  const getDifficultyLabel = (difficulty: QuizDifficulty) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'Einfach';
-      case 'medium':
-        return 'Mittel';
-      case 'hard':
-        return 'Schwer';
-      default:
-        return difficulty;
     }
   };
 
@@ -105,10 +101,7 @@ export function QuizList({
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(quiz.difficulty)}`}
                   >
-                    {getDifficultyLabel(quiz.difficulty)}
-                  </span>
-                  <span className="px-3 py-1 bg-[#FCC822] bg-opacity-20 text-[#FCC822] rounded-full text-xs font-medium">
-                    {quiz.category}
+                    {getDifficultyName(quiz.difficulty)}
                   </span>
                 </div>
 

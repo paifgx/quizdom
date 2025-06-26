@@ -8,9 +8,9 @@
 export type QuizStatus = 'draft' | 'published' | 'archived';
 
 /**
- * Quiz difficulty levels.
+ * Quiz difficulty levels - matching backend 1-5 system.
  */
-export type QuizDifficulty = 'easy' | 'medium' | 'hard';
+export type QuizDifficulty = 1 | 2 | 3 | 4 | 5;
 
 /**
  * Question type enum.
@@ -65,7 +65,6 @@ export interface Quiz {
   id: string;
   title: string;
   description: string;
-  category: string;
   difficulty: QuizDifficulty;
   status: QuizStatus;
   questions: QuizQuestion[];
@@ -87,7 +86,6 @@ export interface QuizSummary {
   id: string;
   title: string;
   description: string;
-  category: string;
   difficulty: QuizDifficulty;
   status: QuizStatus;
   questionCount: number;
@@ -106,11 +104,29 @@ export interface QuizSummary {
 export interface CreateQuizPayload {
   title: string;
   description: string;
-  category: string;
   difficulty: QuizDifficulty;
   tags: string[];
   imageUrl?: string;
   settings: QuizSettings;
+}
+
+/**
+ * Create quiz batch payload - creates quiz with questions in one operation.
+ */
+export interface CreateQuizBatchPayload {
+  title: string;
+  description: string;
+  difficulty: QuizDifficulty;
+  estimatedDuration?: number;
+  questions: Array<{
+    content: string;
+    explanation?: string;
+    difficulty: QuizDifficulty;
+    answers: Array<{
+      content: string;
+      isCorrect: boolean;
+    }>;
+  }>;
 }
 
 /**
@@ -125,7 +141,6 @@ export interface UpdateQuizPayload extends Partial<CreateQuizPayload> {
  */
 export interface QuizFilters {
   search?: string;
-  category?: string;
   difficulty?: QuizDifficulty;
   status?: QuizStatus;
   createdBy?: string;
@@ -142,5 +157,4 @@ export interface QuizStatistics {
   totalQuestions: number;
   totalPlays: number;
   averageCompletionRate: number;
-  categoriesCount: Record<string, number>;
 }

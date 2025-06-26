@@ -24,6 +24,9 @@ interface Answer {
   isCorrect: boolean;
 }
 
+// Question difficulty type for admin interface
+type QuestionDifficulty = 'easy' | 'medium' | 'hard';
+
 export default function AdminQuestionEditPage() {
   const { questionId } = useParams();
   const navigate = useNavigate();
@@ -38,7 +41,7 @@ export default function AdminQuestionEditPage() {
   // Form state
   const [formData, setFormData] = useState({
     topicId: '',
-    difficulty: 'easy' as 'easy' | 'medium' | 'hard',
+    difficulty: 'easy' as QuestionDifficulty,
     content: '',
     explanation: '',
   });
@@ -90,7 +93,10 @@ export default function AdminQuestionEditPage() {
     loadData();
   }, [loadData]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (
+    field: string,
+    value: string | QuestionDifficulty
+  ) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -288,7 +294,10 @@ export default function AdminQuestionEditPage() {
                   id="difficulty"
                   value={formData.difficulty}
                   onChange={e =>
-                    handleInputChange('difficulty', e.target.value)
+                    handleInputChange(
+                      'difficulty',
+                      e.target.value as QuestionDifficulty
+                    )
                   }
                   className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
                   required

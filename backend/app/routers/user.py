@@ -24,7 +24,7 @@ from app.schemas.user import (
     UserUpdateRequest,
 )
 
-router = APIRouter(tags=["user-management"])
+router = APIRouter(prefix="/v1/users", tags=["users"])
 
 
 def require_admin(current_user: User = Depends(get_current_user)) -> User:
@@ -116,7 +116,7 @@ def _build_user_response_with_stats(
     )
 
 
-@router.get("/users", response_model=List[UserListResponse])
+@router.get("", response_model=List[UserListResponse])
 async def list_users(
     session: Session = Depends(get_session),
     admin_user: User = Depends(require_admin),
@@ -150,7 +150,7 @@ async def list_users(
     return user_responses
 
 
-@router.get("/users/stats", response_model=UserStatsResponse)
+@router.get("/stats", response_model=UserStatsResponse)
 async def get_user_stats(
     session: Session = Depends(get_session),
     admin_user: User = Depends(require_admin),
@@ -189,7 +189,7 @@ async def get_user_stats(
     )
 
 
-@router.get("/users/{user_id}", response_model=UserListResponse)
+@router.get("/{user_id}", response_model=UserListResponse)
 async def get_user(
     user_id: int,
     session: Session = Depends(get_session),
@@ -244,7 +244,7 @@ def _validate_create_user_data(session: Session, user_data: UserCreateRequest) -
             )
 
 
-@router.post("/users", response_model=UserListResponse)
+@router.post("", response_model=UserListResponse)
 async def create_user(
     user_data: UserCreateRequest,
     session: Session = Depends(get_session),
@@ -334,7 +334,7 @@ def _apply_user_updates(user: User, user_data: UserUpdateRequest) -> None:
         user.role_id = user_data.role_id
 
 
-@router.put("/users/{user_id}", response_model=UserListResponse)
+@router.put("/{user_id}", response_model=UserListResponse)
 async def update_user(
     user_id: int,
     user_data: UserUpdateRequest,
@@ -375,7 +375,7 @@ async def update_user(
     return response
 
 
-@router.put("/users/{user_id}/status", response_model=UserListResponse)
+@router.put("/{user_id}/status", response_model=UserListResponse)
 async def update_user_status(
     user_id: int,
     status_data: UserStatusUpdateRequest,
@@ -451,7 +451,7 @@ async def update_user_status(
     )
 
 
-@router.delete("/users/{user_id}")
+@router.delete("/{user_id}")
 async def delete_user(
     user_id: int,
     session: Session = Depends(get_session),

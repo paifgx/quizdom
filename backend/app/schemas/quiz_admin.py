@@ -1,7 +1,7 @@
 """Pydantic schemas for quiz administration."""
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -115,13 +115,11 @@ class QuizBase(BaseModel):
 class QuizCreate(QuizBase):
     """Schema for creating a quiz."""
 
-    question_ids: List[int]
+    question_ids: List[int] = []
 
     @field_validator("question_ids")
     @classmethod
     def validate_question_ids(cls, v: List[int]) -> List[int]:
-        if not v:
-            raise ValueError("Quiz muss mindestens eine Frage enthalten")
         return v
 
 
@@ -152,6 +150,21 @@ class QuizDetailResponse(QuizResponse):
     """Schema for detailed quiz response with questions."""
 
     questions: List[QuestionResponse]
+
+
+class QuizBatchCreate(QuizBase):
+    """Schema for creating a quiz with questions in a single operation."""
+
+    questions: List[Union[QuestionCreate, int]]
+
+    @field_validator("questions")
+    @classmethod
+    def validate_questions(
+        cls, v: List[Union[QuestionCreate, int]]
+    ) -> List[Union[QuestionCreate, int]]:
+        if not v:
+            raise ValueError("Quiz muss mindestens eine Frage enthalten")
+        return v
 
 
 class ErrorResponse(BaseModel):

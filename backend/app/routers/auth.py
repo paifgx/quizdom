@@ -22,10 +22,10 @@ from app.db.models import Role, User
 from app.db.session import get_session
 from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse
 
-router = APIRouter(tags=["authentication"])
+router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 # OAuth2 scheme for token authentication
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/auth/login")
 
 
 async def get_current_user(

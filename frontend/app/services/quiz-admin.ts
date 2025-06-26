@@ -13,16 +13,17 @@ import type {
   CreateQuizPayload,
   UpdateQuizPayload,
   QuizQuestion,
+  CreateQuizBatchPayload,
+  QuizDifficulty,
 } from '../types/quiz';
 import { QuestionType } from '../types/quiz';
 
-// Backend API types for mapping
 interface BackendQuizResponse {
   id: number;
   title: string;
   description: string | null;
   topic_id: number;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: number;
   time_limit_minutes: number | null;
   created_at: string;
   topic: {
@@ -40,7 +41,7 @@ interface BackendQuizDetailResponse extends BackendQuizResponse {
 interface BackendQuestionResponse {
   id: number;
   topic_id: number;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: number;
   content: string;
   explanation: string | null;
   created_at: string;
@@ -67,6 +68,33 @@ class QuizAdminService {
   }
 
   /**
+   * Gets difficulty name for display.
+   */
+  private getDifficultyName(difficulty: number): string {
+    switch (difficulty) {
+      case 1:
+        return 'Anfänger';
+      case 2:
+        return 'Lehrling';
+      case 3:
+        return 'Geselle';
+      case 4:
+        return 'Meister';
+      case 5:
+        return 'Großmeister';
+      default:
+        return 'Unbekannt';
+    }
+  }
+
+  /**
+   * Map frontend numeric difficulty to backend difficulty.
+   */
+  private mapDifficultyToBackend(difficulty: QuizDifficulty): number {
+    return difficulty; // Frontend now uses numeric difficulties that match backend
+  }
+
+  /**
    * Maps backend quiz response to frontend quiz summary.
    */
   private mapToQuizSummary(backendQuiz: BackendQuizResponse): QuizSummary {
@@ -74,8 +102,7 @@ class QuizAdminService {
       id: backendQuiz.id.toString(),
       title: backendQuiz.title,
       description: backendQuiz.description || '',
-      category: backendQuiz.topic.title,
-      difficulty: backendQuiz.difficulty,
+      difficulty: backendQuiz.difficulty as QuizDifficulty,
       status: 'published', // Default status since backend doesn't have status field yet
       questionCount: backendQuiz.question_count,
       totalPoints: backendQuiz.question_count * 10, // Estimate: 10 points per question
@@ -111,8 +138,7 @@ class QuizAdminService {
       id: backendQuiz.id.toString(),
       title: backendQuiz.title,
       description: backendQuiz.description || '',
-      category: backendQuiz.topic.title,
-      difficulty: backendQuiz.difficulty,
+      difficulty: backendQuiz.difficulty as QuizDifficulty,
       status: 'published',
       questions,
       settings: {
@@ -161,10 +187,6 @@ class QuizAdminService {
         );
       }
 
-      if (filters?.category && filters.category !== 'all') {
-        quizzes = quizzes.filter(quiz => quiz.category === filters.category);
-      }
-
       if (filters?.difficulty) {
         quizzes = quizzes.filter(
           quiz => quiz.difficulty === filters.difficulty
@@ -206,15 +228,15 @@ class QuizAdminService {
    */
   async createQuiz(payload: CreateQuizPayload): Promise<Quiz> {
     try {
-      // First, we need to get or create a topic
+      // Use a default topic for all quizzes since we removed categories
       const topics = await this.getTopics();
-      let topicId = topics.find(t => t.title === payload.category)?.id;
+      let topicId = topics.find(t => t.title === 'General')?.id;
 
       if (!topicId) {
-        // Create new topic if it doesn't exist
+        // Create default topic if it doesn't exist
         const newTopic = await this.createTopic({
-          title: payload.category,
-          description: `Topic for ${payload.category} quizzes`,
+          title: 'General',
+          description: 'Default topic for quizzes',
         });
         topicId = newTopic.id;
       }
@@ -223,7 +245,7 @@ class QuizAdminService {
         title: string;
         description: string;
         topic_id: number;
-        difficulty: 'easy' | 'medium' | 'hard';
+        difficulty: number;
         time_limit_minutes: number | null;
         question_ids: number[];
       }> = {
@@ -231,8 +253,8 @@ class QuizAdminService {
         description: payload.description,
         topic_id: topicId,
         difficulty: payload.difficulty,
-        time_limit_minutes: 15, // Default time limit
-        question_ids: [], // Start with empty quiz
+        time_limit_minutes: 15,
+        question_ids: [],
       };
 
       const response = await apiClient.post<BackendQuizDetailResponse>(
@@ -261,20 +283,14 @@ class QuizAdminService {
         title: string;
         description: string;
         topic_id: number;
-        difficulty: 'easy' | 'medium' | 'hard';
+        difficulty: number;
+        time_limit_minutes: number | null;
+        question_ids: number[];
       }> = {};
 
       if (payload.title) backendPayload.title = payload.title;
       if (payload.description) backendPayload.description = payload.description;
       if (payload.difficulty) backendPayload.difficulty = payload.difficulty;
-
-      if (payload.category) {
-        const topics = await this.getTopics();
-        const topic = topics.find(t => t.title === payload.category);
-        if (topic) {
-          backendPayload.topic_id = topic.id;
-        }
-      }
 
       const response = await apiClient.put<BackendQuizDetailResponse>(
         `/v1/admin/quizzes/${id}`,
@@ -402,7 +418,6 @@ class QuizAdminService {
   async getStatistics(): Promise<QuizStatistics> {
     try {
       const quizzes = await this.getQuizzes();
-      const topics = await this.getTopics();
 
       return {
         totalQuizzes: quizzes.length,
@@ -411,15 +426,6 @@ class QuizAdminService {
         totalQuestions: quizzes.reduce((sum, q) => sum + q.questionCount, 0),
         totalPlays: quizzes.reduce((sum, q) => sum + q.playCount, 0),
         averageCompletionRate: 85, // Placeholder
-        categoriesCount: topics.reduce(
-          (acc, topic) => {
-            acc[topic.title] = quizzes.filter(
-              q => q.category === topic.title
-            ).length;
-            return acc;
-          },
-          {} as Record<string, number>
-        ),
       };
     } catch (error) {
       console.error('Failed to get statistics:', error);
@@ -453,7 +459,6 @@ class QuizAdminService {
       const duplicatePayload: CreateQuizPayload = {
         title: `${originalQuiz.title} (Copy)`,
         description: originalQuiz.description,
-        category: originalQuiz.category,
         difficulty: originalQuiz.difficulty,
         tags: originalQuiz.tags,
         imageUrl: originalQuiz.imageUrl,
@@ -495,6 +500,59 @@ class QuizAdminService {
     return apiClient.post('/v1/admin/topics', payload, {
       headers: this.getAuthHeaders(),
     });
+  }
+
+  /**
+   * Create a new quiz with questions in a single batch operation.
+   */
+  async createQuizBatch(payload: CreateQuizBatchPayload): Promise<Quiz> {
+    try {
+      // Use a default topic for all quizzes and questions since we removed categories
+      const topics = await this.getTopics();
+      let topicId = topics.find(t => t.title === 'General')?.id;
+
+      if (!topicId) {
+        // Create default topic if it doesn't exist
+        const newTopic = await this.createTopic({
+          title: 'General',
+          description: 'Default topic for quizzes',
+        });
+        topicId = newTopic.id;
+      }
+
+      const backendPayload = {
+        title: payload.title,
+        description: payload.description,
+        topic_id: topicId,
+        difficulty: this.mapDifficultyToBackend(payload.difficulty),
+        time_limit_minutes: payload.estimatedDuration || 15,
+        questions: payload.questions.map(q => ({
+          topic_id: topicId,
+          difficulty: q.difficulty,
+          content: q.content,
+          explanation: q.explanation || null,
+          answers: q.answers.map(a => ({
+            content: a.content,
+            is_correct: a.isCorrect,
+          })),
+        })),
+      };
+
+      const response = await apiClient.post<BackendQuizDetailResponse>(
+        '/v1/admin/quizzes/batch',
+        backendPayload,
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+
+      return this.mapToQuiz(response);
+    } catch (error) {
+      console.error('Failed to create quiz batch:', error);
+      throw new Error(
+        'Fehler beim Erstellen des Quiz mit Fragen. Bitte versuchen Sie es erneut.'
+      );
+    }
   }
 }
 

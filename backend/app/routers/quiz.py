@@ -9,7 +9,7 @@ from typing import Dict, List
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-router = APIRouter()
+router = APIRouter(prefix="/v1/quiz", tags=["quiz"])
 
 # In-memory game sessions (in production, use Redis or database)
 game_sessions: Dict[str, "GameSession"] = {}
