@@ -1,73 +1,40 @@
 import type { QuizDifficulty } from '../types/quiz';
 
-export function getDifficultyName(
-  difficulty: QuizDifficulty | string | number
-): string {
-  // Handle numeric difficulties (new format)
-  if (typeof difficulty === 'number') {
-    switch (difficulty) {
-      case 1:
-        return '1 - Anfänger';
-      case 2:
-        return '2 - Lehrling';
-      case 3:
-        return '3 - Geselle';
-      case 4:
-        return '4 - Meister';
-      case 5:
-        return '5 - Großmeister';
-      default:
-        return `${difficulty}`;
-    }
-  }
+// ---------------------------------------------------------------------------
+// Central difficulty helpers (numeric ranks 1-5 ←→ Anzeige)
+// ---------------------------------------------------------------------------
 
-  // Handle string difficulties (old format, for backwards compatibility)
-  if (typeof difficulty === 'string') {
-    switch (difficulty) {
-      case 'easy':
-        return '1 - Anfänger';
-      case 'medium':
-        return '3 - Geselle';
-      case 'hard':
-        return '5 - Großmeister';
-      default:
-        return difficulty;
-    }
-  }
+export const DIFFICULTY_NAMES: Record<QuizDifficulty, string> = {
+  1: 'Anfänger',
+  2: 'Lehrling',
+  3: 'Geselle',
+  4: 'Meister',
+  5: 'Großmeister',
+};
 
-  return `${difficulty}`;
+export const DIFFICULTY_COLORS: Record<QuizDifficulty, string> = {
+  1: 'bg-green-600 text-green-100',
+  2: 'bg-blue-600 text-blue-100',
+  3: 'bg-yellow-600 text-yellow-100',
+  4: 'bg-orange-600 text-orange-100',
+  5: 'bg-red-600 text-red-100',
+};
+
+/**
+ * Returns the display name of the difficulty rank.
+ */
+export function getDifficultyName(difficulty: QuizDifficulty | number): string {
+  return DIFFICULTY_NAMES[difficulty as QuizDifficulty] ?? `${difficulty}`;
 }
 
-export function mapStringToNumericDifficulty(
-  difficulty: string
-): QuizDifficulty {
-  switch (difficulty) {
-    case 'easy':
-      return 1;
-    case 'medium':
-      return 3;
-    case 'hard':
-      return 5;
-    default:
-      return 1;
-  }
-}
-
-export function mapNumericToStringDifficulty(
-  difficulty: QuizDifficulty
+/**
+ * Returns Tailwind-CSS classes for badge colors.
+ */
+export function getDifficultyColor(
+  difficulty: QuizDifficulty | number
 ): string {
-  switch (difficulty) {
-    case 1:
-      return 'easy';
-    case 2:
-      return 'easy';
-    case 3:
-      return 'medium';
-    case 4:
-      return 'hard';
-    case 5:
-      return 'hard';
-    default:
-      return 'easy';
-  }
+  return (
+    DIFFICULTY_COLORS[difficulty as QuizDifficulty] ??
+    'bg-gray-600 text-gray-100'
+  );
 }

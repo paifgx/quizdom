@@ -975,11 +975,11 @@ export default function AdminQuizEditPage() {
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822]"
                 >
                   <option value="all">Alle Schwierigkeiten</option>
-                  <option value={1}>1 - Anfänger</option>
-                  <option value={2}>2 - Lehrling</option>
-                  <option value={3}>3 - Geselle</option>
-                  <option value={4}>4 - Meister</option>
-                  <option value={5}>5 - Großmeister</option>
+                  {[1, 2, 3, 4, 5].map(v => (
+                    <option key={v} value={v}>
+                      {getDifficultyName(v)}
+                    </option>
+                  ))}
                 </select>
               </div>
 

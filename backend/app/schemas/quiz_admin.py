@@ -1,11 +1,54 @@
 """Pydantic schemas for quiz administration."""
 
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
 from app.db.models import Difficulty
+
+# Allowed difficulty aliases mapping (lowercase) to Difficulty enum
+_DIFFICULTY_ALIAS: dict[str, Difficulty] = {
+    "anfänger": Difficulty.ONE,
+    "anfaenger": Difficulty.ONE,
+    "lehrling": Difficulty.TWO,
+    "geselle": Difficulty.THREE,
+    "meister": Difficulty.FOUR,
+    "großmeister": Difficulty.FIVE,
+    "grossmeister": Difficulty.FIVE,
+    # Legacy aliases
+    "easy": Difficulty.ONE,
+    "medium": Difficulty.THREE,
+    "hard": Difficulty.FIVE,
+}
+
+
+class _DifficultyAliasMixin(BaseModel):
+    """Mixin that converts difficulty aliases to Difficulty enum."""
+
+    # Add the difficulty field that the validator validates
+    difficulty: Difficulty
+
+    @classmethod
+    def _convert_difficulty(cls, v: Any) -> Difficulty:
+        if isinstance(v, Difficulty):
+            return v
+        if isinstance(v, int):
+            try:
+                return Difficulty(v)
+            except ValueError as exc:
+                raise ValueError("Ungültiger Schwierigkeitswert") from exc
+        if isinstance(v, str):
+            alias = _DIFFICULTY_ALIAS.get(v.lower())
+            if alias:
+                return alias
+        raise ValueError("Ungültiger Schwierigkeitswert")
+
+    # NOTE: Pydantic v2 field validators run before dataclass conversion
+    @field_validator("difficulty", mode="before")
+    @classmethod
+    def validate_difficulty(cls, v: Any) -> Difficulty:  # noqa: N805
+        return cls._convert_difficulty(v)
 
 
 class TopicBase(BaseModel):
@@ -59,7 +102,7 @@ class AnswerResponse(AnswerBase):
         from_attributes = True
 
 
-class QuestionBase(BaseModel):
+class QuestionBase(_DifficultyAliasMixin):
     """Base schema for questions."""
 
     topic_id: int
@@ -102,7 +145,7 @@ class QuestionResponse(QuestionBase):
         from_attributes = True
 
 
-class QuizBase(BaseModel):
+class QuizBase(_DifficultyAliasMixin):
     """Base schema for quizzes."""
 
     title: str = Field(..., min_length=1, max_length=255)

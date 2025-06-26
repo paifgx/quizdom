@@ -7,6 +7,7 @@ import {
   type CreateQuestionPayload,
   type UpdateQuestionPayload,
 } from '../services/question-admin';
+import type { QuizDifficulty } from '../types/quiz';
 
 export function meta() {
   return [
@@ -25,7 +26,7 @@ interface Answer {
 }
 
 // Question difficulty type for admin interface
-type QuestionDifficulty = 'easy' | 'medium' | 'hard';
+type QuestionDifficulty = QuizDifficulty;
 
 export default function AdminQuestionEditPage() {
   const { questionId } = useParams();
@@ -41,7 +42,7 @@ export default function AdminQuestionEditPage() {
   // Form state
   const [formData, setFormData] = useState({
     topicId: '',
-    difficulty: 'easy' as QuestionDifficulty,
+    difficulty: 1 as QuestionDifficulty,
     content: '',
     explanation: '',
   });
@@ -296,15 +297,17 @@ export default function AdminQuestionEditPage() {
                   onChange={e =>
                     handleInputChange(
                       'difficulty',
-                      e.target.value as QuestionDifficulty
+                      parseInt(e.target.value) as QuestionDifficulty
                     )
                   }
                   className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
                   required
                 >
-                  <option value="easy">Einfach</option>
-                  <option value="medium">Mittel</option>
-                  <option value="hard">Schwer</option>
+                  <option value="1">Anfänger</option>
+                  <option value="2">Lehrling</option>
+                  <option value="3">Geselle</option>
+                  <option value="4">Meister</option>
+                  <option value="5">Großmeister</option>
                 </select>
               </div>
             </div>

@@ -6,6 +6,7 @@ import {
   type Question,
   type Topic,
 } from '../services/question-admin';
+import type { QuizDifficulty } from '../types/quiz';
 
 export function meta() {
   return [
@@ -30,7 +31,9 @@ export default function AdminQuestionsPage() {
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTopicId, setSelectedTopicId] = useState('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<
+    'all' | QuizDifficulty
+  >('all');
 
   // Load initial data
   useEffect(() => {
@@ -99,31 +102,24 @@ export default function AdminQuestionsPage() {
     }
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'bg-green-600 text-green-100';
-      case 'medium':
-        return 'bg-yellow-600 text-yellow-100';
-      case 'hard':
-        return 'bg-red-600 text-red-100';
-      default:
-        return 'bg-gray-600 text-gray-100';
-    }
+  const difficultyColors: Record<QuizDifficulty, string> = {
+    1: 'bg-green-600 text-green-100',
+    2: 'bg-blue-600 text-blue-100',
+    3: 'bg-yellow-600 text-yellow-100',
+    4: 'bg-orange-600 text-orange-100',
+    5: 'bg-red-600 text-red-100',
   };
 
-  const getDifficultyLabel = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'Einfach';
-      case 'medium':
-        return 'Mittel';
-      case 'hard':
-        return 'Schwer';
-      default:
-        return difficulty;
-    }
+  const difficultyLabels: Record<QuizDifficulty, string> = {
+    1: 'Anfänger',
+    2: 'Lehrling',
+    3: 'Geselle',
+    4: 'Meister',
+    5: 'Großmeister',
   };
+
+  const getDifficultyColor = (d: QuizDifficulty) => difficultyColors[d];
+  const getDifficultyLabel = (d: QuizDifficulty) => difficultyLabels[d];
 
   if (loading) {
     return (
@@ -239,13 +235,21 @@ export default function AdminQuestionsPage() {
               <select
                 id="difficulty"
                 value={selectedDifficulty}
-                onChange={e => setSelectedDifficulty(e.target.value)}
+                onChange={e =>
+                  setSelectedDifficulty(
+                    e.target.value === 'all'
+                      ? 'all'
+                      : (parseInt(e.target.value) as QuizDifficulty)
+                  )
+                }
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
               >
                 <option value="all">Alle Schwierigkeiten</option>
-                <option value="easy">Einfach</option>
-                <option value="medium">Mittel</option>
-                <option value="hard">Schwer</option>
+                {[1, 2, 3, 4, 5].map(v => (
+                  <option key={v} value={v}>
+                    {difficultyLabels[v as QuizDifficulty]}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -269,9 +273,11 @@ export default function AdminQuestionsPage() {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(question.difficulty)}`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(question.difficulty as QuizDifficulty)}`}
                       >
-                        {getDifficultyLabel(question.difficulty)}
+                        {getDifficultyLabel(
+                          question.difficulty as QuizDifficulty
+                        )}
                       </span>
                       <span className="px-3 py-1 bg-[#FCC822] bg-opacity-20 text-[#FCC822] rounded-full text-xs font-medium">
                         {question.topicTitle}

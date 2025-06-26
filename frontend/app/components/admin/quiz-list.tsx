@@ -5,8 +5,8 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-import type { QuizSummary, QuizStatus, QuizDifficulty } from '../../types/quiz';
-import { getDifficultyName } from '../../utils/difficulty';
+import type { QuizSummary, QuizStatus } from '../../types/quiz';
+import { getDifficultyName, getDifficultyColor } from '../../utils/difficulty';
 
 interface QuizListProps {
   quizzes: QuizSummary[];
@@ -49,27 +49,6 @@ export function QuizList({
         return 'Archiviert';
       default:
         return status;
-    }
-  };
-
-  const getDifficultyColor = (difficulty: QuizDifficulty | string | number) => {
-    // Handle numeric difficulties
-    if (typeof difficulty === 'number') {
-      if (difficulty <= 2) return 'bg-green-600 text-green-100';
-      if (difficulty <= 3) return 'bg-yellow-600 text-yellow-100';
-      return 'bg-red-600 text-red-100';
-    }
-
-    // Handle legacy string difficulties
-    switch (difficulty) {
-      case 'easy':
-        return 'bg-green-600 text-green-100';
-      case 'medium':
-        return 'bg-yellow-600 text-yellow-100';
-      case 'hard':
-        return 'bg-red-600 text-red-100';
-      default:
-        return 'bg-gray-600 text-gray-100';
     }
   };
 

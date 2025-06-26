@@ -5,6 +5,8 @@
 
 import { Link } from 'react-router';
 import type { QuestionCardProps } from '../../types/topic-detail';
+import type { QuizDifficulty } from '../../types/quiz';
+import { getDifficultyColor, getDifficultyName } from '../../utils/difficulty';
 
 /**
  * Displays individual question information in a card format.
@@ -32,7 +34,6 @@ export function QuestionCard({ question, topicId }: QuestionCardProps) {
 }
 
 interface QuestionTitleProps {
-  /** Question title to display */
   title: string;
 }
 
@@ -52,7 +53,6 @@ function QuestionTitle({ title }: QuestionTitleProps) {
 }
 
 interface BookmarkIndicatorProps {
-  /** Whether the question is bookmarked */
   isBookmarked: boolean;
 }
 
@@ -76,8 +76,7 @@ function BookmarkIndicator({ isBookmarked }: BookmarkIndicatorProps) {
 }
 
 interface DifficultyBadgeProps {
-  /** Difficulty level of the question */
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: QuizDifficulty;
 }
 
 /**
@@ -88,43 +87,16 @@ interface DifficultyBadgeProps {
  * @returns JSX element for difficulty badge
  */
 function DifficultyBadge({ difficulty }: DifficultyBadgeProps) {
-  const getDifficultyStyles = (diff: string) => {
-    switch (diff) {
-      case 'easy':
-        return 'bg-green-500/20 text-green-400';
-      case 'medium':
-        return 'bg-yellow-500/20 text-yellow-400';
-      case 'hard':
-        return 'bg-red-500/20 text-red-400';
-      default:
-        return 'bg-gray-500/20 text-gray-400';
-    }
-  };
-
-  const getDifficultyText = (diff: string) => {
-    switch (diff) {
-      case 'easy':
-        return 'Einfach';
-      case 'medium':
-        return 'Mittel';
-      case 'hard':
-        return 'Schwer';
-      default:
-        return diff;
-    }
-  };
-
   return (
     <div
-      className={`text-xs px-2 py-1 rounded ${getDifficultyStyles(difficulty)}`}
+      className={`text-xs px-2 py-1 rounded ${getDifficultyColor(difficulty)}`}
     >
-      {getDifficultyText(difficulty)}
+      {getDifficultyName(difficulty)}
     </div>
   );
 }
 
 interface CompletionIndicatorProps {
-  /** Whether the question is completed */
   isCompleted: boolean;
 }
 

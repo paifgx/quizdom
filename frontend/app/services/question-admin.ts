@@ -5,12 +5,12 @@
 
 import { apiClient } from '../api/client';
 import { authService } from './auth';
+import type { QuizDifficulty } from '../types/quiz';
 
-// Backend API types for mapping
 interface BackendQuestionResponse {
   id: number;
   topic_id: number;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: number; // 1-5 matching backend enum
   content: string;
   explanation: string | null;
   created_at: string;
@@ -36,7 +36,7 @@ interface BackendTopicResponse {
 
 interface BackendQuestionCreate {
   topic_id: number;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: number; // numeric 1-5
   content: string;
   explanation?: string;
   answers: Array<{
@@ -47,7 +47,7 @@ interface BackendQuestionCreate {
 
 interface BackendQuestionUpdate {
   topic_id?: number;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: number; // numeric 1-5
   content?: string;
   explanation?: string;
 }
@@ -57,7 +57,7 @@ export interface Question {
   id: string;
   topicId: string;
   topicTitle: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: QuizDifficulty; // 1-5
   content: string;
   explanation?: string;
   answers: Answer[];
@@ -78,7 +78,7 @@ export interface Topic {
 
 export interface CreateQuestionPayload {
   topicId: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: QuizDifficulty; // 1-5
   content: string;
   explanation?: string;
   answers: Array<{
@@ -89,7 +89,7 @@ export interface CreateQuestionPayload {
 
 export interface UpdateQuestionPayload {
   topicId?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: QuizDifficulty;
   content?: string;
   explanation?: string;
 }
@@ -97,7 +97,7 @@ export interface UpdateQuestionPayload {
 export interface QuestionFilters {
   search?: string;
   topicId?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: QuizDifficulty;
 }
 
 /**
@@ -116,7 +116,7 @@ class QuestionAdminService {
       id: backendQuestion.id.toString(),
       topicId: backendQuestion.topic_id.toString(),
       topicTitle: backendQuestion.topic.title,
-      difficulty: backendQuestion.difficulty,
+      difficulty: backendQuestion.difficulty as QuizDifficulty,
       content: backendQuestion.content,
       explanation: backendQuestion.explanation || undefined,
       answers: backendQuestion.answers.map(answer => ({

@@ -87,7 +87,7 @@ class QuizAdminService:
     # Question operations
     def get_questions(
         self, skip: int = 0, limit: int = 100, topic_id: Optional[int] = None
-    ) -> List[Question]:
+    ) -> List[dict]:
         """Get all questions with pagination and optional topic filter."""
         statement = select(Question).offset(skip).limit(limit)
 
@@ -96,15 +96,32 @@ class QuizAdminService:
 
         questions = list(self.db.exec(statement).all())
 
-        # Load answers and topic for each question
+        # Create response dictionaries with answers and topic for each question
+        question_responses = []
         for question in questions:
+            # Load answers
             answers_stmt = select(Answer).where(Answer.question_id == question.id)
-            question.answers = list(self.db.exec(answers_stmt).all())
-            question.topic = self.db.get(Topic, question.topic_id)
+            answers = list(self.db.exec(answers_stmt).all())
 
-        return questions
+            # Load topic
+            topic = self.db.get(Topic, question.topic_id)
 
-    def get_question(self, question_id: int) -> Optional[Question]:
+            # Create response dict
+            question_dict = {
+                "id": question.id,
+                "topic_id": question.topic_id,
+                "difficulty": question.difficulty,
+                "content": question.content,
+                "explanation": question.explanation,
+                "created_at": question.created_at,
+                "answers": answers,
+                "topic": topic,
+            }
+            question_responses.append(question_dict)
+
+        return question_responses
+
+    def get_question(self, question_id: int) -> Optional[dict]:
         """Get a single question by ID with answers and topic."""
         question = self.db.get(Question, question_id)
         if not question:
@@ -112,14 +129,26 @@ class QuizAdminService:
 
         # Load answers
         answers_stmt = select(Answer).where(Answer.question_id == question_id)
-        question.answers = list(self.db.exec(answers_stmt).all())
+        answers = list(self.db.exec(answers_stmt).all())
 
         # Load topic
-        question.topic = self.db.get(Topic, question.topic_id)
+        topic = self.db.get(Topic, question.topic_id)
 
-        return question
+        # Create response dict
+        question_dict = {
+            "id": question.id,
+            "topic_id": question.topic_id,
+            "difficulty": question.difficulty,
+            "content": question.content,
+            "explanation": question.explanation,
+            "created_at": question.created_at,
+            "answers": answers,
+            "topic": topic,
+        }
 
-    def create_question(self, question_data: QuestionCreate) -> Question:
+        return question_dict
+
+    def create_question(self, question_data: QuestionCreate) -> dict:
         """Create a new question with answers."""
         # Validate at least one correct answer
         correct_count = sum(1 for answer in question_data.answers if answer.is_correct)
@@ -151,7 +180,7 @@ class QuizAdminService:
 
     def update_question(
         self, question_id: int, question_data: QuestionUpdate
-    ) -> Optional[Question]:
+    ) -> Optional[dict]:
         """Update an existing question."""
         question = self.db.get(Question, question_id)
         if not question:
@@ -255,11 +284,28 @@ class QuizAdminService:
         )
         questions = list(self.db.exec(statement).all())
 
-        # Load answers and topic for each question
+        # Create response dictionaries for questions with answers and topic
+        question_responses = []
         for question in questions:
+            # Load answers
             answers_stmt = select(Answer).where(Answer.question_id == question.id)
-            question.answers = list(self.db.exec(answers_stmt).all())
-            question.topic = self.db.get(Topic, question.topic_id)
+            answers = list(self.db.exec(answers_stmt).all())
+
+            # Load topic
+            question_topic = self.db.get(Topic, question.topic_id)
+
+            # Create question response dict
+            question_dict = {
+                "id": question.id,
+                "topic_id": question.topic_id,
+                "difficulty": question.difficulty,
+                "content": question.content,
+                "explanation": question.explanation,
+                "created_at": question.created_at,
+                "answers": answers,
+                "topic": question_topic,
+            }
+            question_responses.append(question_dict)
 
         # Create response dict
         quiz_dict = {
@@ -271,8 +317,8 @@ class QuizAdminService:
             "time_limit_minutes": quiz.time_limit_minutes,
             "created_at": quiz.created_at,
             "topic": topic,
-            "questions": questions,
-            "question_count": len(questions),
+            "questions": question_responses,
+            "question_count": len(question_responses),
         }
 
         return quiz_dict
@@ -297,6 +343,9 @@ class QuizAdminService:
 
         self.db.commit()
         self.db.refresh(quiz)
+
+        if quiz.id is None:
+            raise ValueError("Failed to create quiz")
 
         result = self.get_quiz(quiz.id)
         if result is None:
