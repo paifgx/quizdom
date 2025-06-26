@@ -11,13 +11,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 
+from app.core.logging import app_logger, log_operation
 from app.core.security import (
     create_access_token,
     get_password_hash,
     verify_password,
     verify_token,
 )
-from app.db.models import User
+from app.db.models import Role, User
 from app.db.session import get_session
 from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse
 
@@ -55,6 +56,27 @@ async def get_current_user(
     return user
 
 
+def get_user_with_role(session: Session, user: User) -> UserResponse:
+    """Get user with role information for response.
+
+    Joins user data with role information and returns UserResponse.
+    """
+    # Get role name if user has a role
+    role_name = None
+    if user.role_id:
+        role = session.exec(select(Role).where(Role.id == user.role_id)).first()
+        if role:
+            role_name = role.name
+
+    return UserResponse(
+        id=user.id or 0,
+        email=user.email,
+        is_verified=user.is_verified,
+        role_id=user.role_id,
+        role_name=role_name,
+    )
+
+
 def get_user_by_email(session: Session, email: str) -> Optional[User]:
     """Get user by email address.
 
@@ -74,9 +96,14 @@ def register_user(
 
     Creates a new user with hashed password and returns an access token.
     """
+    log_operation(app_logger, "user_registration_attempt", email=user_data.email)
+
     # WHY: Check for existing user to prevent duplicates
     existing_user = get_user_by_email(session, user_data.email)
     if existing_user:
+        log_operation(
+            app_logger, "registration_failed_duplicate_email", email=user_data.email
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists",
@@ -97,11 +124,7 @@ def register_user(
 
     access_token = create_access_token(data={"sub": new_user.email})
 
-    user_response = UserResponse(
-        id=new_user.id or 0,
-        email=new_user.email,
-        is_verified=new_user.is_verified,
-    )
+    user_response = get_user_with_role(session, new_user)
 
     return TokenResponse(
         access_token=access_token,
@@ -132,11 +155,7 @@ def login_user(
 
     access_token = create_access_token(data={"sub": user.email})
 
-    user_response = UserResponse(
-        id=user.id or 0,  # WHY: Fallback for potential None values
-        email=user.email,
-        is_verified=user.is_verified,
-    )
+    user_response = get_user_with_role(session, user)
 
     return TokenResponse(
         access_token=access_token,
@@ -148,14 +167,11 @@ def login_user(
 @router.get("/me", response_model=UserResponse)
 def get_current_user_info(
     current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
 ) -> UserResponse:
     """Get current user information.
 
     Returns authenticated user details for profile display.
     Requires valid JWT token in Authorization header.
     """
-    return UserResponse(
-        id=current_user.id or 0,
-        email=current_user.email,
-        is_verified=current_user.is_verified,
-    )
+    return get_user_with_role(session, current_user)

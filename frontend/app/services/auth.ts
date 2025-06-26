@@ -21,6 +21,8 @@ export interface User {
   id: number;
   email: string;
   is_verified: boolean;
+  role_id?: number | null;
+  role_name?: string | null;
   // Frontend-specific fields for UI functionality
   username?: string;
   role?: 'player' | 'admin';

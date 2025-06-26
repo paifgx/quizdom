@@ -10,29 +10,24 @@ import { useTopicsPage } from '../hooks/useTopicsPage';
 import { fetchTopics } from '../api';
 import type { GameTopic } from '../types/topics';
 
+/**
+ * Route metadata for the topics page.
+ *
+ * Provides SEO metadata and page title for topic browsing.
+ * Enhances discoverability and user navigation experience.
+ */
 export function meta() {
   return [
-    { title: 'Topics Overview | Quizdom' },
-    {
-      name: 'description',
-      content: 'Overview of all available quiz topics.',
-    },
+    { title: 'Themen | Quizdom' },
+    { name: 'description', content: 'Themenübersicht' },
   ];
 }
 
 /**
  * Topics page component.
- * Displays a comprehensive overview of available quiz topics with filtering,
- * sorting, and statistics. Provides navigation to individual topic details.
  *
- * Features:
- * - Topic filtering by category, difficulty, and search terms
- * - Sorting by popularity, difficulty, title, or progress
- * - Favorite topic management
- * - Progress tracking and statistics
- * - Responsive grid layout
- *
- * @returns Topics page JSX element
+ * Displays comprehensive overview of available quiz topics with filtering.
+ * Provides navigation to individual topic details and progress tracking.
  */
 export default function TopicsPage() {
   const [topics, setTopics] = useState<GameTopic[]>([]);

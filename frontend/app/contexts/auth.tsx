@@ -1,16 +1,30 @@
+/**
+ * Authentication context for managing user sessions and role switching.
+ *
+ * Provides centralized authentication state with automatic session validation.
+ * Handles role-based access control for admin and player views.
+ */
 import {
   createContext,
   useContext,
   useState,
   useEffect,
+  useCallback,
+  useRef,
   type ReactNode,
 } from 'react';
 import { authService, type User as AuthUser } from '../services/auth';
+import { setAuthErrorHandler } from '../api/client';
 
 export type UserRole = 'player' | 'admin';
 export type ActiveRole = 'player' | 'admin';
 
-// Updated User interface to match backend response
+/**
+ * User interface for frontend authentication state.
+ *
+ * Extends backend user data with frontend-specific display fields.
+ * Includes role information and UI customization data.
+ */
 export interface User {
   id: number;
   email: string;
@@ -41,10 +55,17 @@ interface AuthContextType {
     currentPath?: string
   ) => void;
   loading: boolean;
+  validateSession: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Hook for accessing authentication context.
+ *
+ * Provides type-safe access to auth state and methods.
+ * Throws error if used outside AuthProvider scope.
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -57,27 +78,168 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Convert backend user to frontend user format
+/**
+ * Transform backend user data to frontend format.
+ *
+ * Converts API response to UI-ready user object.
+ * Adds default values for frontend-specific fields.
+ */
 function transformBackendUser(backendUser: AuthUser): User {
+  // Determine role based on actual backend role data
+  const userRole: UserRole =
+    backendUser.role_name === 'admin' ? 'admin' : 'player';
+
   return {
     id: backendUser.id,
     email: backendUser.email,
     is_verified: backendUser.is_verified,
     username: backendUser.email.split('@')[0], // Generate username from email
-    // Determine role based on email (temporary logic)
-    role: backendUser.email.includes('admin') ? 'admin' : 'player',
-    avatar: backendUser.email.includes('admin')
-      ? '/avatars/ai_assistant_wizard.png'
-      : '/avatars/player_male_with_greataxe.png',
+    role: userRole,
+    avatar:
+      userRole === 'admin'
+        ? '/avatars/ai_assistant_wizard.png'
+        : '/avatars/player_male_with_greataxe.png',
     wisecoins: 500, // Default value, could be fetched from backend later
     achievements: ['first_quiz', 'quiz_master'], // Default achievements
   };
 }
 
+/**
+ * Custom hook for session validation logic.
+ *
+ * Encapsulates session checking and cleanup operations.
+ * Provides clean separation of session management concerns.
+ */
+function useSessionValidation(
+  setUser: (user: User | null) => void,
+  setActiveRole: (role: ActiveRole) => void
+) {
+  const validateSession = useCallback(async (): Promise<boolean> => {
+    try {
+      if (!authService.isAuthenticated()) {
+        return false;
+      }
+
+      await authService.getCurrentUser();
+      return true;
+    } catch (error) {
+      console.error('Session validation failed:', error);
+      clearUserSession(setUser, setActiveRole);
+      redirectToLogin();
+      return false;
+    }
+  }, [setUser, setActiveRole]);
+
+  return { validateSession };
+}
+
+/**
+ * Clear user session data from state and storage.
+ *
+ * Removes all authentication artifacts consistently.
+ * Ensures clean logout state across the application.
+ */
+function clearUserSession(
+  setUser: (user: User | null) => void,
+  setActiveRole: (role: ActiveRole) => void
+) {
+  setUser(null);
+  setActiveRole('player');
+  authService.logout();
+  localStorage.removeItem('quizdom_user');
+  localStorage.removeItem('quizdom_active_role');
+}
+
+/**
+ * Redirect user to login page.
+ *
+ * Handles browser navigation safely.
+ * Only executes in browser environment.
+ */
+function redirectToLogin() {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+/**
+ * Custom hook for session monitoring.
+ *
+ * Manages periodic session validation and activity tracking.
+ * Handles automatic logout on session expiration.
+ */
+function useSessionMonitoring(
+  setUser: (user: User | null) => void,
+  setActiveRole: (role: ActiveRole) => void
+) {
+  const sessionCheckInterval = useRef<number | null>(null);
+  const lastActivityTime = useRef<number>(Date.now());
+
+  const updateActivity = useCallback(() => {
+    lastActivityTime.current = Date.now();
+  }, []);
+
+  const validateSessionSafely = useCallback(async () => {
+    try {
+      if (!authService.isAuthenticated()) {
+        return;
+      }
+      await authService.getCurrentUser();
+      lastActivityTime.current = Date.now();
+    } catch (error) {
+      console.error('Session validation failed:', error);
+      clearUserSession(setUser, setActiveRole);
+      redirectToLogin();
+    }
+  }, [setUser, setActiveRole]);
+
+  const startSessionMonitoring = useCallback(() => {
+    if (sessionCheckInterval.current) {
+      clearInterval(sessionCheckInterval.current);
+    }
+
+    sessionCheckInterval.current = window.setInterval(
+      async () => {
+        const timeSinceActivity = Date.now() - lastActivityTime.current;
+
+        if (timeSinceActivity > 30 * 60 * 1000) {
+          await validateSessionSafely();
+        } else if (timeSinceActivity < 15 * 60 * 1000) {
+          await validateSessionSafely();
+        }
+      },
+      5 * 60 * 1000
+    );
+  }, [validateSessionSafely]);
+
+  const stopSessionMonitoring = useCallback(() => {
+    if (sessionCheckInterval.current) {
+      clearInterval(sessionCheckInterval.current);
+      sessionCheckInterval.current = null;
+    }
+  }, []);
+
+  return {
+    updateActivity,
+    startSessionMonitoring,
+    stopSessionMonitoring,
+  };
+}
+
+/**
+ * Authentication provider component.
+ *
+ * Manages global authentication state and session lifecycle.
+ * Provides context for role-based access control.
+ */
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeRole, setActiveRole] = useState<ActiveRole>('player');
+
+  const { validateSession } = useSessionValidation(setUser, setActiveRole);
+  const { updateActivity, startSessionMonitoring, stopSessionMonitoring } =
+    useSessionMonitoring(setUser, setActiveRole);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
@@ -92,6 +254,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         frontendUser.role === 'admin' ? 'admin' : 'player';
       setActiveRole(initialRole);
       localStorage.setItem('quizdom_active_role', initialRole);
+
+      startSessionMonitoring();
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -122,11 +286,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const logout = () => {
-    setUser(null);
-    setActiveRole('player');
-    authService.logout(); // Clear auth service data
-    localStorage.removeItem('quizdom_user');
-    localStorage.removeItem('quizdom_active_role');
+    clearUserSession(setUser, setActiveRole);
+    stopSessionMonitoring();
   };
 
   const switchToAdminView = (
@@ -168,49 +329,73 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(frontendUser);
 
           // Restore active role from localStorage
-          const savedActiveRole = localStorage.getItem(
+          const savedRole = localStorage.getItem(
             'quizdom_active_role'
           ) as ActiveRole;
-
-          if (
-            savedActiveRole &&
-            (savedActiveRole === 'admin' || savedActiveRole === 'player')
-          ) {
-            setActiveRole(savedActiveRole);
+          if (savedRole && frontendUser.role === 'admin') {
+            setActiveRole(savedRole);
           } else {
-            const defaultRole: ActiveRole =
-              frontendUser.role === 'admin' ? 'admin' : 'player';
-            setActiveRole(defaultRole);
-            localStorage.setItem('quizdom_active_role', defaultRole);
+            setActiveRole(frontendUser.role === 'admin' ? 'admin' : 'player');
           }
+
+          startSessionMonitoring();
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error);
-        // Clear invalid session
-        authService.logout();
-        localStorage.removeItem('quizdom_user');
-        localStorage.removeItem('quizdom_active_role');
+        console.error('Auth initialization failed:', error);
+        clearUserSession(setUser, setActiveRole);
       } finally {
         setLoading(false);
       }
     };
 
     initializeAuth();
-  }, []);
 
-  const value: AuthContextType = {
+    const handleActivity = () => {
+      updateActivity();
+    };
+
+    // Add global activity listeners
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+    ];
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    // Setup global auth error handler
+    setAuthErrorHandler(() => {
+      clearUserSession(setUser, setActiveRole);
+      redirectToLogin();
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+      stopSessionMonitoring();
+    };
+  }, [startSessionMonitoring, stopSessionMonitoring, updateActivity]);
+
+  const contextValue: AuthContextType = {
     user,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     activeRole,
-    isViewingAsAdmin: activeRole === 'admin' && user?.role === 'admin',
+    isViewingAsAdmin: activeRole === 'admin',
     login,
     register,
     logout,
     switchToAdminView,
     switchToPlayerView,
     loading,
+    validateSession,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 }

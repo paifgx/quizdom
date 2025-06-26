@@ -18,6 +18,8 @@ class UserResponse(BaseModel):
     id: int = Field(..., description="User ID")
     email: str = Field(..., description="User email address")
     is_verified: bool = Field(..., description="Whether user email is verified")
+    role_id: Optional[int] = Field(None, description="User role ID")
+    role_name: Optional[str] = Field(None, description="User role name")
 
 
 class TokenResponse(BaseModel):

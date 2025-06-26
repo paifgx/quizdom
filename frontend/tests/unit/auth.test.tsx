@@ -142,6 +142,7 @@ describe('AuthProvider', () => {
           id: 2,
           email: 'admin@example.com',
           is_verified: true,
+          role_name: 'admin',
         },
       });
 
@@ -224,6 +225,7 @@ describe('AuthProvider', () => {
           id: 2,
           email: 'admin@example.com',
           is_verified: true,
+          role_name: 'admin',
         },
       });
 
@@ -267,6 +269,7 @@ describe('AuthProvider', () => {
           id: 2,
           email: 'admin@example.com',
           is_verified: true,
+          role_name: 'admin',
         },
       });
 

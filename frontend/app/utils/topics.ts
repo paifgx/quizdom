@@ -14,20 +14,10 @@ import type { GameTopic, SortOption, DifficultyLevel } from '../types/topics';
  * @returns Difficulty level name
  */
 export function getDifficultyName(stars: number): DifficultyLevel {
-  switch (stars) {
-    case 1:
-      return 'Anfänger';
-    case 2:
-      return 'Lehrling';
-    case 3:
-      return 'Geselle';
-    case 4:
-      return 'Meister';
-    case 5:
-      return 'Großmeister';
-    default:
-      return 'Anfänger';
-  }
+  if (stars <= 1) return 'Anfänger';
+  if (stars <= 2) return 'Lehrling';
+  if (stars <= 3) return 'Geselle';
+  return 'Meister';
 }
 
 /**
@@ -38,20 +28,10 @@ export function getDifficultyName(stars: number): DifficultyLevel {
  * @returns Tailwind CSS classes for background and text colors
  */
 export function getDifficultyColor(stars: number): string {
-  switch (stars) {
-    case 1:
-      return 'bg-green-600 text-green-100';
-    case 2:
-      return 'bg-blue-600 text-blue-100';
-    case 3:
-      return 'bg-yellow-600 text-yellow-100';
-    case 4:
-      return 'bg-orange-600 text-orange-100';
-    case 5:
-      return 'bg-red-600 text-red-100';
-    default:
-      return 'bg-gray-600 text-gray-100';
-  }
+  if (stars <= 1) return 'bg-green-600 text-green-100';
+  if (stars <= 2) return 'bg-blue-600 text-blue-100';
+  if (stars <= 3) return 'bg-yellow-600 text-yellow-100';
+  return 'bg-red-600 text-red-100';
 }
 
 /**
@@ -66,7 +46,8 @@ export function getProgressPercentage(
   completed: number,
   total: number
 ): number {
-  return total > 0 ? Math.round((completed / total) * 100) : 0;
+  if (total === 0) return 0;
+  return Math.round((completed / total) * 100);
 }
 
 /**

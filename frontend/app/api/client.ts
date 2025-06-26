@@ -13,6 +13,13 @@ const API_BASE_URL = import.meta.env.PROD
     ? 'http://localhost:8000' // Mock URL for tests
     : ''; // Empty string for relative URLs in development
 
+// Global error handler for authentication failures
+let onAuthError: (() => void) | null = null;
+
+export function setAuthErrorHandler(handler: () => void) {
+  onAuthError = handler;
+}
+
 /**
  * HTTP client with error handling and JSON parsing.
  */
@@ -21,10 +28,6 @@ class ApiClient {
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-    console.log(
-      'API Client initialized with base URL:',
-      this.baseUrl || '(relative URLs)'
-    );
   }
 
   /**
@@ -48,6 +51,10 @@ class ApiClient {
       });
 
       if (!response.ok) {
+        // Handle authentication errors
+        if (response.status === 401 && onAuthError) {
+          onAuthError();
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -113,6 +120,10 @@ class ApiClient {
       );
 
       if (!response.ok) {
+        // Handle authentication errors
+        if (response.status === 401 && onAuthError) {
+          onAuthError();
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -126,18 +137,27 @@ class ApiClient {
   /**
    * Makes a PUT request to the specified endpoint.
    */
-  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+  async put<T>(
+    endpoint: string,
+    data?: unknown,
+    options?: { headers?: Record<string, string> }
+  ): Promise<T> {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...options?.headers,
         },
         credentials: 'include', // Include cookies for authentication
         body: data ? JSON.stringify(data) : undefined,
       });
 
       if (!response.ok) {
+        // Handle authentication errors
+        if (response.status === 401 && onAuthError) {
+          onAuthError();
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -151,17 +171,25 @@ class ApiClient {
   /**
    * Makes a DELETE request to the specified endpoint.
    */
-  async delete<T>(endpoint: string): Promise<T> {
+  async delete<T>(
+    endpoint: string,
+    options?: { headers?: Record<string, string> }
+  ): Promise<T> {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          ...options?.headers,
         },
         credentials: 'include', // Include cookies for authentication
       });
 
       if (!response.ok) {
+        // Handle authentication errors
+        if (response.status === 401 && onAuthError) {
+          onAuthError();
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 

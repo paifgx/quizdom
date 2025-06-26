@@ -20,7 +20,7 @@ pwd_context = CryptContext(
     bcrypt__rounds=12,  # WHY: Higher rounds for better security
 )
 
-SECRET_KEY = getattr(settings, "SECRET_KEY", "your-secret-key-change-in-production")
+SECRET_KEY = getattr(settings, "secret_key", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 

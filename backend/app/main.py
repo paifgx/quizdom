@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.session import init_db
-from app.routers import auth, quiz
+from app.routers import auth, quiz, user
 
 
 @asynccontextmanager
@@ -47,6 +47,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/auth", tags=["authentication"])
 app.include_router(quiz.router, prefix="/quiz", tags=["quizzes"])
+app.include_router(user.router, prefix="/admin", tags=["user-management"])
 
 
 @app.get("/", tags=["health"])
