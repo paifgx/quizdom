@@ -3,7 +3,7 @@
  * Renders different views based on authentication state following single responsibility principle.
  * Uses clean architecture with separated concerns and proper error handling.
  */
-import type { Route } from './+types/home';
+import type { MetaFunction, LoaderFunctionArgs } from 'react-router';
 import { Dashboard } from '../components/dashboard';
 import { LandingPage } from '../components/landing-page';
 import { useHomePage } from '../hooks/useHomePage';
@@ -14,7 +14,7 @@ import { translate } from '../utils/translations';
  * Provides page title and description for search engines.
  * Uses German content following language consistency rules.
  */
-export function meta(_args: Route.MetaArgs) {
+export const meta: MetaFunction = () => {
   return [
     { title: translate('pageTitles.home') },
     {
@@ -22,9 +22,9 @@ export function meta(_args: Route.MetaArgs) {
       content: translate('pageTitles.homeDescription'),
     },
   ];
-}
+};
 
-export async function loader({ request: _request }: Route.LoaderArgs) {
+export async function loader({ request: _request }: LoaderFunctionArgs) {
   // No special loading logic needed for home page
   return {};
 }
@@ -41,7 +41,7 @@ export async function loader({ request: _request }: Route.LoaderArgs) {
  * - Topic search functionality
  * - Error boundary ready
  */
-export default function HomePage(_props: Route.ComponentProps) {
+export default function HomePage() {
   const {
     isAuthenticated,
     isViewingAsAdmin: _isViewingAsAdmin,

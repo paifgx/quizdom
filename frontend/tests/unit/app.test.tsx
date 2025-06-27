@@ -66,7 +66,7 @@ describe('ErrorBoundary', () => {
   it('renders error message for generic error', () => {
     const error = new Error('Test error message');
 
-    render(<ErrorBoundary error={error} params={{}} />);
+    render(<ErrorBoundary error={error} />);
 
     expect(screen.getByText('Ups!')).toBeDefined();
     expect(screen.getByText('Test error message')).toBeDefined();
@@ -79,7 +79,7 @@ describe('ErrorBoundary', () => {
       data: 'Page not found',
     };
 
-    render(<ErrorBoundary error={routeError} params={{}} />);
+    render(<ErrorBoundary error={routeError} />);
 
     expect(screen.getByText('404')).toBeDefined();
     expect(screen.getByText('Seite nicht gefunden.')).toBeDefined();
@@ -92,7 +92,7 @@ describe('ErrorBoundary', () => {
       data: 'Server error',
     };
 
-    render(<ErrorBoundary error={routeError} params={{}} />);
+    render(<ErrorBoundary error={routeError} />);
 
     expect(screen.getByText('Fehler')).toBeDefined();
     expect(screen.getByText('Internal Server Error')).toBeDefined();
@@ -101,7 +101,7 @@ describe('ErrorBoundary', () => {
   it('displays Quizdom logo', () => {
     const error = new Error('Test error');
 
-    render(<ErrorBoundary error={error} params={{}} />);
+    render(<ErrorBoundary error={error} />);
 
     const logo = screen.getByAltText('Quizdom Logo');
     expect(logo).toBeDefined();
@@ -111,7 +111,7 @@ describe('ErrorBoundary', () => {
   it('renders home link', () => {
     const error = new Error('Test error');
 
-    render(<ErrorBoundary error={error} params={{}} />);
+    render(<ErrorBoundary error={error} />);
 
     const homeLink = screen.getByText('Zur Startseite');
     expect(homeLink).toBeDefined();
@@ -133,7 +133,7 @@ describe('ErrorBoundary', () => {
     const error = new Error('Test error');
     error.stack = 'Error stack trace';
 
-    render(<ErrorBoundary error={error} params={{}} />);
+    render(<ErrorBoundary error={error} />);
 
     expect(screen.getByText('Error stack trace')).toBeDefined();
 
@@ -157,7 +157,7 @@ describe('ErrorBoundary', () => {
     const error = new Error('Test error');
     error.stack = 'Error stack trace';
 
-    render(<ErrorBoundary error={error} params={{}} />);
+    render(<ErrorBoundary error={error} />);
 
     // In production mode, the default German error message should be shown
     expect(screen.getByText('Etwas ist schiefgelaufen.')).toBeDefined();

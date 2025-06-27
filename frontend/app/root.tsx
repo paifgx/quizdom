@@ -6,16 +6,16 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  type LinksFunction,
 } from 'react-router';
 
-import type { Route } from './+types/root';
 import { AuthProvider } from './contexts/auth';
 import { BackgroundProvider } from './contexts/background';
 import { useReturnMessage } from './hooks/useReturnMessage';
 import { translate } from './utils/translations';
 import './app.css';
 
-export const links: Route.LinksFunction = () => [
+export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
     rel: 'preconnect',
@@ -62,7 +62,7 @@ export default function App() {
   );
 }
 
-export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+export function ErrorBoundary({ error }: { error: unknown }) {
   let message = translate('errors.oops');
   let details = translate('errors.somethingWentWrong');
   let stack: string | undefined;
