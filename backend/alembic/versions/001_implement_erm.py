@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '001_implement_erm'
-down_revision: Union[str, None] = None
+down_revision: Union[str, None] = '000_initial'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -22,9 +22,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Apply migration to implement ERM schema."""
 
-    # Create enum types
-    op.execute("CREATE TYPE emailtokentype AS ENUM ('verify', 'reset')")
-    op.execute("CREATE TYPE mediatype AS ENUM ('png', 'gif', 'mp3')")
+    # Note: Enum types are created automatically by SQLAlchemy when tables are created
 
     # Create user_roles table
     op.create_table(
@@ -222,6 +220,6 @@ def downgrade() -> None:
     op.drop_table('wallet')
     op.drop_table('userroles')
 
-    # Drop enum types
-    op.execute("DROP TYPE mediatype")
-    op.execute("DROP TYPE emailtokentype")
+    # Drop enum types if they exist
+    op.execute("DROP TYPE IF EXISTS mediatype")
+    op.execute("DROP TYPE IF EXISTS emailtokentype")
