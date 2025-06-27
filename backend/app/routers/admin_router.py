@@ -1,5 +1,6 @@
 """Admin router for quiz management."""
 
+import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
@@ -26,6 +27,8 @@ from app.schemas.quiz_admin import (
 from app.services.quiz_admin_service import QuizAdminService
 
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
+
+logger = logging.getLogger(__name__)
 
 
 # Topic endpoints
@@ -148,7 +151,10 @@ async def create_question(
     try:
         return service.create_question(question_data)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 
 @router.put("/questions/{question_id}", response_model=QuestionResponse)
@@ -186,6 +192,30 @@ async def delete_question(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
+@router.post(
+    "/questions/batch",
+    response_model=List[QuestionResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_questions_batch(
+    questions_data: List[QuestionCreate],
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_session),
+):
+    """Create multiple questions in a single batch operation."""
+    service = QuizAdminService(db)
+    created_questions = []
+
+    try:
+        for question_data in questions_data:
+            created_question = service.create_question(question_data)
+            created_questions.append(created_question)
+
+        return created_questions
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
 # Quiz endpoints
 @router.get("/quizzes", response_model=List[QuizResponse])
 async def get_quizzes(
@@ -211,7 +241,8 @@ async def get_quiz(
     quiz = service.get_quiz(quiz_id)
     if not quiz:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz nicht gefunden",
         )
     return quiz
 
@@ -229,7 +260,10 @@ async def create_quiz(
     try:
         return service.create_quiz(quiz_data)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 
 @router.post(
@@ -247,7 +281,10 @@ async def create_quiz_batch(
     try:
         return service.create_quiz_batch(quiz_data)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 
 @router.put("/quizzes/{quiz_id}", response_model=QuizDetailResponse)
@@ -258,13 +295,28 @@ async def update_quiz(
     db: Session = Depends(get_session),
 ):
     """Update an existing quiz."""
-    service = QuizAdminService(db)
-    quiz = service.update_quiz(quiz_id, quiz_data)
-    if not quiz:
+    try:
+        service = QuizAdminService(db)
+        quiz = service.update_quiz(quiz_id, quiz_data)
+        if not quiz:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Quiz nicht gefunden",
+            )
+        return quiz
+    except ValueError as e:
+        # Log the error for debugging
+        logger.error(f"Error updating quiz {quiz_id}: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
         )
-    return quiz
+    except Exception as e:
+        logger.error(f"Unexpected error updating quiz {quiz_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ein interner Serverfehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
+        )
 
 
 @router.delete("/quizzes/{quiz_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -278,7 +330,8 @@ async def delete_quiz(
     success = service.delete_quiz(quiz_id)
     if not success:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz nicht gefunden",
         )
 
 
@@ -315,7 +368,10 @@ async def upload_quiz_image(
             quiz_id=quiz_id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 
 @router.get("/quizzes/{quiz_id}/image")

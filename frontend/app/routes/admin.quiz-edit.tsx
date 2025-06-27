@@ -441,15 +441,38 @@ export default function AdminQuizEditPage() {
           savedQuizId = result.id;
         }
       } else if (quizId) {
-        const payload: UpdateQuizPayload = {
-          title: formData.title.trim(),
-          description: formData.description.trim(),
-          difficulty: formData.difficulty,
-          tags: formData.tags,
-          settings,
-        };
+        if (createdQuestions.length > 0) {
+          // If there are newly created questions when editing an existing quiz,
+          // we first create the questions using the batch endpoint
+          const newQuestions =
+            await quizAdminService.createQuestions(createdQuestions);
 
-        await quizAdminService.updateQuiz(quizId, payload);
+          // Extract the IDs of the newly created questions
+          const newQuestionIds = newQuestions.map(q => q.id);
+
+          // Now update the existing quiz with all questions (existing + new)
+          const updatePayload: UpdateQuizPayload = {
+            title: formData.title.trim(),
+            description: formData.description.trim(),
+            difficulty: formData.difficulty,
+            tags: formData.tags,
+            settings,
+            questionIds: [...selectedQuestions, ...newQuestionIds],
+          };
+
+          await quizAdminService.updateQuiz(quizId, updatePayload);
+        } else {
+          const simpleUpdatePayload: UpdateQuizPayload = {
+            title: formData.title.trim(),
+            description: formData.description.trim(),
+            difficulty: formData.difficulty,
+            tags: formData.tags,
+            settings,
+            questionIds: selectedQuestions,
+          };
+
+          await quizAdminService.updateQuiz(quizId, simpleUpdatePayload);
+        }
       }
 
       // Upload image if one was selected

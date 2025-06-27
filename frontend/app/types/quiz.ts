@@ -134,6 +134,7 @@ export interface CreateQuizBatchPayload {
  */
 export interface UpdateQuizPayload extends Partial<CreateQuizPayload> {
   status?: QuizStatus;
+  questionIds?: string[];
 }
 
 /**

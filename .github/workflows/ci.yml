@@ -57,21 +57,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 black isort pytest-cov
+          pip install flake8==7.1.1 black==24.8.0 isort==5.13.2 pytest-cov
 
       - name: Lint with flake8
         working-directory: backend
-        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        run: flake8 . --max-line-length=88 --extend-ignore=E203,W503,E501 --count --show-source --statistics
 
       - name: Check imports with isort
         working-directory: backend
         run: isort --check --diff .
 
-      - name: Check code formatting
+      - name: Check code formatting with Black
         working-directory: backend
-        run: |
-          black --check --diff .
-          isort --check-only --diff .
+        run: black --check --diff .
 
       - name: Run tests with coverage
         working-directory: backend
@@ -200,6 +198,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install flake8==7.1.1 black==24.8.0 isort==5.13.2
 
       - name: Install frontend dependencies
         working-directory: frontend

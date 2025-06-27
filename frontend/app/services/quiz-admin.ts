@@ -291,6 +291,10 @@ class QuizAdminService {
       if (payload.title) backendPayload.title = payload.title;
       if (payload.description) backendPayload.description = payload.description;
       if (payload.difficulty) backendPayload.difficulty = payload.difficulty;
+      if (payload.questionIds)
+        backendPayload.question_ids = payload.questionIds.map(id =>
+          parseInt(id)
+        );
 
       const response = await apiClient.put<BackendQuizDetailResponse>(
         `/v1/admin/quizzes/${id}`,
@@ -551,6 +555,69 @@ class QuizAdminService {
       console.error('Failed to create quiz batch:', error);
       throw new Error(
         'Fehler beim Erstellen des Quiz mit Fragen. Bitte versuchen Sie es erneut.'
+      );
+    }
+  }
+
+  /**
+   * Create multiple questions in a batch operation.
+   * This is useful for adding new questions to an existing quiz.
+   */
+  async createQuestions(
+    questions: CreateQuizBatchPayload['questions']
+  ): Promise<QuizQuestion[]> {
+    try {
+      // Use a default topic for all questions since we removed categories
+      const topics = await this.getTopics();
+      let topicId = topics.find(t => t.title === 'General')?.id;
+
+      if (!topicId) {
+        // Create default topic if it doesn't exist
+        const newTopic = await this.createTopic({
+          title: 'General',
+          description: 'Default topic for quizzes',
+        });
+        topicId = newTopic.id;
+      }
+
+      const backendPayload = questions.map(q => ({
+        topic_id: topicId,
+        difficulty: q.difficulty,
+        content: q.content,
+        explanation: q.explanation || null,
+        answers: q.answers.map(a => ({
+          content: a.content,
+          is_correct: a.isCorrect,
+        })),
+      }));
+
+      const response = await apiClient.post<BackendQuestionResponse[]>(
+        '/v1/admin/questions/batch',
+        backendPayload,
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+
+      // Map the backend response to frontend format
+      return response.map(q => ({
+        id: q.id.toString(),
+        type: QuestionType.MULTIPLE_CHOICE,
+        text: q.content,
+        explanation: q.explanation || undefined,
+        points: 1,
+        timeLimit: 60,
+        answers: q.answers.map(a => ({
+          id: a.id.toString(),
+          text: a.content,
+          isCorrect: a.is_correct,
+        })),
+        order: 0,
+      }));
+    } catch (error) {
+      console.error('Failed to create questions:', error);
+      throw new Error(
+        'Fehler beim Erstellen der Fragen. Bitte versuchen Sie es erneut.'
       );
     }
   }

@@ -33,7 +33,7 @@ repos:
     hooks:
       - id: flake8
         files: ^backend/
-        args: ['--max-line-length=88', '--extend-ignore=E203,W503']
+        args: ['--max-line-length=88', '--extend-ignore=E203,W503,E501']
 
   # Frontend TypeScript/React hooks
   - repo: local

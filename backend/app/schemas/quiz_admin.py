@@ -174,6 +174,7 @@ class QuizUpdate(BaseModel):
     topic_id: Optional[int] = None
     difficulty: Optional[Difficulty] = None
     time_limit_minutes: Optional[int] = Field(None, ge=1, le=180)
+    question_ids: Optional[List[int]] = None
 
 
 class QuizResponse(QuizBase):
