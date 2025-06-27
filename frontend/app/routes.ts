@@ -15,9 +15,11 @@ export default [
 
   // Main application routes (with nav and background)
   layout('layouts/main-layout.tsx', [
-    // Dashboard-style pages (with shared sidebar)
+    // Home route - handles both landing page and dashboard
+    index('routes/home.tsx'),
+
+    // Dashboard-style pages (with shared sidebar) - only for authenticated users
     layout('layouts/dashboard-layout.tsx', [
-      index('routes/home.tsx'),
       route('/topics/:topicId', 'routes/topic-detail.tsx'),
       route('/topics/:topicId/questions/:questionId', 'routes/quiz.tsx'),
     ]),
@@ -33,6 +35,9 @@ export default [
     // Admin routes
     route('/admin/dashboard', 'routes/admin.dashboard.tsx'),
     route('/admin/questions', 'routes/admin.questions.tsx'),
+    route('/admin/questions/:questionId', 'routes/admin.question-edit.tsx'),
+    route('/admin/quizzes', 'routes/admin.quizzes.tsx'),
+    route('/admin/quizzes/:quizId', 'routes/admin.quiz-edit.tsx'),
     route('/admin/users', 'routes/admin.users.tsx'),
     route('/admin/logs', 'routes/admin.logs.tsx'),
   ]),

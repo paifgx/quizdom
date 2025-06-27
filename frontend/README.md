@@ -105,3 +105,67 @@ Brown: #3a2f1b
 └── Usage: frames, frames for buttons
 
 Built with ❤️ using React Router.
+
+## API Connection
+
+This frontend connects to a FastAPI backend for data management. The connection is configured as follows:
+
+### Development Setup
+
+1. **Start both frontend and backend:**
+
+   ```bash
+   npm run dev:with-backend
+   ```
+
+2. **Or start them separately:**
+
+   ```bash
+   # Terminal 1 - Backend
+   cd ../backend
+   python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+   # Terminal 2 - Frontend
+   npm run dev
+   ```
+
+### API Configuration
+
+- **Development**: Uses Vite proxy configuration to route API calls to `http://localhost:8000`
+- **Production**: Uses `VITE_API_URL` environment variable or defaults to `http://localhost:8000`
+- **Base Path**: All admin API calls use the `/v1/admin` prefix
+
+### Health Checks
+
+```bash
+# Check if backend is running
+npm run api:health
+
+# Check if API endpoints are accessible
+npm run api:check
+```
+
+### API Endpoints
+
+The frontend connects to the following backend endpoints:
+
+- `GET /v1/admin/topics` - List all topics
+- `POST /v1/admin/topics` - Create new topic
+- `PUT /v1/admin/topics/{id}` - Update topic
+- `DELETE /v1/admin/topics/{id}` - Delete topic
+- `GET /v1/admin/questions` - List questions with filters
+- `POST /v1/admin/questions` - Create new question
+- `PUT /v1/admin/questions/{id}` - Update question
+- `DELETE /v1/admin/questions/{id}` - Delete question
+- `GET /v1/admin/quizzes` - List quizzes
+- `POST /v1/admin/quizzes` - Create new quiz
+- `PUT /v1/admin/quizzes/{id}` - Update quiz
+- `DELETE /v1/admin/quizzes/{id}` - Delete quiz
+
+### Authentication
+
+The frontend uses token-based authentication. Ensure you're logged in as an admin user to access the admin features.
+
+### Data Mapping
+
+The frontend automatically maps between backend data structures (using integer IDs and snake_case) and frontend interfaces (using string IDs and camelCase).

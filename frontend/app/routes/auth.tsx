@@ -5,6 +5,12 @@ import { useAuthUI } from '../contexts/auth-ui';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { SlidingAuthContainer, LoadingSkeleton } from '../components';
 
+/**
+ * Meta function for authentication page.
+ *
+ * Provides SEO metadata for the authentication routes.
+ * Used by React Router for document head management.
+ */
 export function meta() {
   return [
     { title: 'Authentifizierung | Quizdom' },
@@ -16,11 +22,13 @@ export function meta() {
 }
 
 /**
- * Authentication page component with sliding login/signup panels
- * Handles both login and signup flows with smooth transitions
+ * Authentication page component with sliding login/signup panels.
+ *
+ * Handles both login and signup flows with smooth transitions.
+ * Manages form state, error handling, and success feedback.
  */
 export default function AuthPage() {
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, register, isAuthenticated, user } = useAuth();
   const { isSignupMode, setSignupMode } = useAuthUI();
   const location = useLocation();
 
@@ -30,6 +38,51 @@ export default function AuthPage() {
 
   const { formState, handleFieldChange, isFormValid, resetForm, getError } =
     useAuthForm(isSignupMode);
+
+  const handleAuthError = useCallback((isSignup: boolean, error: unknown) => {
+    let errorMessage = isSignup
+      ? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+      : 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.';
+
+    // WHY: Extract specific error messages for better user experience
+    if (error instanceof Error) {
+      if (error.message.includes('400')) {
+        errorMessage = isSignup
+          ? 'Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.'
+          : 'Ungültige E-Mail-Adresse oder Passwort.';
+      } else if (error.message.includes('401')) {
+        errorMessage = 'Ungültige E-Mail-Adresse oder Passwort.';
+      }
+    }
+
+    setError(errorMessage);
+  }, []);
+
+  const handleLogin = useCallback(async () => {
+    try {
+      await login(formState.email, formState.password);
+      console.log('Login successful');
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  }, [formState.email, formState.password, login]);
+
+  const handleSignup = useCallback(async () => {
+    try {
+      await register(formState.email, formState.password);
+      console.log('Registration successful');
+      setShowSuccess(true);
+
+      // WHY: Auto-hide success message after showing feedback
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  }, [formState.email, formState.password, register]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -41,48 +94,32 @@ export default function AuthPage() {
         if (isSignupMode) {
           await handleSignup();
         } else {
-          await login(formState.email, formState.password);
+          await handleLogin();
         }
-      } catch {
-        handleAuthError(isSignupMode);
+      } catch (error) {
+        handleAuthError(isSignupMode, error);
       } finally {
         setLoading(false);
       }
     },
-    [isSignupMode, formState, login]
+    [isSignupMode, handleLogin, handleSignup, handleAuthError]
   );
 
-  const handleSignup = async () => {
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      setError('Registrierungsfunktion kommt bald!');
-    }, 2000);
-  };
-
-  const handleAuthError = (isSignup: boolean) => {
-    setError(
-      isSignup
-        ? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
-        : 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.'
-    );
-  };
-
-  const resetAuthState = () => {
+  const resetAuthState = useCallback(() => {
     setError('');
     setShowSuccess(false);
-  };
+  }, []);
 
-  // Sync with URL changes
+  // WHY: Sync component state with URL changes
   useEffect(() => {
     setSignupMode(location.pathname === '/signup');
   }, [location.pathname, setSignupMode]);
 
-  // Reset form when mode changes
+  // WHY: Reset form when switching between login/signup modes
   useEffect(() => {
     resetForm();
     resetAuthState();
-  }, [isSignupMode, resetForm]);
+  }, [isSignupMode, resetForm, resetAuthState]);
 
   if (isAuthenticated && user && !showSuccess) {
     const redirectTo = getRedirectPath(location, user);
@@ -111,11 +148,14 @@ export default function AuthPage() {
 }
 
 /**
- * Determines redirect path based on location state and user role
+ * Determines redirect path based on location state and user role.
+ *
+ * Prioritizes the original intended destination over default paths.
+ * Provides role-based routing for different user types.
  */
 function getRedirectPath(
   location: { state?: { from?: { pathname?: string } } },
-  user: { role: string }
+  user: { role?: string }
 ): string {
   return (
     location.state?.from?.pathname ||
@@ -124,7 +164,10 @@ function getRedirectPath(
 }
 
 /**
- * Loading screen component for authentication state
+ * Loading screen component for authentication state.
+ *
+ * Displays a loading skeleton during authentication transitions.
+ * Maintains consistent visual feedback during login/logout processes.
  */
 function LoadingScreen() {
   return (

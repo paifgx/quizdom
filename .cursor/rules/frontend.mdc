@@ -81,8 +81,18 @@ alwaysApply: false
 - `pnpm lint` → run ESLint + Prettier
 
 ## Localization
-- All user-facing content must be written in **German**
-  - This includes labels, buttons, tooltips, help text, error messages, etc.
-- All internal code (variable names, comments, filenames, etc.) must be written in **English**
-- Mock data and test content must simulate real German-language usage
-- Avoid mixed-language UI by ensuring all displayed text is consistently localized
+- **All user-visible content must be written in German**
+  - This includes: labels, buttons, tooltips, help text, error messages, notifications, form placeholders, page titles, navigation items, success messages, validation messages, and any text displayed to end users
+  - API error messages returned to the frontend must be in German
+  - All static text in components, pages, and layouts must be in German
+- **All internal code must remain in English**
+  - Variable names, function names, comments, filenames, and technical identifiers
+  - Database field names and API endpoint names
+  - Configuration keys and environment variables
+- **Mock data and test content must simulate real German-language usage**
+  - Test fixtures should use realistic German names, addresses, and content
+  - Avoid mixed-language UI by ensuring all displayed text is consistently localized
+- **Use proper German grammar and terminology**
+  - Follow German capitalization rules for UI elements
+  - Use appropriate formal/informal address (Sie/du) based on context
+  - Ensure proper pluralization and gender agreement

@@ -10,29 +10,24 @@ import { useTopicsPage } from '../hooks/useTopicsPage';
 import { fetchTopics } from '../api';
 import type { GameTopic } from '../types/topics';
 
+/**
+ * Route metadata for the topics page.
+ *
+ * Provides SEO metadata and page title for topic browsing.
+ * Enhances discoverability and user navigation experience.
+ */
 export function meta() {
   return [
-    { title: 'Topics Overview | Quizdom' },
-    {
-      name: 'description',
-      content: 'Overview of all available quiz topics.',
-    },
+    { title: 'Themen | Quizdom' },
+    { name: 'description', content: 'Themenübersicht' },
   ];
 }
 
 /**
  * Topics page component.
- * Displays a comprehensive overview of available quiz topics with filtering,
- * sorting, and statistics. Provides navigation to individual topic details.
  *
- * Features:
- * - Topic filtering by category, difficulty, and search terms
- * - Sorting by popularity, difficulty, title, or progress
- * - Favorite topic management
- * - Progress tracking and statistics
- * - Responsive grid layout
- *
- * @returns Topics page JSX element
+ * Displays comprehensive overview of available quiz topics with filtering.
+ * Provides navigation to individual topic details and progress tracking.
  */
 export default function TopicsPage() {
   const [topics, setTopics] = useState<GameTopic[]>([]);
@@ -102,16 +97,6 @@ export default function TopicsPage() {
           onToggleFavorite={toggleFavorite}
           isLoading={loading}
         />
-
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && !loading && (
-          <div className="mt-8 p-4 bg-gray-800 rounded-lg text-sm text-gray-300">
-            <p>Debug Info:</p>
-            <p>Total topics loaded: {topics.length}</p>
-            <p>Sorted topics count: {sortedTopics.length}</p>
-            <p>Filters: {JSON.stringify(filters, null, 2)}</p>
-          </div>
-        )}
       </div>
     </ProtectedRoute>
   );

@@ -18,7 +18,8 @@
 
 html,
 body {
-  @apply bg-[var(--color-quizdom-blue)] text-white font-mono;
+  background-color: var(--color-quizdom-blue);
+  color: white;
   font-family: 'Tiny5', monospace;
 }
 
@@ -28,40 +29,49 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-800;
+  background-color: rgb(31 41 55);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-[var(--color-quizdom-gold)] rounded;
+  background-color: var(--color-quizdom-gold);
+  border-radius: 0.25rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-[#FFCD2E];
+  background-color: #ffcd2e;
 }
 
 /* Focus styles for accessibility */
 *:focus {
-  @apply outline-none ring-2 ring-[var(--color-quizdom-gold)]/50;
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(252 200 34 / 0.5);
 }
 
 /* Button gradient */
 .btn-gradient {
   background: var(--color-quizdom-gradient);
-  @apply text-[var(--color-quizdom-blue)] font-bold border-none shadow-lg;
+  color: var(--color-quizdom-blue);
+  font-weight: bold;
+  border: none;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 .btn-gradient:hover {
   background: linear-gradient(135deg, #fcc822 0%, #ffcd2e 100%);
-  @apply scale-105 transition-all duration-200;
+  transform: scale(1.05);
+  transition: all 0.2s;
 }
 
 .btn-gradient:active {
-  @apply scale-95;
+  transform: scale(0.95);
 }
 
 /* Navigation active state */
 .nav-link-active {
-  @apply text-[var(--color-quizdom-gold)] border-b-2 border-[var(--color-quizdom-gold)];
+  color: var(--color-quizdom-gold);
+  border-bottom: 2px solid var(--color-quizdom-gold);
 }
 
 /* Mobile menu animation */

@@ -8,12 +8,15 @@ export interface LandingPageProps {
 /**
  * Presentational landing page component for unauthenticated users
  * Displays hero section with features and call-to-action
+ * Designed to work within main layout with navigation
  */
 export function LandingPage(_props: LandingPageProps) {
   return (
-    <div className="min-h-screen bg-[#061421]">
+    <div className="min-h-[calc(100vh-4rem)]">
+      {' '}
+      {/* Account for nav height */}
       {/* Hero Section */}
-      <div className="relative min-h-screen flex items-center justify-center px-4">
+      <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
         {/* Background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#FCC822] opacity-5 rounded-full blur-3xl"></div>

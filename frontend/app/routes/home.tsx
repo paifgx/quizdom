@@ -3,29 +3,18 @@
  * Renders different views based on authentication state following single responsibility principle.
  * Uses clean architecture with separated concerns and proper error handling.
  */
-import type { Route } from './+types/home';
-import { LandingPage } from '../components/landing-page';
+import type { MetaFunction, LoaderFunctionArgs } from 'react-router';
 import { Dashboard } from '../components/dashboard';
-import { LoadingSpinner } from '../components/home/loading-spinner';
+import { LandingPage } from '../components/landing-page';
 import { useHomePage } from '../hooks/useHomePage';
-import { fetchHomeTopics } from '../api';
 import { translate } from '../utils/translations';
-import { useEffect, useState } from 'react';
-
-// Add type definition for HomeTopic
-interface HomeTopic {
-  id: string;
-  title: string;
-  image: string;
-  description: string;
-}
 
 /**
  * Meta function for home page SEO and routing.
  * Provides page title and description for search engines.
  * Uses German content following language consistency rules.
  */
-export function meta(_args: Route.MetaArgs) {
+export const meta: MetaFunction = () => {
   return [
     { title: translate('pageTitles.home') },
     {
@@ -33,6 +22,11 @@ export function meta(_args: Route.MetaArgs) {
       content: translate('pageTitles.homeDescription'),
     },
   ];
+};
+
+export async function loader({ request: _request }: LoaderFunctionArgs) {
+  // No special loading logic needed for home page
+  return {};
 }
 
 /**
@@ -48,51 +42,41 @@ export function meta(_args: Route.MetaArgs) {
  * - Error boundary ready
  */
 export default function HomePage() {
-  const [homeTopics, setHomeTopics] = useState<HomeTopic[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
-
-  // Load home topics data
-  useEffect(() => {
-    const loadHomeTopics = async () => {
-      try {
-        const topics = await fetchHomeTopics();
-        setHomeTopics(topics);
-      } catch {
-        // Error intentionally ignored
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
-    loadHomeTopics();
-  }, []);
-
   const {
     isAuthenticated,
+    isViewingAsAdmin: _isViewingAsAdmin,
     loading,
     searchTerm,
     filteredTopics,
     handleSearchChange,
-  } = useHomePage({ topics: homeTopics });
+  } = useHomePage({ topics: [] }); // Empty topics for now until connected to real API
 
-  // Show loading state only during authentication check
+  // Show loading state while authentication is being determined
   if (loading) {
-    return <LoadingSpinner />;
-  }
-
-  // Render authenticated user dashboard with skeleton loading for topics
-  if (isAuthenticated) {
     return (
-      <Dashboard
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        topics={homeTopics}
-        filteredTopics={filteredTopics}
-        isTopicsLoading={dataLoading}
-      />
+      <div className="min-h-screen bg-[#061421] flex items-center justify-center">
+        <div className="text-[#FCC822] text-xl">Laden...</div>
+      </div>
     );
   }
 
-  // Render landing page for unauthenticated users
-  return <LandingPage />;
+  // Show landing page for unauthenticated users
+  // Landing page handles its own layout and styling
+  if (!isAuthenticated) {
+    return <LandingPage />;
+  }
+
+  // Show dashboard for authenticated users
+  // Wrap in container with proper spacing since we're not in dashboard layout
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <Dashboard
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        topics={[]}
+        filteredTopics={filteredTopics}
+        isTopicsLoading={loading}
+      />
+    </div>
+  );
 }

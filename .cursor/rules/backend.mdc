@@ -4,63 +4,150 @@ globs: backend/**
 alwaysApply: false
 ---
 ## Dependencies
-- FastAPI, Pydantic ≥ 2, SQLModel, Uvicorn[standard]
-- Use uv for packaging and environment management (install tools and manage virtual environments)
-- ruff for lint & format
-- mypy for type checks
+- FastAPI, **Pydantic ≥ 2**, SQLModel, Uvicorn\[standard]
+- Alembic for DB migrations
+- **uv** for packaging and virtual-env management
+- **ruff** for lint & format
+- **mypy --strict** for static typing
+- pytest, respx, Faker for tests
+- structlog for JSON logging
+- slowapi for rate-limiting
 
 ## Folder structure
-- `backend/app/core/` → settings, db, security, logging
-- `backend/app/api/` → versioned routers & shared deps
-- `backend/app/models/` → SQLModel ORM classes
-- `backend/app/schemas/` → Pydantic request/response models
-- `backend/app/services/` → business logic & external APIs
-- `backend/app/main.py` → FastAPI entry point
-- `backend/migrations/` → Alembic revisions
-- `backend/tests/` → pytest suites
+    backend/
+      app/
+        core/      # settings, db, security, logging
+        api/       # versioned routers & shared deps
+        models/    # SQLModel ORM classes
+        schemas/   # Pydantic request/response models
+        services/  # business logic & external APIs
+        main.py    # FastAPI entry point
+      migrations/  # Alembic revisions
+      tests/       # pytest suites mirroring source tree
 
-## File sizing & naming
-- Keep each endpoint file < 200 LOC; split larger ones
-- Mirror source tree in `backend/tests/` for integration tests
-- Define `router = APIRouter(prefix="…", tags=["…"])` per file
+## Naming conventions
+- `snake_case` → functions, variables, modules
+- `PascalCase` → classes, Pydantic models
+- `CONSTANT_CASE` → environment keys
+- Router files: `<resource>_router.py` with
+  `router = APIRouter(prefix="/v1/<resource>", tags=["<resource>"])`
+
+## File size limits
+| Artifact            | Max LOC |
+|---------------------|---------|
+| Router file         | **150** |
+| Service module      | 200     |
+| Model / schema file | 150     |
+
+> Split a file when it reaches its limit.
 
 ## Routing
-- Use HTTP verbs matching intent (GET, POST, PUT, DELETE)
-- Return typed Pydantic models; never raw dicts
-- Use `starlette.status` constants for status codes
-- Override dependencies in tests only; prod code uses defaults
+- Choose the correct HTTP verb (GET, POST, PUT, DELETE).
+- Return typed Pydantic models—never raw dicts.
+- Import status codes from `starlette.status`.
+- Override dependencies only in tests.
 
 ## Business logic
-- Keep endpoints thin; call into `services/*` for side effects
-- Make services stateless; inject DB session via FastAPI deps
-- Wrap external API calls in services to isolate failures
+- Keep endpoints thin; delegate to `services/*`.
+- Services stay stateless; inject a DB session via dependency.
+- Wrap outbound HTTP calls inside services to isolate failures.
 
 ## Data layer
-- Use async SQLModel with a single `sessionmaker` in `core/db.py`
-- Never expose ORM models in responses; convert to schemas
-- Keep migrations under `backend/migrations/`
+- Async SQLModel with a single `sessionmaker` in `core/db.py`.
+- Never expose ORM models; map to schemas inside services.
+- Store migrations in `backend/migrations/`.
 
 ## Validation & security
-- Validate inbound data with Pydantic schemas
-- Centralize auth in `core/security.py`; use OAuth2 password flow + JWT
-- Rate-limit sensitive routes via `slowapi`
+- Validate every inbound payload with Pydantic schemas.
+- Centralise auth in `core/security.py`.
+  - OAuth2 password flow + JWT.
+  - Access-token TTL 15 min; refresh-token TTL 7 days.
+  - Include helper functions for token deny-lists.
+- Rate-limit sensitive routes with slowapi decorators.
 
 ## Error handling & logging
-- Register global handlers for `HTTPException` & `ValidationError`
-- Log JSON lines via `structlog`; never use `print()`
-- Return consistent error shape: `{ "detail": "…" }`
+- Global handlers for `HTTPException` and `ValidationError`.
+- Return a consistent error shape:
+````json
+{
+  "detail": "…",
+  "code": "…",
+  "field": "…",
+  "hint": "…"
+}
+```
+- Log as JSON lines with structlog; never call `print()`.
+
+## Comments & documentation
+
+- Write minimal comments—state **why**, not **how**.
+- Add docstrings only to public interfaces.
+- Prefix rationale comments with `# WHY:`.
+- Each `TODO:` includes a ticket ID.
+
+## Clean-Code principles
+
+- Functions ≤ 20 lines, single abstraction level.
+- Replace boolean flags with Enums.
+- Keep magic numbers out of code; define constants.
+- One reason to change per module.
+- Dependency inversion chain: router → service interface → concrete class.
+- Maintain `docs/ubiquitous.md` with domain terms.
 
 ## Testing
-- Use pytest + `fastapi.testclient.TestClient`
-- Mock external services with `respx`
-- Target ≥ 90 % branch coverage
 
+- **Unit**: services and utilities.
+- **Router-level**: endpoints with `TestClient`.
+- **E2E** (sparingly): critical user paths.
+- Use Faker for data; avoid duplicated fixtures.
+- Cover edge cases with `pytest.parametrize`.
+- Mock outbound HTTP calls with respx.
+- Pipeline fails if branch coverage < 90 %.
 ## Type hints & style
-- Forbid `# type: ignore`
-- Run `mypy --strict`
-- Enforce ruff rules `E,F,I,N`; auto-format on commit with pre-commit
+
+- Ban `# type: ignore`.
+- Run `mypy --strict`.
+- Enforce ruff rules `E,F,I,N`; auto-format in pre-commit.
+
+## Commit & Git hygiene
+
+- Follow Conventional Commits (`feat:`, `fix:`, `chore:` …).
+- One logical change per commit; CI must stay green.
+
+## CI/CD
+
+- GitHub Actions workflow `.github/workflows/ci.yml`:
+    1. `uv run lint`
+    2. `uv run test`
+    3. Build and publish container image
+
+## API versioning
+
+- Default: `/v<major>/…` in the path.
+- Optional header `X-API-Version` to reduce URL churn.
 
 ## Build commands
-- `uv run dev` – `uvicorn app.main:app --reload`
-- `uv run test` – `pytest -q`
-- `uv run lint` – `ruff check . && ruff format . && mypy`
+```bash
+uv run dev    # uvicorn app.main:app --reload
+uv run test   # pytest -q
+uv run lint   # ruff check . && ruff format . && mypy
+```
+
+## Localization
+- **All API responses visible to users must be written in German**
+  - Error messages, validation errors, and success messages returned to frontend
+  - Database constraint violation messages
+  - Business logic error descriptions
+  - Email templates and notification content
+- **All internal code must remain in English**
+  - Variable names, function names, comments, filenames, and technical identifiers
+  - Database table names, column names, and constraint names
+  - API endpoint paths and parameter names
+  - Configuration keys and environment variables
+- **Use proper German grammar and terminology**
+  - Follow German capitalization rules for error messages
+  - Use appropriate formal/informal address (Sie/du) based on context
+  - Ensure proper pluralization and gender agreement
+- **Test data should simulate real German-language usage**
+  - Test fixtures should use realistic German names, addresses, and content
+  - Mock external API responses should be in German when simulating user-facing content

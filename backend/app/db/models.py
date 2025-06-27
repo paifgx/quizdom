@@ -57,7 +57,6 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(unique=True, index=True)
     password_hash: str
-    nickname: str
     is_verified: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = None
@@ -103,6 +102,29 @@ class Answer(SQLModel, table=True):
     question_id: int = Field(foreign_key="question.id")
     content: str
     is_correct: bool = False
+
+
+class Quiz(SQLModel, table=True):
+    """Quiz definitions."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str
+    description: Optional[str] = None
+    topic_id: int = Field(foreign_key="topic.id")
+    difficulty: Difficulty
+    time_limit_minutes: Optional[int] = None
+    image_data: Optional[bytes] = None  # Binary image data
+    image_filename: Optional[str] = None  # Original filename for downloads
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class QuizQuestion(SQLModel, table=True):
+    """Relationship between quizzes and questions."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    quiz_id: int = Field(foreign_key="quiz.id")
+    question_id: int = Field(foreign_key="question.id")
+    order: int = Field(default=0)  # Order of questions in the quiz
 
 
 class PlayerAnswer(SQLModel, table=True):

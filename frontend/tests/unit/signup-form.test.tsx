@@ -5,8 +5,6 @@ import { SignupForm } from '../../app/components/auth/signup-form';
 
 describe('SignupForm', () => {
   const defaultProps = {
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -24,8 +22,6 @@ describe('SignupForm', () => {
   it('renders all required form fields', () => {
     render(<SignupForm {...defaultProps} />);
 
-    expect(screen.getByPlaceholderText('Vorname')).toBeDefined();
-    expect(screen.getByPlaceholderText('Nachname')).toBeDefined();
     expect(screen.getByPlaceholderText('test@mail.com')).toBeDefined();
     expect(screen.getByPlaceholderText('Ihr Passwort')).toBeDefined();
     expect(screen.getByPlaceholderText('Passwort bestätigen')).toBeDefined();
@@ -44,8 +40,6 @@ describe('SignupForm', () => {
 
     render(<SignupForm {...defaultProps} getError={mockGetError} />);
 
-    expect(mockGetError).toHaveBeenCalledWith('firstName');
-    expect(mockGetError).toHaveBeenCalledWith('lastName');
     expect(mockGetError).toHaveBeenCalledWith('email');
     expect(mockGetError).toHaveBeenCalledWith('password');
     expect(mockGetError).toHaveBeenCalledWith('confirmPassword');

@@ -1,6 +1,8 @@
 /**
  * Core game state management hook for all game modes.
- * Handles timing, scoring, lives, and game flow logic.
+ *
+ * Provides centralized game logic with timing, scoring, and flow control.
+ * Handles different game modes: solo, competitive, and collaborative.
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type {
@@ -47,7 +49,12 @@ const INITIAL_HEARTS = {
   collaborative: 3, // Team shares 3 hearts
 };
 
-// Helper function to check if game should end
+/**
+ * Check if game should end based on current state.
+ *
+ * Evaluates end conditions for different game modes.
+ * Returns true when game termination is required.
+ */
 const checkGameOver = (
   currentGameState: GameState,
   mode: 'solo' | 'competitive' | 'collaborative'
@@ -63,7 +70,57 @@ const checkGameOver = (
   return false;
 };
 
-// Helper function to end the game
+/**
+ * Calculate final game results for game over event.
+ *
+ * Determines winner, final score, and remaining hearts.
+ * Handles different victory conditions per game mode.
+ */
+function calculateGameResults(
+  gameState: GameState,
+  mode: 'solo' | 'competitive' | 'collaborative'
+) {
+  let result: 'win' | 'fail' = 'win';
+  let score = 0;
+  let heartsRemaining = 0;
+  let winner: string | undefined;
+
+  if (mode === 'solo') {
+    const player = gameState.players[0];
+    result = player.hearts > 0 ? 'win' : 'fail';
+    score = player.score;
+    heartsRemaining = player.hearts;
+  } else if (mode === 'competitive') {
+    const alivePlayers = gameState.players.filter(p => p.hearts > 0);
+    if (alivePlayers.length === 1) {
+      result = 'win';
+      score = alivePlayers[0].score;
+      heartsRemaining = alivePlayers[0].hearts;
+      winner = alivePlayers[0].id;
+    } else {
+      const topPlayer = gameState.players.reduce((prev, curr) =>
+        curr.score > prev.score ? curr : prev
+      );
+      result = 'win';
+      score = topPlayer.score;
+      heartsRemaining = topPlayer.hearts;
+      winner = topPlayer.id;
+    }
+  } else if (mode === 'collaborative') {
+    result = (gameState.teamHearts || 0) > 0 ? 'win' : 'fail';
+    score = gameState.teamScore || 0;
+    heartsRemaining = gameState.teamHearts || 0;
+  }
+
+  return { result, score, heartsRemaining, winner };
+}
+
+/**
+ * End the game and trigger game over event.
+ *
+ * Calculates final results and notifies parent component.
+ * Updates game state to finished status.
+ */
 const endGame = (
   currentGameState: GameState,
   mode: 'solo' | 'competitive' | 'collaborative',
@@ -71,46 +128,18 @@ const endGame = (
   setGameState: React.Dispatch<React.SetStateAction<GameState>>,
   setIsTimerRunning: (running: boolean) => void
 ) => {
+  const { result, score, heartsRemaining, winner } = calculateGameResults(
+    currentGameState,
+    mode
+  );
+
   setGameState(prev => ({
     ...prev,
     status: 'finished',
     endTime: Date.now(),
+    winner,
   }));
   setIsTimerRunning(false);
-
-  // Determine result
-  let result: 'win' | 'fail' = 'win';
-  let score = 0;
-  let heartsRemaining = 0;
-
-  if (mode === 'solo') {
-    const player = currentGameState.players[0];
-    result = player.hearts > 0 ? 'win' : 'fail';
-    score = player.score;
-    heartsRemaining = player.hearts;
-  } else if (mode === 'competitive') {
-    const alivePlayers = currentGameState.players.filter(p => p.hearts > 0);
-    if (alivePlayers.length === 1) {
-      // One player remaining
-      result = 'win';
-      score = alivePlayers[0].score;
-      heartsRemaining = alivePlayers[0].hearts;
-      setGameState(prev => ({ ...prev, winner: alivePlayers[0].id }));
-    } else {
-      // Game ended with questions finished
-      const winner = currentGameState.players.reduce((prev, curr) =>
-        curr.score > prev.score ? curr : prev
-      );
-      result = 'win';
-      score = winner.score;
-      heartsRemaining = winner.hearts;
-      setGameState(prev => ({ ...prev, winner: winner.id }));
-    }
-  } else if (mode === 'collaborative') {
-    result = (currentGameState.teamHearts || 0) > 0 ? 'win' : 'fail';
-    score = currentGameState.teamScore || 0;
-    heartsRemaining = currentGameState.teamHearts || 0;
-  }
 
   onGameOver({
     mode,
@@ -120,50 +149,130 @@ const endGame = (
   });
 };
 
-export function useGameState({
-  mode,
-  questions,
-  players: initialPlayers,
-  onGameOver,
-  onScoreUpdate,
-  onHeartLoss,
-}: UseGameStateProps) {
-  // Game state
-  const [gameState, setGameState] = useState<GameState>({
-    mode,
-    status: 'waiting',
-    currentQuestionIndex: 0,
-    questions,
-    players: initialPlayers.map(p => ({
-      ...p,
-      hearts: mode === 'collaborative' ? 0 : INITIAL_HEARTS[mode],
-      score: 0,
-    })),
-    teamHearts:
-      mode === 'collaborative' ? INITIAL_HEARTS.collaborative : undefined,
-    teamScore: mode === 'collaborative' ? 0 : undefined,
-    timeLimit: TIME_LIMITS[mode],
+/**
+ * Calculate score based on response time.
+ *
+ * Awards points based on how quickly player answered.
+ * Implements tiered scoring system for engagement.
+ */
+function calculateScore(responseTime: number): number {
+  if (responseTime <= SCORING_THRESHOLDS.FAST) {
+    return POINTS.FAST;
+  } else if (responseTime <= SCORING_THRESHOLDS.MEDIUM) {
+    return POINTS.MEDIUM;
+  }
+  return POINTS.SLOW;
+}
+
+/**
+ * Handle heart loss for different game modes.
+ *
+ * Updates hearts correctly based on mode and triggers callbacks.
+ * Manages both individual and team heart systems.
+ */
+function handleHeartLoss(
+  gameState: GameState,
+  mode: 'solo' | 'competitive' | 'collaborative',
+  playerId: string,
+  onHeartLoss?: (event: HeartLossEvent) => void
+): GameState {
+  if (mode === 'solo' || mode === 'competitive') {
+    const updatedPlayers = gameState.players.map(p => {
+      if (p.id === playerId) {
+        const newHearts = p.hearts - 1;
+        onHeartLoss?.({
+          playerId,
+          heartsRemaining: newHearts,
+        });
+        return { ...p, hearts: newHearts };
+      }
+      return p;
+    });
+    return { ...gameState, players: updatedPlayers };
+  } else if (mode === 'collaborative') {
+    const newTeamHearts = (gameState.teamHearts || 0) - 1;
+    onHeartLoss?.({
+      isTeamHeart: true,
+      heartsRemaining: newTeamHearts,
+    });
+    return { ...gameState, teamHearts: newTeamHearts };
+  }
+  return gameState;
+}
+
+/**
+ * Process player answer and update game state.
+ *
+ * Handles scoring, heart management, and state updates.
+ * Manages different game mode behaviors for answers.
+ */
+function processPlayerAnswer(
+  gameState: GameState,
+  playerId: string,
+  answerIndex: number,
+  answeredAt: number,
+  currentQuestion: Question,
+  mode: 'solo' | 'competitive' | 'collaborative',
+  onScoreUpdate?: (update: ScoreUpdate) => void,
+  onHeartLoss?: (event: HeartLossEvent) => void
+): GameState {
+  const responseTime = answeredAt - currentQuestion.showTimestamp;
+  const isCorrect = answerIndex === currentQuestion.correctAnswer;
+  const points = isCorrect ? calculateScore(responseTime) : 0;
+
+  let newState = { ...gameState };
+
+  // Update player answer data
+  newState.players = newState.players.map(p => {
+    if (p.id === playerId) {
+      return {
+        ...p,
+        hasAnswered: true,
+        answerTimestamp: answeredAt,
+        selectedAnswer: answerIndex,
+        isCorrect,
+        score: p.score + points,
+      };
+    }
+    return p;
   });
 
-  // Timer state
-  const [timeRemaining, setTimeRemaining] = useState(TIME_LIMITS[mode]);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Handle scoring and hearts based on mode
+  if (mode === 'collaborative') {
+    newState.teamScore = (newState.teamScore || 0) + points;
+  }
 
-  // Get current question
-  const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
+  if (!isCorrect) {
+    newState = handleHeartLoss(newState, mode, playerId, onHeartLoss);
+  }
 
-  // Calculate score based on response time
-  const calculateScore = useCallback((responseTime: number): number => {
-    if (responseTime <= SCORING_THRESHOLDS.FAST) {
-      return POINTS.FAST;
-    } else if (responseTime <= SCORING_THRESHOLDS.MEDIUM) {
-      return POINTS.MEDIUM;
-    }
-    return POINTS.SLOW;
-  }, []);
+  // Emit score update for correct answers
+  if (isCorrect) {
+    onScoreUpdate?.({
+      playerId,
+      points,
+      totalScore: newState.players.find(p => p.id === playerId)!.score,
+      responseTime,
+    });
+  }
 
-  // Move to next question or end game
+  return newState;
+}
+
+/**
+ * Move to next question or end game.
+ *
+ * Handles question progression and game completion logic.
+ * Manages timing between questions for better UX.
+ */
+function useQuestionProgression(
+  gameState: GameState,
+  mode: 'solo' | 'competitive' | 'collaborative',
+  onGameOver: (event: GameOverEvent) => void,
+  setGameState: React.Dispatch<React.SetStateAction<GameState>>,
+  setIsTimerRunning: (running: boolean) => void,
+  setTimeRemaining: (time: number) => void
+) {
   const handleQuestionComplete = useCallback(() => {
     setIsTimerRunning(false);
 
@@ -213,9 +322,65 @@ export function useGameState({
 
       return prevState;
     });
-  }, [mode, onGameOver]);
+  }, [mode, onGameOver, setGameState, setIsTimerRunning, setTimeRemaining]);
 
-  // Start the game
+  return { handleQuestionComplete };
+}
+
+/**
+ * Main game state management hook.
+ *
+ * Orchestrates all game mechanics and state updates.
+ * Provides clean interface for game components.
+ */
+export function useGameState({
+  mode,
+  questions,
+  players: initialPlayers,
+  onGameOver,
+  onScoreUpdate,
+  onHeartLoss,
+}: UseGameStateProps) {
+  // Game state
+  const [gameState, setGameState] = useState<GameState>({
+    mode,
+    status: 'waiting',
+    currentQuestionIndex: 0,
+    questions,
+    players: initialPlayers.map(p => ({
+      ...p,
+      hearts: mode === 'collaborative' ? 0 : INITIAL_HEARTS[mode],
+      score: 0,
+    })),
+    teamHearts:
+      mode === 'collaborative' ? INITIAL_HEARTS.collaborative : undefined,
+    teamScore: mode === 'collaborative' ? 0 : undefined,
+    timeLimit: TIME_LIMITS[mode],
+  });
+
+  // Timer state
+  const [timeRemaining, setTimeRemaining] = useState(TIME_LIMITS[mode]);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Get current question
+  const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
+
+  const { handleQuestionComplete } = useQuestionProgression(
+    gameState,
+    mode,
+    onGameOver,
+    setGameState,
+    setIsTimerRunning,
+    setTimeRemaining
+  );
+
+  /**
+   * Start the game and begin first question.
+   *
+   * Initializes game timing and question display.
+   * Sets up game state for active play.
+   */
   const startGame = useCallback(() => {
     setGameState(prev => {
       const updatedQuestions = [...prev.questions];
@@ -237,81 +402,29 @@ export function useGameState({
     setIsTimerRunning(true);
   }, []);
 
-  // Handle answer selection
+  /**
+   * Handle player answer selection.
+   *
+   * Processes answer, updates scores, and manages game flow.
+   * Checks for question completion and game progression.
+   */
   const handleAnswer = useCallback(
     (playerId: string, answerIndex: number, answeredAt: number) => {
       const player = gameState.players.find(p => p.id === playerId);
       if (!player || player.hasAnswered) return;
 
-      const responseTime = answeredAt - currentQuestion.showTimestamp;
-      const isCorrect = answerIndex === currentQuestion.correctAnswer;
-      const points = isCorrect ? calculateScore(responseTime) : 0;
-
-      setGameState(prev => {
-        const updatedPlayers = prev.players.map(p => {
-          if (p.id === playerId) {
-            return {
-              ...p,
-              hasAnswered: true,
-              answerTimestamp: answeredAt,
-              selectedAnswer: answerIndex,
-              isCorrect,
-              score: p.score + points,
-            };
-          }
-          return p;
-        });
-
-        // Handle hearts and scoring based on mode
-        const newState = { ...prev, players: updatedPlayers };
-
-        if (mode === 'solo') {
-          if (!isCorrect) {
-            // Update hearts properly in the newState
-            newState.players = newState.players.map(p => {
-              if (p.id === playerId) {
-                const newHearts = p.hearts - 1;
-                onHeartLoss?.({
-                  playerId,
-                  heartsRemaining: newHearts,
-                });
-                return { ...p, hearts: newHearts };
-              }
-              return p;
-            });
-          }
-        } else if (mode === 'competitive') {
-          if (!isCorrect) {
-            // Update hearts properly in the newState
-            newState.players = newState.players.map(p => {
-              if (p.id === playerId) {
-                const newHearts = p.hearts - 1;
-                onHeartLoss?.({
-                  playerId,
-                  heartsRemaining: newHearts,
-                });
-                return { ...p, hearts: newHearts };
-              }
-              return p;
-            });
-          }
-        } else if (mode === 'collaborative') {
-          // In collaborative mode, hearts are deducted only after all players answer or time runs out
-          newState.teamScore = (newState.teamScore || 0) + points;
-        }
-
-        // Emit score update
-        if (isCorrect) {
-          onScoreUpdate?.({
-            playerId,
-            points,
-            totalScore: updatedPlayers.find(p => p.id === playerId)!.score,
-            responseTime,
-          });
-        }
-
-        return newState;
-      });
+      setGameState(prev =>
+        processPlayerAnswer(
+          prev,
+          playerId,
+          answerIndex,
+          answeredAt,
+          currentQuestion,
+          mode,
+          onScoreUpdate,
+          onHeartLoss
+        )
+      );
 
       // Check if all players have answered
       const allAnswered = gameState.players
@@ -326,17 +439,21 @@ export function useGameState({
       gameState.players,
       currentQuestion,
       mode,
-      calculateScore,
       onScoreUpdate,
       onHeartLoss,
       handleQuestionComplete,
     ]
   );
 
-  // Handle question timeout
+  /**
+   * Handle question timeout.
+   *
+   * Processes timeout behavior for different game modes.
+   * Manages heart loss and question progression.
+   */
   const handleTimeout = useCallback(() => {
     setGameState(prev => {
-      const newState = { ...prev };
+      let newState = { ...prev };
 
       if (mode === 'collaborative') {
         // Check if team got the answer wrong
@@ -344,11 +461,7 @@ export function useGameState({
           p => p.hasAnswered && p.isCorrect
         );
         if (teamAnswers.length === 0) {
-          newState.teamHearts = (newState.teamHearts || 0) - 1;
-          onHeartLoss?.({
-            isTeamHeart: true,
-            heartsRemaining: newState.teamHearts || 0,
-          });
+          newState = handleHeartLoss(newState, mode, '', onHeartLoss);
         }
       } else {
         // Solo and competitive: players who didn't answer lose a heart

@@ -1,3 +1,12 @@
 [flake8]
 max-line-length = 88
-extend-ignore = E203, W503
+extend-ignore =
+    # E203: whitespace before ':' (conflicts with Black)
+    E203,
+    # W503: line break before binary operator (conflicts with Black)
+    W503,
+    # E501: line too long (Black handles this)
+    E501
+per-file-ignores =
+    # Allow unused imports in __init__.py files
+    __init__.py:F401

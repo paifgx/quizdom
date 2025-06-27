@@ -5,8 +5,6 @@ import { AuthActions } from './auth-actions';
 import { translate } from '../../utils/translations';
 
 interface FormState {
-  firstName?: string;
-  lastName?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -79,8 +77,6 @@ export function AuthPanel({
         <form onSubmit={onSubmit} className="space-y-6">
           {isSignupMode ? (
             <SignupForm
-              firstName={formState.firstName || ''}
-              lastName={formState.lastName || ''}
               email={formState.email || ''}
               password={formState.password || ''}
               confirmPassword={formState.confirmPassword || ''}
@@ -117,19 +113,6 @@ export function AuthPanel({
             onRememberMeChange={checked => onFieldChange('rememberMe', checked)}
           />
         </form>
-
-        {!isSignupMode && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-700 mb-2">
-              {translate('auth.demoAccounts')}
-            </p>
-            <div className="space-y-1 text-xs text-gray-600">
-              <p>{translate('auth.playerDemo')}</p>
-              <p>{translate('auth.adminDemo')}</p>
-              <p>{translate('auth.passwordDemo')}</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
