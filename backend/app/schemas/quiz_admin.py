@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.db.models import Difficulty
 
@@ -75,9 +75,7 @@ class TopicResponse(TopicBase):
     """Schema for topic responses."""
 
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AnswerBase(BaseModel):
@@ -97,9 +95,7 @@ class AnswerResponse(AnswerBase):
     """Schema for answer responses."""
 
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class QuestionBase(_DifficultyAliasMixin):
@@ -140,9 +136,7 @@ class QuestionResponse(QuestionBase):
     created_at: datetime
     answers: List[AnswerResponse]
     topic: TopicResponse
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class QuizBase(_DifficultyAliasMixin):
@@ -185,18 +179,14 @@ class QuizResponse(QuizBase):
     topic: TopicResponse
     question_count: int
     has_image: bool = False  # Indicates if quiz has an image
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class QuizDetailResponse(QuizResponse):
     """Schema for detailed quiz responses with questions."""
 
     questions: List[QuestionResponse]
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class QuizBatchCreate(BaseModel):
