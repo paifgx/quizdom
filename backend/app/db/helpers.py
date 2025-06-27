@@ -30,6 +30,7 @@ def get_user_with_role_name(
         select(Role.name)
         .join(UserRoles)
         .where(UserRoles.user_id == user_id)
+        .where(UserRoles.role_id == Role.id)
     ).first()
 
     role_name = role_result if role_result else None
@@ -46,7 +47,7 @@ def get_user_quiz_statistics(session: Session, user_id: int) -> dict:
     # Get stats from SessionPlayers
     quiz_stats = session.exec(
         select(
-            func.count(SessionPlayers.session_id).label("quizzes_completed"),
+            func.count().label("quizzes_completed"),
             func.coalesce(func.avg(SessionPlayers.score),
                           0).label("average_score"),
             func.coalesce(func.sum(SessionPlayers.score),
@@ -82,7 +83,7 @@ def get_user_last_session(session: Session, user_id: int) -> Optional[datetime]:
         select(GameSession.started_at)
         .join(SessionPlayers)
         .where(SessionPlayers.user_id == user_id)
-        .order_by(GameSession.started_at)
+        .where(SessionPlayers.session_id == GameSession.id)
         .limit(1)
     ).first()
 

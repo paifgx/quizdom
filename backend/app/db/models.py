@@ -6,6 +6,7 @@ from datetime import datetime
 from enum import Enum, IntEnum
 from typing import Any, Optional
 
+from sqlalchemy import JSON
 from sqlmodel import Field, SQLModel
 
 
@@ -122,8 +123,8 @@ class AuditLogs(SQLModel, table=True):
     actor_id: int = Field(foreign_key="user.id", index=True)
     target_id: Optional[int] = None  # ID of the affected entity
     action: str  # e.g., "user.create", "quiz.delete", etc.
-    meta: Optional[dict[str, Any]] = Field(
-        default=None, sa_column_kwargs={"type": "JSON"})
+    meta: Optional[Any] = Field(
+        default=None, sa_column_kwargs={"type": JSON})
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 

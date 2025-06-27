@@ -7,8 +7,9 @@ including creating, reading, updating, and deleting user accounts.
 from datetime import datetime, timezone
 from typing import List, Optional
 
+from sqlalchemy import desc, func
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlmodel import Session, func, select
+from sqlmodel import Session, select
 
 from app.core.logging import app_logger, log_operation
 from app.core.security import get_password_hash
@@ -65,8 +66,8 @@ def _build_user_query_filters(
     Reduces complexity in list_users by extracting filter logic.
     """
     if search:
-        # SQLModel uses string matching with like operator
-        query = query.where(User.email.like(f"%{search.lower()}%"))
+        # Use string contains for search
+        query = query.where(func.lower(User.email).like(f"%{search.lower()}%"))
 
     if role_filter and role_filter != "all":
         query = query.where(Role.name == role_filter)
@@ -84,7 +85,7 @@ def _build_user_query_filters(
 
 
 def _build_user_response_with_stats(
-    session: Session, user: User, role_name: Optional[str]
+    session: Session, user: User, role_name: Optional[str] = None
 ) -> UserListResponse:
     """Build user response with quiz statistics.
 
@@ -94,7 +95,7 @@ def _build_user_response_with_stats(
     # Get quiz statistics from SessionPlayers
     quiz_stats = session.exec(
         select(
-            func.count(SessionPlayers.session_id).label("quizzes_completed"),
+            func.count().label("quizzes_completed"),
             func.coalesce(func.avg(SessionPlayers.score),
                           0).label("average_score"),
             func.coalesce(func.sum(SessionPlayers.score),
@@ -107,7 +108,8 @@ def _build_user_response_with_stats(
         select(GameSession.started_at)
         .join(SessionPlayers)
         .where(SessionPlayers.user_id == user.id)
-        .order_by(GameSession.started_at.desc())
+        .where(SessionPlayers.session_id == GameSession.id)
+        .order_by("gamesession.started_at DESC")
         .limit(1)
     ).first()
 
@@ -121,7 +123,7 @@ def _build_user_response_with_stats(
         completed, avg_score, total_score = 0, 0.0, 0
 
     return UserListResponse(
-        id=user.id,
+        id=user.id or 0,
         email=user.email,
         is_verified=user.is_verified,
         created_at=user.created_at,
@@ -153,7 +155,15 @@ async def list_users(
         app_logger, "list_users", admin_id=admin_user.id, skip=skip, limit=limit
     )
 
-    query = select(User, Role.name).outerjoin(Role)
+    # Build query with left join to get users with their roles
+    query = (
+        select(User, Role.name)
+        .outerjoin(UserRoles)
+        .outerjoin(Role)
+        .where(UserRoles.user_id == User.id)
+        .where(UserRoles.role_id == Role.id)
+    )
+
     query = _build_user_query_filters(
         query, search, role_filter, status_filter)
     query = query.offset(skip).limit(limit)
@@ -178,25 +188,28 @@ async def get_user_stats(
 
     Returns aggregated statistics about users for admin overview.
     """
-    total_users = session.exec(select(func.count(User.id))).first()
+    total_users = session.exec(select(func.count()).select_from(User)).first()
 
     active_users = session.exec(
-        select(func.count(User.id)).where(User.deleted_at.is_(None))
+        select(func.count()).select_from(User).where(User.deleted_at == None)
     ).first()
 
+    # Count users with admin role through UserRoles
     admin_users = session.exec(
-        select(func.count(User.id)).where(User.role_id == 1)
+        select(func.count(func.distinct(UserRoles.user_id)))
+        .join(Role)
+        .where(Role.name == "admin")
     ).first()
 
     verified_users = session.exec(
-        select(func.count(User.id)).where(User.is_verified is True)
+        select(func.count()).select_from(User).where(User.is_verified == True)
     ).first()
 
     current_month_start = datetime.now(timezone.utc).replace(
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     new_users_this_month = session.exec(
-        select(func.count(User.id)).where(
+        select(func.count()).select_from(User).where(
             User.created_at >= current_month_start)
     ).first()
 
@@ -223,8 +236,14 @@ async def get_user(
         app_logger, "get_user", admin_id=admin_user.id, target_user_id=user_id
     )
 
+    # Get user with role through UserRoles
     result = session.exec(
-        select(User, Role.name).outerjoin(Role).where(User.id == user_id)
+        select(User, Role.name)
+        .outerjoin(UserRoles)
+        .outerjoin(Role)
+        .where(UserRoles.user_id == User.id)
+        .where(UserRoles.role_id == Role.id)
+        .where(User.id == user_id)
     ).first()
 
     if not result:
@@ -285,7 +304,6 @@ async def create_user(
         email=user_data.email,
         password_hash=get_password_hash(user_data.password),
         is_verified=user_data.is_verified,
-        role_id=user_data.role_id,
         created_at=datetime.now(timezone.utc),
     )
 
@@ -293,17 +311,26 @@ async def create_user(
     session.commit()
     session.refresh(new_user)
 
-    # Get role name for response
+    # Assign role if specified
     role_name = None
-    if new_user.role_id:
+    if user_data.role_id and new_user.id:
+        user_role = UserRoles(
+            user_id=new_user.id,
+            role_id=user_data.role_id,
+            granted_at=datetime.now(timezone.utc),
+        )
+        session.add(user_role)
+        session.commit()
+
+        # Get role name for response
         role = session.exec(select(Role).where(
-            Role.id == new_user.role_id)).first()
+            Role.id == user_data.role_id)).first()
         role_name = role.name if role else None
 
     log_operation(app_logger, "create_user_success", user_id=new_user.id)
 
     return UserListResponse(
-        id=new_user.id,
+        id=new_user.id or 0,
         email=new_user.email,
         is_verified=new_user.is_verified,
         created_at=new_user.created_at,
@@ -353,8 +380,7 @@ def _apply_user_updates(user: User, user_data: UserUpdateRequest) -> None:
         user.email = user_data.email
     if user_data.is_verified is not None:
         user.is_verified = user_data.is_verified
-    if user_data.role_id is not None:
-        user.role_id = user_data.role_id
+    # Note: role_id is handled separately through UserRoles
 
 
 @router.put("/{user_id}", response_model=UserListResponse)
@@ -386,10 +412,41 @@ async def update_user(
     session.commit()
     session.refresh(user)
 
+    # Handle role update
+    if user_data.role_id is not None:
+        # Remove existing role
+        existing_role = session.exec(
+            select(UserRoles).where(UserRoles.user_id == user_id)
+        ).first()
+
+        if existing_role:
+            session.delete(existing_role)
+
+        # Add new role if specified
+        if user_data.role_id:
+            new_role = UserRoles(
+                user_id=user_id,
+                role_id=user_data.role_id,
+                granted_at=datetime.now(timezone.utc),
+            )
+            session.add(new_role)
+
+        session.commit()
+
     # Get updated user with role for response
     result = session.exec(
-        select(User, Role.name).outerjoin(Role).where(User.id == user_id)
+        select(User, Role.name)
+        .outerjoin(UserRoles)
+        .outerjoin(Role)
+        .where(UserRoles.user_id == User.id)
+        .where(UserRoles.role_id == Role.id)
+        .where(User.id == user_id)
     ).first()
+
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     user, role_name = result
     response = _build_user_response_with_stats(session, user, role_name)
@@ -433,46 +490,23 @@ async def update_user_status(
     # Get updated user with role
     result = session.exec(
         select(User, Role.name)
-        .outerjoin(Role, User.role_id == Role.id)
+        .outerjoin(UserRoles)
+        .outerjoin(Role)
+        .where(UserRoles.user_id == User.id)
+        .where(UserRoles.role_id == Role.id)
         .where(User.id == user_id)
     ).first()
 
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
     user, role_name = result
 
-    # Get user statistics
-    quiz_stats = session.exec(
-        select(
-            func.count(GameSession.id).label("quizzes_completed"),
-            func.coalesce(func.avg(GameSession.score),
-                          0).label("average_score"),
-            func.coalesce(func.sum(GameSession.score), 0).label("total_score"),
-        ).where(GameSession.user_id == user.id)
-    ).first()
+    response = _build_user_response_with_stats(session, user, role_name)
 
-    # Get last login
-    last_session = session.exec(
-        select(GameSession.started_at)
-        .where(GameSession.user_id == user.id)
-        .order_by(GameSession.started_at.desc())
-        .limit(1)
-    ).first()
-
-    return UserListResponse(
-        id=user.id,
-        email=user.email,
-        is_verified=user.is_verified,
-        created_at=user.created_at,
-        deleted_at=user.deleted_at,
-        role_name=role_name,
-        last_login=last_session,
-        quizzes_completed=quiz_stats.quizzes_completed if quiz_stats else 0,
-        average_score=(
-            float(quiz_stats.average_score)
-            if quiz_stats and quiz_stats.average_score
-            else 0.0
-        ),
-        total_score=quiz_stats.total_score if quiz_stats else 0,
-    )
+    return response
 
 
 @router.delete("/{user_id}")
@@ -520,7 +554,7 @@ async def list_roles(
 
     return [
         RoleResponse(
-            id=role.id,
+            id=role.id or 0,
             name=role.name,
             description=role.description,
         )
