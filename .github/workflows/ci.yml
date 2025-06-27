@@ -139,7 +139,7 @@ jobs:
 
       - name: Run unit tests
         working-directory: frontend
-        run: pnpm run test:run --coverage
+        run: pnpm run test:unit --coverage
 
       - name: Run integration tests
         working-directory: frontend
