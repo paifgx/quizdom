@@ -18,7 +18,7 @@ from app.core.security import (
     verify_password,
     verify_token,
 )
-from app.db.models import Role, User
+from app.db.models import Role, User, UserRoles
 from app.db.session import get_session
 from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse
 
@@ -61,18 +61,28 @@ def get_user_with_role(session: Session, user: User) -> UserResponse:
 
     Joins user data with role information and returns UserResponse.
     """
-    # Get role name if user has a role
+    # Get role name if user has a role through UserRoles
     role_name = None
-    if user.role_id:
-        role = session.exec(select(Role).where(Role.id == user.role_id)).first()
-        if role:
-            role_name = role.name
+    role_id = None
+
+    if user.id:
+        # Query for user's role through UserRoles table
+        statement = (
+            select(Role.id, Role.name)
+            .join(UserRoles)
+            .where(UserRoles.user_id == user.id)
+            .where(UserRoles.role_id == Role.id)
+        )
+        result = session.exec(statement).first()
+
+        if result:
+            role_id, role_name = result
 
     return UserResponse(
         id=user.id or 0,
         email=user.email,
         is_verified=user.is_verified,
-        role_id=user.role_id,
+        role_id=role_id,
         role_name=role_name,
     )
 
@@ -96,7 +106,8 @@ def register_user(
 
     Creates a new user with hashed password and returns an access token.
     """
-    log_operation(app_logger, "user_registration_attempt", email=user_data.email)
+    log_operation(app_logger, "user_registration_attempt",
+                  email=user_data.email)
 
     # WHY: Check for existing user to prevent duplicates
     existing_user = get_user_by_email(session, user_data.email)

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash
-from app.db.models import Role, User
+from app.db.models import Role, User, UserRoles
 from app.db.session import engine
 
 
@@ -40,33 +40,59 @@ def create_test_users(session: Session) -> None:
 
     # Create admin user
     admin_email = "admin@quizdom.de"
-    existing_admin = session.exec(select(User).where(User.email == admin_email)).first()
+    existing_admin = session.exec(
+        select(User).where(User.email == admin_email)).first()
     if not existing_admin:
         admin_user = User(
             email=admin_email,
             password_hash=get_password_hash("admin123"),
+            nickname="Admin",
             is_verified=True,
             created_at=datetime.now(timezone.utc),
-            role_id=admin_role.id,
         )
         session.add(admin_user)
+        session.commit()
+        session.refresh(admin_user)
+
+        # Assign admin role
+        if admin_user.id and admin_role.id:
+            admin_user_role = UserRoles(
+                user_id=admin_user.id,
+                role_id=admin_role.id,
+                granted_at=datetime.now(timezone.utc),
+            )
+            session.add(admin_user_role)
+            session.commit()
+
         print(f"✅ Created admin user: {admin_email} / admin123")
 
     # Create normal user
     user_email = "user@quizdom.de"
-    existing_user = session.exec(select(User).where(User.email == user_email)).first()
+    existing_user = session.exec(
+        select(User).where(User.email == user_email)).first()
     if not existing_user:
         normal_user = User(
             email=user_email,
             password_hash=get_password_hash("user123"),
+            nickname="Test User",
             is_verified=True,
             created_at=datetime.now(timezone.utc),
-            role_id=user_role.id,
         )
         session.add(normal_user)
-        print(f"✅ Created normal user: {user_email} / user123")
+        session.commit()
+        session.refresh(normal_user)
 
-    session.commit()
+        # Assign user role
+        if normal_user.id and user_role.id:
+            normal_user_role = UserRoles(
+                user_id=normal_user.id,
+                role_id=user_role.id,
+                granted_at=datetime.now(timezone.utc),
+            )
+            session.add(normal_user_role)
+            session.commit()
+
+        print(f"✅ Created normal user: {user_email} / user123")
 
 
 def seed_database() -> None:

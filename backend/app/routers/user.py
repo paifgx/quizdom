@@ -12,7 +12,7 @@ from sqlmodel import Session, func, select
 
 from app.core.logging import app_logger, log_operation
 from app.core.security import get_password_hash
-from app.db.models import GameSession, Role, User
+from app.db.models import GameSession, Role, SessionPlayers, User, UserRoles
 from app.db.session import get_session
 from app.routers.auth import get_current_user
 from app.schemas.user import (
@@ -27,14 +27,26 @@ from app.schemas.user import (
 router = APIRouter(prefix="/v1/users", tags=["users"])
 
 
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
+def require_admin(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> User:
     """Require admin role for accessing endpoints.
 
     Verifies that the current user has admin privileges.
     Used as a dependency for admin-only endpoints.
     """
-    if not current_user.role_id or current_user.role_id != 1:
-        log_operation(app_logger, "admin_access_denied", user_id=current_user.id)
+    # Check if user has admin role through UserRoles
+    admin_role = session.exec(
+        select(Role)
+        .join(UserRoles)
+        .where(UserRoles.user_id == current_user.id)
+        .where(Role.name == "admin")
+    ).first()
+
+    if not admin_role:
+        log_operation(app_logger, "admin_access_denied",
+                      user_id=current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
         )
@@ -53,19 +65,20 @@ def _build_user_query_filters(
     Reduces complexity in list_users by extracting filter logic.
     """
     if search:
-        query = query.where(User.email.contains(search.lower()))
+        # SQLModel uses string matching with like operator
+        query = query.where(User.email.like(f"%{search.lower()}%"))
 
     if role_filter and role_filter != "all":
         query = query.where(Role.name == role_filter)
 
     if status_filter == "active":
-        query = query.where(User.deleted_at.is_(None))
+        query = query.where(User.deleted_at == None)
     elif status_filter == "inactive":
-        query = query.where(User.deleted_at.is_not(None))
+        query = query.where(User.deleted_at != None)
     elif status_filter == "verified":
-        query = query.where(User.is_verified.is_(True))
+        query = query.where(User.is_verified == True)
     elif status_filter == "unverified":
-        query = query.where(User.is_verified.is_(False))
+        query = query.where(User.is_verified == False)
 
     return query
 
@@ -78,17 +91,22 @@ def _build_user_response_with_stats(
     Extracts the complex user statistics building logic to reduce
     function length in multiple endpoints.
     """
+    # Get quiz statistics from SessionPlayers
     quiz_stats = session.exec(
         select(
-            func.count(GameSession.id).label("quizzes_completed"),
-            func.coalesce(func.avg(GameSession.score), 0).label("average_score"),
-            func.coalesce(func.sum(GameSession.score), 0).label("total_score"),
-        ).where(GameSession.user_id == user.id)
+            func.count(SessionPlayers.session_id).label("quizzes_completed"),
+            func.coalesce(func.avg(SessionPlayers.score),
+                          0).label("average_score"),
+            func.coalesce(func.sum(SessionPlayers.score),
+                          0).label("total_score"),
+        ).where(SessionPlayers.user_id == user.id)
     ).first()
 
+    # Get last session from SessionPlayers
     last_session = session.exec(
         select(GameSession.started_at)
-        .where(GameSession.user_id == user.id)
+        .join(SessionPlayers)
+        .where(SessionPlayers.user_id == user.id)
         .order_by(GameSession.started_at.desc())
         .limit(1)
     ).first()
@@ -136,7 +154,8 @@ async def list_users(
     )
 
     query = select(User, Role.name).outerjoin(Role)
-    query = _build_user_query_filters(query, search, role_filter, status_filter)
+    query = _build_user_query_filters(
+        query, search, role_filter, status_filter)
     query = query.offset(skip).limit(limit)
 
     results = session.exec(query).all()
@@ -177,7 +196,8 @@ async def get_user_stats(
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     new_users_this_month = session.exec(
-        select(func.count(User.id)).where(User.created_at >= current_month_start)
+        select(func.count(User.id)).where(
+            User.created_at >= current_month_start)
     ).first()
 
     return UserStatsResponse(
@@ -237,7 +257,8 @@ def _validate_create_user_data(session: Session, user_data: UserCreateRequest) -
         )
 
     if user_data.role_id:
-        role = session.exec(select(Role).where(Role.id == user_data.role_id)).first()
+        role = session.exec(select(Role).where(
+            Role.id == user_data.role_id)).first()
         if not role:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role ID"
@@ -275,7 +296,8 @@ async def create_user(
     # Get role name for response
     role_name = None
     if new_user.role_id:
-        role = session.exec(select(Role).where(Role.id == new_user.role_id)).first()
+        role = session.exec(select(Role).where(
+            Role.id == new_user.role_id)).first()
         role_name = role.name if role else None
 
     log_operation(app_logger, "create_user_success", user_id=new_user.id)
@@ -303,7 +325,8 @@ def _validate_update_user_data(
     Extracted to reduce complexity in update_user function.
     """
     if user_data.role_id:
-        role = session.exec(select(Role).where(Role.id == user_data.role_id)).first()
+        role = session.exec(select(Role).where(
+            Role.id == user_data.role_id)).first()
         if not role:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role ID"
@@ -420,7 +443,8 @@ async def update_user_status(
     quiz_stats = session.exec(
         select(
             func.count(GameSession.id).label("quizzes_completed"),
-            func.coalesce(func.avg(GameSession.score), 0).label("average_score"),
+            func.coalesce(func.avg(GameSession.score),
+                          0).label("average_score"),
             func.coalesce(func.sum(GameSession.score), 0).label("total_score"),
         ).where(GameSession.user_id == user.id)
     ).first()
