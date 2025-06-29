@@ -138,6 +138,9 @@ db-revision: ## Create a new database migration
 db-history: ## Show database migration history
 	cd backend && alembic history
 
+db-seed: ## Seed the database with initial data
+	cd backend && python -m app.db.seed
+
 # ======================
 # BUILD
 # ======================
