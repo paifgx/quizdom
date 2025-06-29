@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum, IntEnum
 from typing import Any, Optional
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, Enum as SQLAlchemyEnum
 from sqlmodel import Field, SQLModel
 
 
@@ -160,7 +160,7 @@ class Question(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     topic_id: int = Field(foreign_key="topic.id", index=True)
-    difficulty: Difficulty
+    difficulty: int
     content: str
     explanation: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -251,10 +251,10 @@ class Quiz(SQLModel, table=True):
     title: str
     description: Optional[str] = None
     topic_id: int = Field(foreign_key="topic.id")
-    difficulty: Difficulty
+    difficulty: int
     time_limit_minutes: Optional[int] = None
-    image_data: Optional[bytes] = None  # Binary image data
-    image_filename: Optional[str] = None  # Original filename for downloads
+    image_data: Optional[bytes] = None
+    image_filename: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 

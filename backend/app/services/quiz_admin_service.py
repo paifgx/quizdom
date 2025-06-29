@@ -70,7 +70,8 @@ class QuizAdminService:
 
         # Check if topic has quizzes
         statement = (
-            select(func.count()).select_from(Quiz).where(Quiz.topic_id == topic_id)
+            select(func.count()).select_from(
+                Quiz).where(Quiz.topic_id == topic_id)
         )
         quiz_count = self.db.exec(statement).one()
 
@@ -100,7 +101,8 @@ class QuizAdminService:
         question_responses = []
         for question in questions:
             # Load answers
-            answers_stmt = select(Answer).where(Answer.question_id == question.id)
+            answers_stmt = select(Answer).where(
+                Answer.question_id == question.id)
             answers = list(self.db.exec(answers_stmt).all())
 
             # Load topic
@@ -151,12 +153,16 @@ class QuizAdminService:
     def create_question(self, question_data: QuestionCreate) -> dict:
         """Create a new question with answers."""
         # Validate at least one correct answer
-        correct_count = sum(1 for answer in question_data.answers if answer.is_correct)
+        correct_count = sum(
+            1 for answer in question_data.answers if answer.is_correct)
         if correct_count == 0:
-            raise ValueError("Mindestens eine Antwort muss als korrekt markiert sein")
+            raise ValueError(
+                "Mindestens eine Antwort muss als korrekt markiert sein")
 
-        # Create question
+        # Create question - convert Difficulty enum to integer
         question_dict = question_data.dict(exclude={"answers"})
+        # Convert enum to int
+        question_dict["difficulty"] = question_data.difficulty.value
         question = Question(**question_dict)
         self.db.add(question)
         self.db.flush()  # Get the question ID
@@ -187,6 +193,10 @@ class QuizAdminService:
             return None
 
         update_data = question_data.dict(exclude_unset=True)
+        # Convert Difficulty enum to integer if present
+        if "difficulty" in update_data and update_data["difficulty"] is not None:
+            update_data["difficulty"] = update_data["difficulty"].value
+
         for key, value in update_data.items():
             setattr(question, key, value)
 
@@ -289,7 +299,8 @@ class QuizAdminService:
         question_responses = []
         for question in questions:
             # Load answers
-            answers_stmt = select(Answer).where(Answer.question_id == question.id)
+            answers_stmt = select(Answer).where(
+                Answer.question_id == question.id)
             answers = list(self.db.exec(answers_stmt).all())
 
             # Load topic
@@ -331,8 +342,10 @@ class QuizAdminService:
             if not self.db.get(Question, qid):
                 raise ValueError(f"Frage mit ID {qid} existiert nicht")
 
-        # Create quiz
+        # Create quiz - convert Difficulty enum to integer
         quiz_dict = quiz_data.dict(exclude={"question_ids"})
+        # Convert enum to int
+        quiz_dict["difficulty"] = quiz_data.difficulty.value
         quiz = Quiz(**quiz_dict)
         self.db.add(quiz)
         self.db.flush()
@@ -361,7 +374,8 @@ class QuizAdminService:
         if not quiz:
             return None
 
-        update_data = quiz_data.dict(exclude_unset=True, exclude={"question_ids"})
+        update_data = quiz_data.dict(
+            exclude_unset=True, exclude={"question_ids"})
         for key, value in update_data.items():
             setattr(quiz, key, value)
 
@@ -373,7 +387,8 @@ class QuizAdminService:
                     raise ValueError(f"Frage mit ID {qid} existiert nicht")
 
             # Delete existing quiz-question relationships
-            statement = select(QuizQuestion).where(QuizQuestion.quiz_id == quiz_id)
+            statement = select(QuizQuestion).where(
+                QuizQuestion.quiz_id == quiz_id)
             existing_relations = self.db.exec(statement).all()
             for relation in existing_relations:
                 self.db.delete(relation)
@@ -423,7 +438,8 @@ class QuizAdminService:
             if isinstance(question_item, int):
                 # Existing question ID - verify it exists
                 if not self.db.get(Question, question_item):
-                    raise ValueError(f"Frage mit ID {question_item} existiert nicht")
+                    raise ValueError(
+                        f"Frage mit ID {question_item} existiert nicht")
                 question_id = question_item
             else:
                 question_create = question_item
@@ -443,7 +459,8 @@ class QuizAdminService:
 
                 # Create answers
                 for answer_data in question_create.answers:
-                    answer = Answer(question_id=question.id, **answer_data.dict())
+                    answer = Answer(question_id=question.id,
+                                    **answer_data.dict())
                     self.db.add(answer)
 
                 question_id = question.id
