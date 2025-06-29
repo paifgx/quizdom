@@ -194,6 +194,7 @@ class QuizBatchCreate(BaseModel):
 
     title: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
+    topic_id: int
     difficulty: Difficulty
     time_limit_minutes: Optional[int] = Field(None, ge=1, le=180)
     questions: List[QuestionCreate]

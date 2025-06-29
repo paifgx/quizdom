@@ -254,7 +254,7 @@ class QuizAdminService {
         topic_id: topicId,
         difficulty: payload.difficulty,
         time_limit_minutes: 15,
-        question_ids: [],
+        question_ids: payload.questionIds ? payload.questionIds.map(id => parseInt(id)) : [],
       };
 
       const response = await apiClient.post<BackendQuizDetailResponse>(

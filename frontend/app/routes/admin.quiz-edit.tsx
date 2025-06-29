@@ -417,7 +417,25 @@ export default function AdminQuizEditPage() {
       let savedQuizId: string | undefined = quizId;
 
       if (isNewQuiz) {
-        if (createdQuestions.length > 0) {
+        // Handle different scenarios for new quiz creation
+        if (createdQuestions.length > 0 && selectedQuestions.length > 0) {
+          // Both new and existing questions - create new questions first, then create quiz with all
+          const newQuestions = await quizAdminService.createQuestions(createdQuestions);
+          const newQuestionIds = newQuestions.map(q => q.id);
+          
+          const payload: CreateQuizPayload = {
+            title: formData.title.trim(),
+            description: formData.description.trim(),
+            difficulty: formData.difficulty,
+            tags: formData.tags,
+            settings,
+            questionIds: [...selectedQuestions, ...newQuestionIds],
+          };
+
+          const result = await quizAdminService.createQuiz(payload);
+          savedQuizId = result.id;
+        } else if (createdQuestions.length > 0) {
+          // Only new questions - use batch creation
           const payload: CreateQuizBatchPayload = {
             title: formData.title.trim(),
             description: formData.description.trim(),
@@ -428,7 +446,21 @@ export default function AdminQuizEditPage() {
 
           const result = await quizAdminService.createQuizBatch(payload);
           savedQuizId = result.id;
+        } else if (selectedQuestions.length > 0) {
+          // Only existing questions - create quiz with selected questions
+          const payload: CreateQuizPayload = {
+            title: formData.title.trim(),
+            description: formData.description.trim(),
+            difficulty: formData.difficulty,
+            tags: formData.tags,
+            settings,
+            questionIds: selectedQuestions,
+          };
+
+          const result = await quizAdminService.createQuiz(payload);
+          savedQuizId = result.id;
         } else {
+          // No questions - create empty quiz
           const payload: CreateQuizPayload = {
             title: formData.title.trim(),
             description: formData.description.trim(),

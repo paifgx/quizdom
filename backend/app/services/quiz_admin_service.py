@@ -422,8 +422,8 @@ class QuizAdminService:
 
     def create_quiz_batch(self, quiz_data: QuizBatchCreate) -> dict:
         """Create a new quiz with questions in a single batch operation."""
-        # Create quiz first (without questions)
         quiz_dict = quiz_data.dict(exclude={"questions"})
+        quiz_dict["difficulty"] = quiz_data.difficulty.value
         quiz = Quiz(**quiz_dict)
         self.db.add(quiz)
         self.db.flush()  # Get the quiz ID
@@ -450,6 +450,8 @@ class QuizAdminService:
                     )
 
                 question_dict = question_create.dict(exclude={"answers"})
+                # Convert enum to int for question difficulty too
+                question_dict["difficulty"] = question_create.difficulty.value
                 question = Question(**question_dict)
                 self.db.add(question)
                 self.db.flush()
