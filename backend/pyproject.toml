@@ -33,6 +33,26 @@ build-backend = "hatchling.build"
 [project]
 name = "quizdom-backend"
 version = "0.1.0"
+dependencies = [
+    "fastapi",
+    "sqlmodel",
+    "uvicorn",
+    "pydantic",
+    "pydantic-settings",
+    "psycopg2-binary",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]>=1.7.4,<2.0",
+    "bcrypt>=3.2.0,<4.0.0",
+    "python-multipart",
+    "email-validator",
+    "alembic",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx", "faker"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.pytest.ini_options]
 filterwarnings = [

@@ -9,17 +9,17 @@ from app.db.models import Difficulty
 
 # Allowed difficulty aliases mapping (lowercase) to Difficulty enum
 _DIFFICULTY_ALIAS: dict[str, Difficulty] = {
-    "anfänger": Difficulty.ONE,
-    "anfaenger": Difficulty.ONE,
-    "lehrling": Difficulty.TWO,
-    "geselle": Difficulty.THREE,
-    "meister": Difficulty.FOUR,
-    "großmeister": Difficulty.FIVE,
-    "grossmeister": Difficulty.FIVE,
+    "anfänger": Difficulty.NOVICE,
+    "anfaenger": Difficulty.NOVICE,
+    "lehrling": Difficulty.APPRENTICE,
+    "geselle": Difficulty.JOURNEYMAN,
+    "meister": Difficulty.MASTER,
+    "großmeister": Difficulty.GRANDMASTER,
+    "grossmeister": Difficulty.GRANDMASTER,
     # Legacy aliases
-    "easy": Difficulty.ONE,
-    "medium": Difficulty.THREE,
-    "hard": Difficulty.FIVE,
+    "easy": Difficulty.NOVICE,
+    "medium": Difficulty.JOURNEYMAN,
+    "hard": Difficulty.GRANDMASTER,
 }
 
 

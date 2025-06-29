@@ -27,13 +27,13 @@ class GameStatus(str, Enum):
 
 
 class Difficulty(IntEnum):
-    """Question difficulty from 1 (easy) to 5 (hard)."""
+    """Question difficulty from 1 (novice) to 5 (grandmaster)."""
 
-    ONE = 1
-    TWO = 2
-    THREE = 3
-    FOUR = 4
-    FIVE = 5
+    NOVICE = 1
+    APPRENTICE = 2
+    JOURNEYMAN = 3
+    MASTER = 4
+    GRANDMASTER = 5
 
 
 class LeaderboardPeriod(str, Enum):
