@@ -108,6 +108,7 @@ export interface CreateQuizPayload {
   tags: string[];
   imageUrl?: string;
   settings: QuizSettings;
+  questionIds?: string[];
 }
 
 /**

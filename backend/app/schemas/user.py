@@ -1,13 +1,13 @@
 """User management schemas for admin operations."""
 
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
 
-class UserListResponse(BaseModel):
-    """Response schema for user list."""
+class UserListItemResponse(BaseModel):
+    """Response schema for a user in a list."""
 
     id: int = Field(..., description="User ID")
     email: str = Field(..., description="User email address")
@@ -19,6 +19,15 @@ class UserListResponse(BaseModel):
     quizzes_completed: int = Field(0, description="Number of quizzes completed")
     average_score: float = Field(0.0, description="Average quiz score")
     total_score: int = Field(0, description="Total score earned")
+
+
+class UserListResponse(BaseModel):
+    """Response schema for paginated user list."""
+
+    total: int = Field(..., description="Total number of users")
+    skip: int = Field(..., description="Number of users skipped")
+    limit: int = Field(..., description="Maximum number of users returned")
+    data: List[UserListItemResponse] = Field(..., description="List of users")
 
 
 class UserUpdateRequest(BaseModel):
@@ -51,9 +60,8 @@ class UserStatsResponse(BaseModel):
 
     total_users: int = Field(..., description="Total number of users")
     active_users: int = Field(..., description="Number of active users")
-    admin_users: int = Field(..., description="Number of admin users")
     verified_users: int = Field(..., description="Number of verified users")
-    new_users_this_month: int = Field(..., description="New users this month")
+    recent_registrations: int = Field(..., description="New users recently")
 
 
 class RoleResponse(BaseModel):

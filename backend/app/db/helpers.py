@@ -5,12 +5,12 @@ multiple endpoints to maintain DRY principles.
 """
 
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from sqlmodel import Session, func, select
 
-from app.db.models import GameSession, Role, User
-from app.schemas.user import UserListResponse
+from app.db.models import GameSession, Role, SessionPlayers, User, UserRoles
+from app.schemas.user import UserListItemResponse
 
 
 def get_user_with_role_name(
@@ -21,25 +21,36 @@ def get_user_with_role_name(
     Returns user and role name tuple, or None if user not found.
     Used across multiple user management endpoints.
     """
-    result = session.exec(
-        select(User, Role.name).outerjoin(Role).where(User.id == user_id)
+    user = session.exec(select(User).where(User.id == user_id)).first()
+    if not user:
+        return None
+
+    # Get role through UserRoles
+    role_result = session.exec(
+        select(Role.name)
+        .join(UserRoles)
+        .where(UserRoles.user_id == user_id)
+        .where(UserRoles.role_id == Role.id)
     ).first()
 
-    return result
+    role_name = role_result if role_result else None
+
+    return (user, role_name)
 
 
-def get_user_quiz_statistics(session: Session, user_id: int) -> dict:
+def get_user_quiz_statistics(session: Session, user_id: int) -> dict[str, Any]:
     """Get user quiz statistics including completed quizzes and scores.
 
     Returns dictionary with quiz completion stats and scoring information.
     Used across multiple user endpoints to avoid query duplication.
     """
+    # Get stats from SessionPlayers
     quiz_stats = session.exec(
         select(
-            func.count(GameSession.id).label("quizzes_completed"),
-            func.coalesce(func.avg(GameSession.score), 0).label("average_score"),
-            func.coalesce(func.sum(GameSession.score), 0).label("total_score"),
-        ).where(GameSession.user_id == user_id)
+            func.count().label("quizzes_completed"),
+            func.coalesce(func.avg(SessionPlayers.score), 0).label("average_score"),
+            func.coalesce(func.sum(SessionPlayers.score), 0).label("total_score"),
+        ).where(SessionPlayers.user_id == user_id)
     ).first()
 
     if not quiz_stats:
@@ -65,10 +76,12 @@ def get_user_last_session(session: Session, user_id: int) -> Optional[datetime]:
     Returns the timestamp of the most recent game session.
     Used to show last login information across user endpoints.
     """
+    # Get last session through SessionPlayers
     last_session = session.exec(
         select(GameSession.started_at)
-        .where(GameSession.user_id == user_id)
-        .order_by(GameSession.started_at.desc())
+        .join(SessionPlayers)
+        .where(SessionPlayers.user_id == user_id)
+        .where(SessionPlayers.session_id == GameSession.id)
         .limit(1)
     ).first()
 
@@ -104,10 +117,10 @@ def check_email_available(
 
 def build_user_list_response(
     session: Session, user: User, role_name: Optional[str] = None
-) -> UserListResponse:
-    """Build a complete UserListResponse with statistics.
+) -> UserListItemResponse:
+    """Build a complete UserListItemResponse with statistics.
 
-    Creates a UserListResponse object with all required data including
+    Creates a UserListItemResponse object with all required data including
     quiz statistics and last session information.
     """
     if not user.id:
@@ -116,7 +129,7 @@ def build_user_list_response(
     quiz_stats = get_user_quiz_statistics(session, user.id)
     last_session = get_user_last_session(session, user.id)
 
-    return UserListResponse(
+    return UserListItemResponse(
         id=user.id,
         email=user.email,
         is_verified=user.is_verified,

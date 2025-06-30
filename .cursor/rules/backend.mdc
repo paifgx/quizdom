@@ -1,12 +1,13 @@
 ---
-description:
+description: 
 globs: backend/**
 alwaysApply: false
 ---
 ## Dependencies
-- FastAPI, **Pydantic ≥ 2**, SQLModel, Uvicorn\[standard]
+- FastAPI, **Pydantic ≥ 2**, SQLModel, Uvicorn[standard]
 - Alembic for DB migrations
-- **uv** for packaging and virtual-env management
+- **python -m venv** for virtual-env management
+- **pip** for packaging (`setup.py`/`pyproject.toml`)
 - **ruff** for lint & format
 - **mypy --strict** for static typing
 - pytest, respx, Faker for tests
@@ -116,21 +117,31 @@ alwaysApply: false
 
 ## CI/CD
 
-- GitHub Actions workflow `.github/workflows/ci.yml`:
-    1. `uv run lint`
-    2. `uv run test`
-    3. Build and publish container image
+GitHub Actions in `.github/workflows/ci.yml`:
+1. `python -m venv .venv && . .venv/bin/activate && pip install -e .[dev]`
+2. `ruff check . && ruff format . && mypy`
+3. `pytest -q --maxfail=1 --disable-warnings`
+4. Build & Publish Docker-Image
 
 ## API versioning
 
 - Default: `/v<major>/…` in the path.
 - Optional header `X-API-Version` to reduce URL churn.
 
-## Build commands
+## Build & Dev Commands
 ```bash
-uv run dev    # uvicorn app.main:app --reload
-uv run test   # pytest -q
-uv run lint   # ruff check . && ruff format . && mypy
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+
+# Development
+uvicorn app.main:app --reload
+
+# Lint & Typecheck
+ruff check . && ruff format . && mypy
+
+# Tests
+pytest -q
 ```
 
 ## Localization

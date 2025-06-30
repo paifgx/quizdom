@@ -1,6 +1,7 @@
-"""Service layer for quiz administration."""
+"""Service for admin operations on quizzes and related entities."""
 
-from typing import List, Optional
+from datetime import datetime
+from typing import Any, List, Optional
 
 from sqlmodel import Session, func, select
 
@@ -87,7 +88,7 @@ class QuizAdminService:
     # Question operations
     def get_questions(
         self, skip: int = 0, limit: int = 100, topic_id: Optional[int] = None
-    ) -> List[dict]:
+    ) -> List[dict[str, Any]]:
         """Get all questions with pagination and optional topic filter."""
         statement = select(Question).offset(skip).limit(limit)
 
@@ -121,7 +122,7 @@ class QuizAdminService:
 
         return question_responses
 
-    def get_question(self, question_id: int) -> Optional[dict]:
+    def get_question(self, question_id: int) -> Optional[dict[str, Any]]:
         """Get a single question by ID with answers and topic."""
         question = self.db.get(Question, question_id)
         if not question:
@@ -148,18 +149,24 @@ class QuizAdminService:
 
         return question_dict
 
-    def create_question(self, question_data: QuestionCreate) -> dict:
+    def create_question(self, question_data: QuestionCreate) -> dict[str, Any]:
         """Create a new question with answers."""
         # Validate at least one correct answer
         correct_count = sum(1 for answer in question_data.answers if answer.is_correct)
         if correct_count == 0:
             raise ValueError("Mindestens eine Antwort muss als korrekt markiert sein")
 
-        # Create question
+        # Create question - convert Difficulty enum to integer
         question_dict = question_data.dict(exclude={"answers"})
+        # Convert enum to int
+        question_dict["difficulty"] = question_data.difficulty.value
         question = Question(**question_dict)
         self.db.add(question)
         self.db.flush()  # Get the question ID
+
+        # Ensure question ID is available after flush
+        if question.id is None:
+            raise ValueError("Failed to get question ID after flush")
 
         # Create answers
         for answer_data in question_data.answers:
@@ -169,9 +176,6 @@ class QuizAdminService:
         self.db.commit()
         self.db.refresh(question)
 
-        if question.id is None:
-            raise ValueError("Failed to create question")
-
         result = self.get_question(question.id)
         if result is None:
             raise ValueError("Failed to retrieve created question")
@@ -180,13 +184,17 @@ class QuizAdminService:
 
     def update_question(
         self, question_id: int, question_data: QuestionUpdate
-    ) -> Optional[dict]:
+    ) -> Optional[dict[str, Any]]:
         """Update an existing question."""
         question = self.db.get(Question, question_id)
         if not question:
             return None
 
         update_data = question_data.dict(exclude_unset=True)
+        # Convert Difficulty enum to integer if present
+        if "difficulty" in update_data and update_data["difficulty"] is not None:
+            update_data["difficulty"] = update_data["difficulty"].value
+
         for key, value in update_data.items():
             setattr(question, key, value)
 
@@ -195,12 +203,15 @@ class QuizAdminService:
         return self.get_question(question_id)
 
     def delete_question(self, question_id: int) -> bool:
-        """Delete a question and its answers."""
+        """Delete a question and its answers.
+
+        Returns True if successful, False if question not found.
+        """
         question = self.db.get(Question, question_id)
         if not question:
             return False
 
-        # Check if question is used in any quiz
+        # Check if question is used in any quizzes
         statement = (
             select(func.count())
             .select_from(QuizQuestion)
@@ -214,8 +225,8 @@ class QuizAdminService:
             )
 
         # Delete answers first (cascade should handle this, but being explicit)
-        statement = select(Answer).where(Answer.question_id == question_id)
-        answers = self.db.exec(statement).all()
+        answer_statement = select(Answer).where(Answer.question_id == question_id)
+        answers = self.db.exec(answer_statement).all()
         for answer in answers:
             self.db.delete(answer)
 
@@ -226,7 +237,7 @@ class QuizAdminService:
     # Quiz operations
     def get_quizzes(
         self, skip: int = 0, limit: int = 100, topic_id: Optional[int] = None
-    ) -> List[dict]:
+    ) -> List[dict[str, Any]]:
         """Get all quizzes with pagination and optional topic filter."""
         # Get quizzes with question count
         statement = select(Quiz).offset(skip).limit(limit)
@@ -267,7 +278,7 @@ class QuizAdminService:
 
         return quiz_responses
 
-    def get_quiz(self, quiz_id: int) -> Optional[dict]:
+    def get_quiz(self, quiz_id: int) -> Optional[dict[str, Any]]:
         """Get a single quiz by ID with questions."""
         quiz = self.db.get(Quiz, quiz_id)
         if not quiz:
@@ -281,7 +292,7 @@ class QuizAdminService:
             select(Question)
             .join(QuizQuestion)
             .where(QuizQuestion.quiz_id == quiz_id)
-            .order_by(QuizQuestion.order)
+            .order_by("order")
         )
         questions = list(self.db.exec(statement).all())
 
@@ -325,17 +336,23 @@ class QuizAdminService:
 
         return quiz_dict
 
-    def create_quiz(self, quiz_data: QuizCreate) -> dict:
+    def create_quiz(self, quiz_data: QuizCreate) -> dict[str, Any]:
         """Create a new quiz with questions (or empty for preparation)."""
         for qid in quiz_data.question_ids:
             if not self.db.get(Question, qid):
                 raise ValueError(f"Frage mit ID {qid} existiert nicht")
 
-        # Create quiz
+        # Create quiz - convert Difficulty enum to integer
         quiz_dict = quiz_data.dict(exclude={"question_ids"})
+        # Convert enum to int
+        quiz_dict["difficulty"] = quiz_data.difficulty.value
         quiz = Quiz(**quiz_dict)
         self.db.add(quiz)
         self.db.flush()
+
+        # Ensure quiz ID is available after flush
+        if quiz.id is None:
+            raise ValueError("Failed to get quiz ID after flush")
 
         for order, question_id in enumerate(quiz_data.question_ids):
             quiz_question = QuizQuestion(
@@ -346,16 +363,15 @@ class QuizAdminService:
         self.db.commit()
         self.db.refresh(quiz)
 
-        if quiz.id is None:
-            raise ValueError("Failed to create quiz")
-
         result = self.get_quiz(quiz.id)
         if result is None:
             raise ValueError("Failed to retrieve created quiz")
 
         return result
 
-    def update_quiz(self, quiz_id: int, quiz_data: QuizUpdate) -> Optional[dict]:
+    def update_quiz(
+        self, quiz_id: int, quiz_data: QuizUpdate
+    ) -> Optional[dict[str, Any]]:
         """Update an existing quiz."""
         quiz = self.db.get(Quiz, quiz_id)
         if not quiz:
@@ -405,10 +421,10 @@ class QuizAdminService:
         self.db.commit()
         return True
 
-    def create_quiz_batch(self, quiz_data: QuizBatchCreate) -> dict:
+    def create_quiz_batch(self, quiz_data: QuizBatchCreate) -> dict[str, Any]:
         """Create a new quiz with questions in a single batch operation."""
-        # Create quiz first (without questions)
         quiz_dict = quiz_data.dict(exclude={"questions"})
+        quiz_dict["difficulty"] = quiz_data.difficulty.value
         quiz = Quiz(**quiz_dict)
         self.db.add(quiz)
         self.db.flush()  # Get the quiz ID
@@ -424,7 +440,7 @@ class QuizAdminService:
                 # Existing question ID - verify it exists
                 if not self.db.get(Question, question_item):
                     raise ValueError(f"Frage mit ID {question_item} existiert nicht")
-                question_id = question_item
+                question_id: int = question_item
             else:
                 question_create = question_item
 
@@ -434,6 +450,8 @@ class QuizAdminService:
                     )
 
                 question_dict = question_create.dict(exclude={"answers"})
+                # Convert enum to int for question difficulty too
+                question_dict["difficulty"] = question_create.difficulty.value
                 question = Question(**question_dict)
                 self.db.add(question)
                 self.db.flush()
@@ -496,3 +514,93 @@ class QuizAdminService:
         self.db.commit()
         self.db.refresh(quiz)
         return True
+
+    # Publishing operations
+    def publish_quiz(self, quiz_id: int) -> Optional[dict[str, Any]]:
+        """Publish a quiz for gameplay."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            return None
+
+        # Check if quiz has questions
+        statement = (
+            select(func.count())
+            .select_from(QuizQuestion)
+            .where(QuizQuestion.quiz_id == quiz_id)
+        )
+        question_count = self.db.exec(statement).one()
+
+        if question_count == 0:
+            raise ValueError("Quiz muss mindestens eine Frage enthalten")
+
+        from app.db.models import QuizStatus
+
+        quiz.status = QuizStatus.PUBLISHED
+        quiz.published_at = datetime.utcnow()
+
+        self.db.commit()
+        self.db.refresh(quiz)
+        return self.get_quiz(quiz_id)
+
+    def archive_quiz(self, quiz_id: int) -> Optional[dict[str, Any]]:
+        """Archive a quiz to hide it from gameplay."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            return None
+
+        from app.db.models import QuizStatus
+
+        quiz.status = QuizStatus.ARCHIVED
+
+        self.db.commit()
+        self.db.refresh(quiz)
+        return self.get_quiz(quiz_id)
+
+    def get_published_quizzes(
+        self, skip: int = 0, limit: int = 100, topic_id: Optional[int] = None
+    ) -> List[dict[str, Any]]:
+        """Get only published quizzes."""
+        from app.db.models import QuizStatus
+
+        statement = (
+            select(Quiz)
+            .where(Quiz.status == QuizStatus.PUBLISHED)
+            .offset(skip)
+            .limit(limit)
+        )
+
+        if topic_id:
+            statement = statement.where(Quiz.topic_id == topic_id)
+
+        quizzes = list(self.db.exec(statement).all())
+
+        # Add topic and question count as before
+        quiz_responses = []
+        for quiz in quizzes:
+            count_stmt = (
+                select(func.count())
+                .select_from(QuizQuestion)
+                .where(QuizQuestion.quiz_id == quiz.id)
+            )
+            question_count = self.db.exec(count_stmt).one()
+
+            topic = self.db.get(Topic, quiz.topic_id)
+
+            quiz_dict = {
+                "id": quiz.id,
+                "title": quiz.title,
+                "description": quiz.description,
+                "topic_id": quiz.topic_id,
+                "difficulty": quiz.difficulty,
+                "time_limit_minutes": quiz.time_limit_minutes,
+                "status": quiz.status,
+                "published_at": quiz.published_at,
+                "play_count": quiz.play_count,
+                "created_at": quiz.created_at,
+                "topic": topic,
+                "question_count": question_count,
+                "has_image": quiz.image_data is not None,
+            }
+            quiz_responses.append(quiz_dict)
+
+        return quiz_responses

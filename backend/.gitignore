@@ -138,10 +138,6 @@ Thumbs.db
 *.sqlite3
 *.sqlite
 
-# Alembic
-alembic/versions/*.py
-!alembic/versions/README.md
-
 # FastAPI specific
 .pytest_cache/
 .coverage

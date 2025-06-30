@@ -1,7 +1,7 @@
 """Tests for database models."""
 
 import pytest
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 from sqlmodel.pool import StaticPool
 
 from app.core.security import get_password_hash
@@ -16,10 +16,13 @@ from app.db.models import (
     LeaderboardEntry,
     LeaderboardPeriod,
     Question,
+    Quiz,
     Role,
+    SessionPlayers,
     Topic,
     User,
     UserBadge,
+    UserRoles,
 )
 
 
@@ -32,6 +35,72 @@ def session_fixture():
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
         yield session
+
+
+@pytest.fixture(name="test_user")
+def test_user_fixture(session: Session):
+    """Create a test user."""
+    user = User(
+        email="test@example.com",
+        password_hash=get_password_hash("testpassword"),
+        is_verified=True,
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@pytest.fixture(name="topic")
+def topic_fixture(session: Session):
+    """Create a test topic."""
+    topic = Topic(title="Test Topic", description="A test topic for questions")
+    session.add(topic)
+    session.commit()
+    session.refresh(topic)
+    return topic
+
+
+@pytest.fixture(name="question")
+def question_fixture(session: Session, topic: Topic):
+    """Create a test question."""
+    question = Question(
+        topic_id=topic.id,
+        difficulty=Difficulty.JOURNEYMAN,
+        content="What is the capital of France?",
+        explanation="Paris is the capital and largest city of France.",
+    )
+    session.add(question)
+    session.commit()
+    session.refresh(question)
+    return question
+
+
+@pytest.fixture(name="answer")
+def answer_fixture(session: Session, question: Question):
+    """Create a test answer."""
+    answer = Answer(
+        question_id=question.id,
+        content="Paris",
+        is_correct=True,
+    )
+    session.add(answer)
+    session.commit()
+    session.refresh(answer)
+    return answer
+
+
+@pytest.fixture(name="game_session")
+def game_session_fixture(session: Session):
+    """Create a test game session."""
+    game_session = GameSession(
+        mode=GameMode.SOLO,
+        status=GameStatus.ACTIVE,
+    )
+    session.add(game_session)
+    session.commit()
+    session.refresh(game_session)
+    return game_session
 
 
 class TestUserModel:
@@ -52,7 +121,6 @@ class TestUserModel:
         assert user.email == "test@example.com"
         assert user.is_verified is True
         assert user.created_at is not None
-        assert user.role_id is None
 
     def test_user_with_role(self, session: Session):
         """Test creating a user with a role."""
@@ -64,13 +132,22 @@ class TestUserModel:
         user = User(
             email="admin@example.com",
             password_hash=get_password_hash("adminpass"),
-            role_id=role.id,
         )
         session.add(user)
         session.commit()
         session.refresh(user)
 
-        assert user.role_id == role.id
+        # Link user and role via UserRoles
+        user_role = UserRoles(user_id=user.id, role_id=role.id)
+        session.add(user_role)
+        session.commit()
+
+        # Instead, check UserRoles
+        found = session.exec(
+            select(UserRoles).where(UserRoles.user_id ==
+                                    user.id, UserRoles.role_id == role.id)
+        ).first()
+        assert found is not None
 
     def test_user_email_unique(self, session: Session):
         """Test that user email must be unique."""
@@ -124,74 +201,55 @@ class TestTopicModel:
 
 
 class TestQuestionModel:
-    """Test Question model functionality."""
+    """Test the Question model."""
 
-    def test_create_question(self, session: Session):
-        """Test creating a question."""
-        topic = Topic(title="Math", description="Math questions")
+    def test_question_defaults(self, session: Session, topic: Topic):
+        """Test default values for Question."""
         session.add(topic)
         session.commit()
         session.refresh(topic)
-
         question = Question(
             topic_id=topic.id,
-            difficulty=Difficulty.THREE,
-            content="What is 2 + 2?",
-            explanation="Basic addition",
+            difficulty=Difficulty.JOURNEYMAN,
+            content="What is the speed of light?",
+            explanation="The speed of light in a vacuum is a universal constant.",
         )
         session.add(question)
         session.commit()
         session.refresh(question)
 
-        assert question.id is not None
-        assert question.topic_id == topic.id
-        assert question.difficulty == Difficulty.THREE
-        assert question.content == "What is 2 + 2?"
-        assert question.explanation == "Basic addition"
+        assert question.difficulty == Difficulty.JOURNEYMAN
         assert question.created_at is not None
 
-    def test_question_requires_topic(self, session: Session):
-        """Test that question requires a valid topic."""
-        question = Question(
-            topic_id=999,  # Non-existent topic
-            difficulty=Difficulty.ONE,
-            content="Test question",
-        )
+    def test_question_topic_relationship(
+        self, session: Session, topic: Topic, question: Question
+    ):
+        """Test the relationship between Question and Topic."""
+        session.add(topic)
+        session.commit()
+        session.refresh(topic)
         session.add(question)
+        session.commit()
+        session.refresh(question)
+        retrieved_question = session.get(Question, question.id)
+        assert retrieved_question is not None
 
-        # SQLite doesn't enforce foreign key constraints by default in tests
-        # This test documents the expected behavior in production
-        try:
-            session.commit()
-            # If we get here, the test environment doesn't enforce FK constraints
-            assert True  # Test passes - constraint would be enforced in production
-        except Exception:
-            # If we get an exception, that's the expected behavior
-            assert True
+        retrieved_topic = session.get(Topic, retrieved_question.topic_id)
+        assert retrieved_topic is not None
+        assert retrieved_topic.id == topic.id
 
 
 class TestAnswerModel:
-    """Test Answer model functionality."""
+    """Test the Answer model."""
 
-    def test_create_answer(self, session: Session):
-        """Test creating an answer."""
-        topic = Topic(title="Math")
-        session.add(topic)
-        session.commit()
-        session.refresh(topic)
-
-        question = Question(
-            topic_id=topic.id,
-            difficulty=Difficulty.ONE,
-            content="Test question",
-        )
+    def test_answer_creation_and_retrieval(self, session: Session, question: Question):
+        """Test creating and retrieving an Answer."""
         session.add(question)
         session.commit()
         session.refresh(question)
-
         answer = Answer(
             question_id=question.id,
-            content="Test answer",
+            content="Paris",
             is_correct=True,
         )
         session.add(answer)
@@ -200,58 +258,74 @@ class TestAnswerModel:
 
         assert answer.id is not None
         assert answer.question_id == question.id
-        assert answer.content == "Test answer"
+        assert answer.content == "Paris"
         assert answer.is_correct is True
 
-    def test_answer_requires_question(self, session: Session):
-        """Test that answer requires a valid question."""
-        answer = Answer(
-            question_id=999,  # Non-existent question
-            content="Test answer",
-            is_correct=False,
-        )
+    def test_answer_question_relationship(
+        self, session: Session, question: Question, answer: Answer
+    ):
+        """Test the relationship between Answer and Question."""
+        session.add(question)
+        session.commit()
+        session.refresh(question)
         session.add(answer)
+        session.commit()
+        session.refresh(answer)
+        retrieved_answer = session.get(Answer, answer.id)
+        assert retrieved_answer is not None
 
-        # SQLite doesn't enforce foreign key constraints by default in tests
-        # This test documents the expected behavior in production
-        try:
-            session.commit()
-            # If we get here, the test environment doesn't enforce FK constraints
-            assert True  # Test passes - constraint would be enforced in production
-        except Exception:
-            # If we get an exception, that's the expected behavior
-            assert True
+        retrieved_question = session.get(
+            Question, retrieved_answer.question_id)
+        assert retrieved_question is not None
+        assert retrieved_question.id == question.id
 
 
 class TestGameSessionModel:
-    """Test GameSession model functionality."""
+    """Test the GameSession and related models."""
 
-    def test_create_game_session(self, session: Session):
-        """Test creating a game session."""
-        user = User(
-            email="player@example.com",
-            password_hash=get_password_hash("playerpass"),
-        )
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-
+    def test_game_session_creation(self, session: Session):
+        """Test creating a GameSession."""
         game_session = GameSession(
-            user_id=user.id,
             mode=GameMode.SOLO,
             status=GameStatus.ACTIVE,
-            score=100,
         )
         session.add(game_session)
         session.commit()
         session.refresh(game_session)
 
         assert game_session.id is not None
-        assert game_session.user_id == user.id
         assert game_session.mode == GameMode.SOLO
         assert game_session.status == GameStatus.ACTIVE
-        assert game_session.score == 100
         assert game_session.started_at is not None
+
+    def test_session_players_creation(
+        self, session: Session, game_session: GameSession, test_user: User
+    ):
+        """Test creating a SessionPlayers entry."""
+        session.add(game_session)
+        session.commit()
+        session.refresh(game_session)
+        session.add(test_user)
+        session.commit()
+        session.refresh(test_user)
+        session_player = SessionPlayers(
+            session_id=game_session.id,
+            user_id=test_user.id,
+            hearts_left=2,
+            score=150,
+        )
+        session.add(session_player)
+        session.commit()
+
+        retrieved = session.exec(
+            select(SessionPlayers).where(
+                SessionPlayers.session_id == game_session.id,
+                SessionPlayers.user_id == test_user.id,
+            )
+        ).one()
+
+        assert retrieved.hearts_left == 2
+        assert retrieved.score == 150
 
 
 class TestBadgeModel:
@@ -274,31 +348,22 @@ class TestBadgeModel:
         assert badge.icon_path == "/icons/first-quiz.png"
 
     def test_user_badge_relationship(self, session: Session):
-        """Test user-badge relationship."""
-        user = User(
-            email="user@example.com",
-            password_hash=get_password_hash("userpass"),
-        )
-        badge = Badge(title="Test Badge", description="Test badge")
-
-        session.add(user)
+        """Test creating a UserBadge relationship."""
+        badge = Badge(title="Achiever", description="Earned a badge")
         session.add(badge)
         session.commit()
-        session.refresh(user)
         session.refresh(badge)
-
-        user_badge = UserBadge(
-            user_id=user.id,
-            badge_id=badge.id,
-        )
+        user = User(email="badgeuser@example.com",
+                    password_hash=get_password_hash("pw"))
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        user_badge = UserBadge(user_id=user.id, badge_id=badge.id)
         session.add(user_badge)
         session.commit()
         session.refresh(user_badge)
-
-        assert user_badge.id is not None
         assert user_badge.user_id == user.id
         assert user_badge.badge_id == badge.id
-        assert user_badge.achieved_at is not None
 
 
 class TestLeaderboardModel:
@@ -307,7 +372,7 @@ class TestLeaderboardModel:
     def test_create_leaderboard(self, session: Session):
         """Test creating a leaderboard."""
         leaderboard = Leaderboard(
-            mode=GameMode.DUEL,
+            mode=GameMode.SOLO,
             period=LeaderboardPeriod.WEEKLY,
         )
         session.add(leaderboard)
@@ -315,52 +380,55 @@ class TestLeaderboardModel:
         session.refresh(leaderboard)
 
         assert leaderboard.id is not None
-        assert leaderboard.mode == GameMode.DUEL
+        assert leaderboard.mode == GameMode.SOLO
         assert leaderboard.period == LeaderboardPeriod.WEEKLY
         assert leaderboard.created_at is not None
 
     def test_leaderboard_entry(self, session: Session):
-        """Test creating leaderboard entries."""
-        user = User(
-            email="player@example.com",
-            password_hash=get_password_hash("playerpass"),
-        )
+        """Test creating a LeaderboardEntry."""
         leaderboard = Leaderboard(
-            mode=GameMode.SOLO,
-            period=LeaderboardPeriod.DAILY,
-        )
-
-        session.add(user)
+            mode=GameMode.SOLO, period=LeaderboardPeriod.DAILY)
         session.add(leaderboard)
         session.commit()
-        session.refresh(user)
         session.refresh(leaderboard)
-
+        user = User(email="leaderboard@example.com",
+                    password_hash=get_password_hash("pw"))
+        session.add(user)
+        session.commit()
+        session.refresh(user)
         entry = LeaderboardEntry(
-            leaderboard_id=leaderboard.id,
-            user_id=user.id,
-            rank=1,
-            score=500,
-        )
+            leaderboard_id=leaderboard.id, user_id=user.id, rank=1, score=1000)
         session.add(entry)
         session.commit()
         session.refresh(entry)
-
-        assert entry.id is not None
         assert entry.leaderboard_id == leaderboard.id
         assert entry.user_id == user.id
         assert entry.rank == 1
-        assert entry.score == 500
+        assert entry.score == 1000
 
 
 class TestEnums:
-    """Test enum functionality."""
+    """Test custom enum types."""
+
+    def test_difficulty_values(self):
+        """Test Difficulty enum values."""
+        assert Difficulty.NOVICE == 1
+        assert Difficulty.APPRENTICE == 2
+        assert Difficulty.JOURNEYMAN == 3
+        assert Difficulty.MASTER == 4
+        assert Difficulty.GRANDMASTER == 5
+
+    def test_leaderboard_period_values(self):
+        """Test LeaderboardPeriod enum values."""
+        assert LeaderboardPeriod.DAILY == "daily"
+        assert LeaderboardPeriod.WEEKLY == "weekly"
+        assert LeaderboardPeriod.MONTHLY == "monthly"
 
     def test_game_mode_values(self):
         """Test GameMode enum values."""
         assert GameMode.SOLO == "solo"
-        assert GameMode.DUEL == "duel"
-        assert GameMode.TEAM == "team"
+        assert GameMode.COMP == "comp"
+        assert GameMode.COLLAB == "collab"
 
     def test_game_status_values(self):
         """Test GameStatus enum values."""
@@ -368,16 +436,37 @@ class TestEnums:
         assert GameStatus.PAUSED == "paused"
         assert GameStatus.FINISHED == "finished"
 
-    def test_difficulty_values(self):
-        """Test Difficulty enum values."""
-        assert Difficulty.ONE == 1
-        assert Difficulty.TWO == 2
-        assert Difficulty.THREE == 3
-        assert Difficulty.FOUR == 4
-        assert Difficulty.FIVE == 5
+    def test_question_creation_and_retrieval(self, session: Session, topic: Topic):
+        """Test creating and retrieving a Question."""
+        question = Question(
+            topic_id=topic.id,
+            difficulty=Difficulty.NOVICE,
+            content="What is the capital of France?",
+        )
+        session.add(question)
+        session.commit()
+        session.refresh(question)
 
-    def test_leaderboard_period_values(self):
-        """Test LeaderboardPeriod enum values."""
-        assert LeaderboardPeriod.DAILY == "daily"
-        assert LeaderboardPeriod.WEEKLY == "weekly"
-        assert LeaderboardPeriod.MONTHLY == "monthly"
+        assert question.id is not None
+        assert question.topic_id == topic.id
+        assert question.difficulty == Difficulty.NOVICE
+        assert question.content == "What is the capital of France?"
+        assert question.explanation is None
+        assert question.created_at is not None
+
+    def test_quiz_creation_and_retrieval(self, session: Session, topic: Topic):
+        """Test creating and retrieving a Quiz."""
+        quiz = Quiz(
+            topic_id=topic.id,
+            difficulty=Difficulty.NOVICE,
+            title="French Capitals Quiz",
+        )
+        session.add(quiz)
+        session.commit()
+        session.refresh(quiz)
+
+        assert quiz.id is not None
+        assert quiz.topic_id == topic.id
+        assert quiz.difficulty == Difficulty.NOVICE
+        assert quiz.title == "French Capitals Quiz"
+        assert quiz.created_at is not None

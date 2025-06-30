@@ -18,7 +18,7 @@ from app.core.security import (
     verify_password,
     verify_token,
 )
-from app.db.models import Role, User
+from app.db.models import Role, User, UserRoles
 from app.db.session import get_session
 from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse
 
@@ -36,10 +36,20 @@ async def get_current_user(
 
     Validates the JWT token and returns the corresponding user.
     Used as a dependency for protected endpoints.
+
+    Args:
+        token: JWT token from Authorization header
+        session: Database session dependency
+
+    Returns:
+        User: The authenticated user
+
+    Raises:
+        HTTPException: When token is invalid or user not found
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Anmeldedaten konnten nicht validiert werden",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -60,19 +70,43 @@ def get_user_with_role(session: Session, user: User) -> UserResponse:
     """Get user with role information for response.
 
     Joins user data with role information and returns UserResponse.
+
+    Args:
+        session: Database session
+        user: User object to get role information for
+
+    Returns:
+        UserResponse: User data with role information
     """
-    # Get role name if user has a role
+    # Get role name if user has a role through UserRoles
     role_name = None
-    if user.role_id:
-        role = session.exec(select(Role).where(Role.id == user.role_id)).first()
+    role_id = None
+
+    # Check if user has direct role_id (backwards compatibility)
+    if hasattr(user, "role_id") and getattr(user, "role_id") is not None:
+        role_id = getattr(user, "role_id")
+        role = session.get(Role, role_id)
         if role:
             role_name = role.name
+    # Otherwise check the UserRoles table
+    elif user.id:
+        # Query for user's role through UserRoles table
+        statement = (
+            select(Role.id, Role.name)
+            .join(UserRoles)
+            .where(UserRoles.role_id == Role.id)
+            .where(UserRoles.user_id == user.id)
+        )
+        result = session.exec(statement).first()
+
+        if result:
+            role_id, role_name = result
 
     return UserResponse(
         id=user.id or 0,
         email=user.email,
         is_verified=user.is_verified,
-        role_id=user.role_id,
+        role_id=role_id,
         role_name=role_name,
     )
 
@@ -81,7 +115,13 @@ def get_user_by_email(session: Session, email: str) -> Optional[User]:
     """Get user by email address.
 
     Used for authentication and user lookup operations.
-    Returns None if no user exists with the given email.
+
+    Args:
+        session: Database session
+        email: Email address to search for
+
+    Returns:
+        Optional[User]: User if found, None otherwise
     """
     statement = select(User).where(User.email == email)
     return session.exec(statement).first()
@@ -95,8 +135,19 @@ def register_user(
     """Register a new user account.
 
     Creates a new user with hashed password and returns an access token.
+
+    Args:
+        user_data: User registration data
+        session: Database session dependency
+
+    Returns:
+        TokenResponse: Access token and user information
+
+    Raises:
+        HTTPException: When registration fails
     """
-    log_operation(app_logger, "user_registration_attempt", email=user_data.email)
+    log_operation(app_logger, "user_registration_attempt",
+                  email=user_data.email)
 
     # WHY: Check for existing user to prevent duplicates
     existing_user = get_user_by_email(session, user_data.email)
@@ -106,7 +157,12 @@ def register_user(
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists",
+            detail="Ein Benutzer mit dieser E-Mail-Adresse existiert bereits",
+            headers={
+                "X-Error-Code": "user_already_exists",
+                "X-Error-Field": "email",
+                "X-Error-Hint": "Bitte verwenden Sie eine andere E-Mail-Adresse oder melden Sie sich an",
+            },
         )
 
     hashed_password = get_password_hash(user_data.password)
@@ -142,6 +198,16 @@ def login_user(
 
     Validates credentials and returns a JWT token with user data.
     Uses OAuth2 password flow for compatibility with frontend.
+
+    Args:
+        form_data: OAuth2 form data with username and password
+        session: Database session dependency
+
+    Returns:
+        TokenResponse: Access token and user information
+
+    Raises:
+        HTTPException: When authentication fails
     """
     # WHY: OAuth2 form uses 'username' field for email
     user = get_user_by_email(session, form_data.username)
@@ -149,8 +215,11 @@ def login_user(
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Falsche E-Mail oder Passwort",
+            headers={
+                "WWW-Authenticate": "Bearer",
+                "X-Error-Code": "invalid_credentials",
+            },
         )
 
     access_token = create_access_token(data={"sub": user.email})
@@ -173,5 +242,12 @@ def get_current_user_info(
 
     Returns authenticated user details for profile display.
     Requires valid JWT token in Authorization header.
+
+    Args:
+        current_user: Authenticated user from token
+        session: Database session dependency
+
+    Returns:
+        UserResponse: User data with role information
     """
     return get_user_with_role(session, current_user)
