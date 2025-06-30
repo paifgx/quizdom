@@ -114,14 +114,11 @@ Logge dich ein, wenn du bereits ein Konto hast. Auf der Seite _Start_ werden dir
 
 `relates to SCRUM-163`
 
-In der aktuellen prototypischen Umsetzung gibt es zwei Spielmodi:
+QUIZDOM bietet unterschiedliche Spielmodi für unterschiedliche Präferenzen:
 
-1. _Solo Mission_: Spiele alleine und teste dein Wissen in deinem eigenen Tempo.
-2. _Team Battle_: Arbeite mit anderen Studierenden zusammen, um gemeinsam zu lernen.
-
-Aktuell noch nicht verfügbar:
-
-3. _Duell_: Trete direkt gegen andere Studierende an und beweise dein Wissen in einem spannenden Wissensduell.
+_Solo Mission_: Spiele alleine und teste dein Wissen in deinem eigenen Tempo.
+_Team Battle_: Arbeite mit anderen Studierenden zusammen, um gemeinsam zu lernen.
+(Aktuell noch nicht verfügbar) _Duell_: Trete direkt gegen andere Studierende an und beweise dein Wissen in einem spannenden Wissensduell.
 
 ---
 
@@ -137,9 +134,9 @@ Die Bepunktung ist abhängig davon, wie schnell du es schaffst zu antworten:
 
 | Zeit bis zur Antwort | Punkte     |
 | -------------------- | ---------- |
-| <3 Sekunden          | 100 Punkte |
+| ≤ 3 Sekunden         | 100 Punkte |
 | 3-6 Sekunden         | 50 Punkte  |
-| >6 Sekunden          | 0 Punkte   |
+| ≥ 6 Sekunden         | 0 Punkte   |
 
 ---
 
@@ -158,9 +155,9 @@ Die Bepunktung ist abhängig davon, wie schnell ihr es schafft zu antworten - di
 
 | Zeit bis zur Antwort | Punkte     |
 | -------------------- | ---------- |
-| <3 Sekunden          | 100 Punkte |
+| ≤ 3 Sekunden         | 100 Punkte |
 | 3-6 Sekunden         | 50 Punkte  |
-| >6 Sekunden          | 0 Punkte   |
+| ≥ 6 Sekunden         | 0 Punkte   |
 
 ---
 
