@@ -29,6 +29,7 @@ export interface Question {
   correctAnswer: number;
   showTimestamp: number; // Server timestamp when question was shown
   isBookmarked?: boolean; // Whether the question is bookmarked
+  answerIds?: number[]; // Backend answer IDs for submission
 }
 
 export interface PlayerState {

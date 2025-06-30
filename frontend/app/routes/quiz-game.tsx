@@ -6,7 +6,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { QuizGameContainer } from '../components/game';
 import { LoadingSpinner } from '../components/home/loading-spinner';
-import type { Question, PlayerState, GameResult } from '../types/game';
+import { gameService } from '../services/game';
+import { GameProvider } from '../contexts/GameContext';
+import { useAuthenticatedGame } from '../hooks/useAuthenticatedGame';
+import type { Question, PlayerState, GameResult, GameModeId } from '../types/game';
 
 export function meta() {
   return [
@@ -18,61 +21,19 @@ export function meta() {
   ];
 }
 
-// Mock function to get questions
-async function getQuestions(_topicId: string): Promise<Question[]> {
-  // In a real app, this would fetch from the backend
-  return [
-    {
-      id: 'q1',
-      text: 'What is the capital of France?',
-      answers: ['Berlin', 'Paris', 'Madrid', 'Lisbon'],
-      correctAnswer: 1,
-      showTimestamp: 0, // Will be set when question is shown
-    },
-    {
-      id: 'q2',
-      text: 'What is 2 + 2?',
-      answers: ['3', '4', '5', '6'],
-      correctAnswer: 1,
-      showTimestamp: 0,
-    },
-    {
-      id: 'q3',
-      text: 'Which planet is known as the Red Planet?',
-      answers: ['Venus', 'Mars', 'Jupiter', 'Saturn'],
-      correctAnswer: 1,
-      showTimestamp: 0,
-    },
-    {
-      id: 'q4',
-      text: 'What is the largest ocean on Earth?',
-      answers: ['Atlantic', 'Indian', 'Arctic', 'Pacific'],
-      correctAnswer: 3,
-      showTimestamp: 0,
-    },
-    {
-      id: 'q5',
-      text: 'Who painted the Mona Lisa?',
-      answers: ['Van Gogh', 'Picasso', 'Da Vinci', 'Rembrandt'],
-      correctAnswer: 2,
-      showTimestamp: 0,
-    },
-  ];
-}
-
 export default function QuizGamePage() {
   const { topicId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { isAuthenticated, isLoading: authLoading } = useAuthenticatedGame();
 
-  const mode = searchParams.get('mode') as
-    | 'solo'
-    | 'competitive'
-    | 'collaborative';
+  const mode = searchParams.get('mode') as GameModeId | null;
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [players, setPlayers] = useState<PlayerState[]>([]);
   const [topicTitle, setTopicTitle] = useState('');
+  const [sessionId, setSessionId] = useState<number | null>(null);
 
   useEffect(() => {
     const initializeGame = async () => {
@@ -82,12 +43,37 @@ export default function QuizGamePage() {
       }
 
       try {
-        // Get questions
-        const gameQuestions = await getQuestions(topicId);
-        setQuestions(gameQuestions);
+        setLoading(true);
+        setError(null);
 
-        // Set topic title (in real app, fetch from API)
-        setTopicTitle('IT-Projektmanagement');
+        // Start a new game session
+        const sessionResponse = await gameService.startTopicGame(
+          topicId,
+          mode,
+          10 // number of questions
+        );
+
+        setSessionId(sessionResponse.session_id);
+        setTopicTitle(sessionResponse.topic_title || 'Quiz Game');
+
+        // Load all questions for the session
+        const questionsData = await gameService.getAllQuestionsForSession(
+          sessionResponse.session_id,
+          sessionResponse.total_questions
+        );
+
+        // Convert backend questions to frontend format
+        const convertedQuestions: Question[] = questionsData.map((q) => ({
+          id: q.question_id.toString(),
+          text: q.content,
+          answers: q.answers.map(a => a.content),
+          correctAnswer: -1, // Will be revealed after answering
+          showTimestamp: q.show_timestamp,
+          // Store answer IDs for submission
+          answerIds: q.answers.map(a => a.id),
+        }));
+
+        setQuestions(convertedQuestions);
 
         // Initialize players based on mode
         if (mode === 'solo') {
@@ -136,35 +122,77 @@ export default function QuizGamePage() {
           ]);
         }
 
-        // Create game session (mock for now)
-        // await createGameSession(mode, topicId, players.map(p => p.id));
-
         setLoading(false);
-      } catch {
-        // Failed to initialize game
-        navigate('/game-modes');
+      } catch (err) {
+        console.error('Failed to initialize game:', err);
+        setError(err instanceof Error ? err.message : 'Failed to start game');
+        setLoading(false);
       }
     };
 
     initializeGame();
   }, [topicId, mode, navigate]);
 
-  const handleGameEnd = (_result: GameResult) => {
-    // Game ended - in a real app, save the result to the backend
-    // TODO: Implement result saving logic
+  const handleGameEnd = async (_result: GameResult) => {
+    // Complete the game session
+    if (sessionId) {
+      try {
+        const gameResult = await gameService.completeSession(sessionId);
+        console.log('Game completed:', gameResult);
+        
+        // Navigate to results page or topic page
+        // TODO: Create a results page to show detailed stats
+        navigate(`/topics/${topicId}`, {
+          state: {
+            gameCompleted: true,
+            finalScore: gameResult.final_score,
+            correctAnswers: gameResult.correct_answers,
+            totalQuestions: gameResult.questions_answered,
+          },
+        });
+      } catch (err) {
+        console.error('Failed to complete game session:', err);
+        // Still navigate even if completion fails
+        navigate(`/topics/${topicId}`);
+      }
+    }
   };
 
   const handleQuit = () => {
     if (window.confirm('Are you sure you want to quit the game?')) {
+      // TODO: Consider marking session as abandoned
       navigate(`/topics/${topicId}`);
     }
   };
+
+  if (authLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!isAuthenticated) {
+    return null; // The hook will handle redirection
+  }
 
   if (loading) {
     return <LoadingSpinner />;
   }
 
-  if (!mode || !questions.length) {
+  if (error) {
+    return (
+      <div className="text-center text-white py-8">
+        <h1 className="text-2xl font-bold mb-4">Error</h1>
+        <p className="text-gray-300 mb-4">{error}</p>
+        <button
+          onClick={() => navigate('/game-modes')}
+          className="text-[#FCC822] hover:underline"
+        >
+          Back to Game Modes
+        </button>
+      </div>
+    );
+  }
+
+  if (!mode || !questions.length || !sessionId) {
     return (
       <div className="text-center text-white py-8">
         <h1 className="text-2xl font-bold mb-4">Error</h1>
@@ -180,13 +208,15 @@ export default function QuizGamePage() {
   }
 
   return (
-    <QuizGameContainer
-      mode={mode}
-      topicTitle={topicTitle}
-      questions={questions}
-      players={players}
-      onGameEnd={handleGameEnd}
-      onQuit={handleQuit}
-    />
+    <GameProvider sessionId={sessionId}>
+      <QuizGameContainer
+        mode={mode}
+        topicTitle={topicTitle}
+        questions={questions}
+        players={players}
+        onGameEnd={handleGameEnd}
+        onQuit={handleQuit}
+      />
+    </GameProvider>
   );
 }

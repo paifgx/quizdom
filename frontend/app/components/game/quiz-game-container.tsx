@@ -10,7 +10,8 @@ import { ScoreDisplay } from './score-display';
 import { GameResultScreen } from './game-result';
 import { CharacterDisplay } from './character-display';
 import { ScreenEffects } from './screen-effects';
-import { useGameState } from '../../hooks/useGameState';
+import { useGameWithBackend } from '../../hooks/useGameWithBackend';
+import { useGameContext } from '../../contexts/GameContext';
 import type { GameResult, PlayerState, Question } from '../../types/game';
 
 interface QuizGameContainerProps {
@@ -30,6 +31,9 @@ export function QuizGameContainer({
   onGameEnd,
   onQuit,
 }: QuizGameContainerProps) {
+  // Get sessionId from context
+  const { sessionId } = useGameContext();
+
   // Enhanced state for visual effects
   const [screenEffects, setScreenEffects] = useState({
     showDamageFlash: false,
@@ -94,12 +98,18 @@ export function QuizGameContainer({
     });
   };
 
-  const { gameState, currentQuestion, timeRemaining, startGame, handleAnswer } =
-    useGameState({
+  // Use the backend-integrated game hook
+  const { gameState, currentQuestion, timeRemaining, startGame, handleAnswer, isSubmitting: _isSubmitting } =
+    useGameWithBackend({
       mode,
       questions,
       players,
-      onGameOver: onGameEnd,
+      sessionId: sessionId || 0,
+      onGameOver: async (result: GameResult) => {
+        // Convert to async to match the new interface
+        onGameEnd(result);
+        return Promise.resolve();
+      },
       onHeartLoss: event => {
         handleHeartLoss(event.playerId);
 

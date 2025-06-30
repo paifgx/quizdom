@@ -26,6 +26,7 @@ export default [
 
     // Other main routes (without dashboard sidebar)
     route('/topics/:topicId/quiz-game', 'routes/quiz-game.tsx'),
+    route('/test-game', 'routes/test-game.tsx'),  // Test route for game API integration
     route('/topics', 'routes/topics.tsx'),
     route('/game-modes', 'routes/game-modes.tsx'),
     route('/progress', 'routes/progress.tsx'),
