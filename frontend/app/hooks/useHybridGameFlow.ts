@@ -131,6 +131,30 @@ export function useHybridGameFlow(): UseHybridGameFlowReturn {
     }
   }, [session, currentQuestion]);
 
+  const endGame = useCallback(async () => {
+    if (!session) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const results = await gameApiService.completeSession(session.sessionId);
+      
+      // Handle game completion - could emit event or navigate
+      console.log('Game completed:', results);
+      
+      // Reset state
+      setSession(null);
+      setCurrentQuestion(null);
+      setQuestionIndex(0);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to complete game');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session]);
+
   const nextQuestion = useCallback(async () => {
     if (!session) return;
     
@@ -160,30 +184,6 @@ export function useHybridGameFlow(): UseHybridGameFlowReturn {
       setIsLoading(false);
     }
   }, [session, questionIndex, endGame]);
-
-  const endGame = useCallback(async () => {
-    if (!session) return;
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const results = await gameApiService.completeSession(session.sessionId);
-      
-      // Handle game completion - could emit event or navigate
-      console.log('Game completed:', results);
-      
-      // Reset state
-      setSession(null);
-      setCurrentQuestion(null);
-      setQuestionIndex(0);
-      
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete game');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session]);
 
   // Auto-advance to next question after delay
   useEffect(() => {
