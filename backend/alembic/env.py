@@ -9,7 +9,7 @@ from sqlmodel import SQLModel
 from alembic import context
 
 # Import all models to ensure they're registered with SQLModel
-from app.db.models import *  # noqa: F403
+from app.db.models import *  # noqa: F403,F401
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides
@@ -74,7 +74,8 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(connection=connection,
+                          target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
