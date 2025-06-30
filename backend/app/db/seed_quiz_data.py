@@ -1,5 +1,6 @@
 """Seed quiz data for testing the game functionality."""
 
+from typing import List, Dict, Any
 from sqlmodel import Session, select
 from app.db.models import Topic, Question, Answer, Quiz, QuizQuestion, QuizStatus
 from app.db.session import engine
@@ -24,7 +25,7 @@ def create_test_quiz_data(session: Session) -> None:
         print(f"✅ Created topic: {topic.title}")
 
     # Create test questions with answers
-    test_questions = [
+    test_questions: List[Dict[str, Any]] = [
         {
             "content": "What is the capital of France?",
             "explanation": "Paris has been the capital of France since 987 AD.",

@@ -1,17 +1,18 @@
 """Admin router for quiz management."""
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Any
+import io
 
 from fastapi import (
     APIRouter,
     Depends,
     File,
     HTTPException,
-    Response,
     UploadFile,
     status,
 )
+from starlette.responses import StreamingResponse
 from sqlmodel import Session
 
 from app.db.models import Topic
@@ -117,7 +118,7 @@ async def get_questions(
     limit: int = 100,
     topic_id: Optional[int] = None,
     db: Session = Depends(get_session),
-):
+) -> List[dict[str, Any]]:
     """Get all questions with optional topic filter."""
     service = QuizAdminService(db)
     return service.get_questions(skip=skip, limit=limit, topic_id=topic_id)
@@ -127,7 +128,7 @@ async def get_questions(
 async def get_question(
     question_id: int,
     db: Session = Depends(get_session),
-):
+) -> Optional[dict[str, Any]]:
     """Get a single question by ID."""
     service = QuizAdminService(db)
     question = service.get_question(question_id)
@@ -144,7 +145,7 @@ async def get_question(
 async def create_question(
     question_data: QuestionCreate,
     db: Session = Depends(get_session),
-):
+) -> dict[str, Any]:
     """Create a new question with answers."""
     service = QuizAdminService(db)
     try:
@@ -161,7 +162,7 @@ async def update_question(
     question_id: int,
     question_data: QuestionUpdate,
     db: Session = Depends(get_session),
-):
+) -> Optional[dict[str, Any]]:
     """Update an existing question."""
     service = QuizAdminService(db)
     question = service.update_question(question_id, question_data)
@@ -176,7 +177,7 @@ async def update_question(
 async def delete_question(
     question_id: int,
     db: Session = Depends(get_session),
-):
+) -> None:
     """Delete a question."""
     service = QuizAdminService(db)
     try:
@@ -198,7 +199,7 @@ async def delete_question(
 async def create_questions_batch(
     questions_data: List[QuestionCreate],
     db: Session = Depends(get_session),
-):
+) -> List[dict[str, Any]]:
     """Create multiple questions in a single batch operation."""
     service = QuizAdminService(db)
     created_questions = []
@@ -221,7 +222,7 @@ async def get_quizzes(
     limit: int = 100,
     topic_id: Optional[int] = None,
     db: Session = Depends(get_session),
-):
+) -> List[dict[str, Any]]:
     """Get all quizzes with optional topic filter."""
     service = QuizAdminService(db)
     return service.get_quizzes(skip=skip, limit=limit, topic_id=topic_id)
@@ -231,14 +232,13 @@ async def get_quizzes(
 async def get_quiz(
     quiz_id: int,
     db: Session = Depends(get_session),
-):
+) -> Optional[dict[str, Any]]:
     """Get a single quiz by ID with questions."""
     service = QuizAdminService(db)
     quiz = service.get_quiz(quiz_id)
     if not quiz:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Quiz nicht gefunden",
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
         )
     return quiz
 
@@ -249,16 +249,14 @@ async def get_quiz(
 async def create_quiz(
     quiz_data: QuizCreate,
     db: Session = Depends(get_session),
-):
-    """Create a new quiz with questions."""
+) -> dict[str, Any]:
+    """Create a new quiz."""
     service = QuizAdminService(db)
     try:
         return service.create_quiz(quiz_data)
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post(
@@ -269,16 +267,14 @@ async def create_quiz(
 async def create_quiz_batch(
     quiz_data: QuizBatchCreate,
     db: Session = Depends(get_session),
-):
-    """Create a new quiz with questions in a single batch operation."""
+) -> dict[str, Any]:
+    """Create a quiz with questions in a single batch operation."""
     service = QuizAdminService(db)
     try:
         return service.create_quiz_batch(quiz_data)
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.put("/quizzes/{quiz_id}", response_model=QuizDetailResponse)
@@ -286,45 +282,33 @@ async def update_quiz(
     quiz_id: int,
     quiz_data: QuizUpdate,
     db: Session = Depends(get_session),
-):
+) -> Optional[dict[str, Any]]:
     """Update an existing quiz."""
-    try:
-        service = QuizAdminService(db)
-        quiz = service.update_quiz(quiz_id, quiz_data)
-        if not quiz:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Quiz nicht gefunden",
-            )
-        return quiz
-    except ValueError as e:
-        # Log the error for debugging
-        logger.error(f"Error updating quiz {quiz_id}: {str(e)}")
+    service = QuizAdminService(db)
+    quiz = service.update_quiz(quiz_id, quiz_data)
+    if not quiz:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
         )
-    except Exception as e:
-        logger.error(f"Unexpected error updating quiz {quiz_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Ein interner Serverfehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
-        )
+    return quiz
 
 
 @router.delete("/quizzes/{quiz_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_quiz(
     quiz_id: int,
     db: Session = Depends(get_session),
-):
+) -> None:
     """Delete a quiz."""
     service = QuizAdminService(db)
-    success = service.delete_quiz(quiz_id)
-    if not success:
+    try:
+        success = service.delete_quiz(quiz_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
+            )
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Quiz nicht gefunden",
-        )
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # Image upload endpoints
@@ -333,125 +317,115 @@ async def upload_quiz_image(
     quiz_id: int,
     file: UploadFile = File(...),
     db: Session = Depends(get_session),
-):
+) -> ImageUploadResponse:
     """Upload an image for a quiz."""
-    # Validate file type
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nur Bilddateien sind erlaubt",
-        )
-
-    # Validate file size (5MB max)
-    if file.size and file.size > 5 * 1024 * 1024:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Datei ist zu groß (maximal 5MB)",
-        )
-
     service = QuizAdminService(db)
     try:
-        image_data = await file.read()
-        service.upload_quiz_image(
-            quiz_id, image_data, file.filename or "image")
+        # Read file contents
+        contents = await file.read()
+        if len(contents) > 5 * 1024 * 1024:  # 5MB limit
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="Bilddatei darf nicht größer als 5MB sein",
+            )
+
+        # Check if quiz exists
+        quiz = service.get_quiz(quiz_id)
+        if not quiz:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
+            )
+
+        # Upload image
+        filename = file.filename or "unknown_file"
+        service.upload_quiz_image(quiz_id, contents, filename)
+
         return ImageUploadResponse(
             message="Bild erfolgreich hochgeladen",
-            filename=file.filename or "image",
+            filename=filename,
             quiz_id=quiz_id,
         )
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/quizzes/{quiz_id}/image")
 async def get_quiz_image(
     quiz_id: int,
     db: Session = Depends(get_session),
-):
+) -> StreamingResponse:
     """Get the image for a quiz."""
     service = QuizAdminService(db)
-    image_data, filename = service.get_quiz_image(quiz_id)
+    try:
+        image_data, content_type = service.get_quiz_image(quiz_id)
+        if not image_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Bild nicht gefunden"
+            )
 
-    if not image_data:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Kein Bild für dieses Quiz gefunden",
+        return StreamingResponse(
+            io.BytesIO(image_data), media_type=content_type or "image/jpeg"
         )
-
-    # Determine content type from filename
-    content_type = "image/jpeg"  # Default
-    if filename:
-        if filename.lower().endswith(".png"):
-            content_type = "image/png"
-        elif filename.lower().endswith(".gif"):
-            content_type = "image/gif"
-        elif filename.lower().endswith(".webp"):
-            content_type = "image/webp"
-
-    return Response(
-        content=image_data,
-        media_type=content_type,
-        headers={"Content-Disposition": f"inline; filename={filename}"},
-    )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.delete("/quizzes/{quiz_id}/image")
+@router.delete("/quizzes/{quiz_id}/image", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_quiz_image(
     quiz_id: int,
     db: Session = Depends(get_session),
-):
+) -> None:
     """Delete the image for a quiz."""
     service = QuizAdminService(db)
-    success = service.delete_quiz_image(quiz_id)
-
-    if not success:
+    try:
+        success = service.delete_quiz_image(quiz_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Bild nicht gefunden"
+            )
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Quiz oder Bild nicht gefunden",
-        )
-
-    return {"message": "Bild erfolgreich gelöscht"}
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.post("/quizzes/{quiz_id}/publish", response_model=QuizResponse)
+@router.post("/quizzes/{quiz_id}/publish")
 async def publish_quiz(
     quiz_id: int,
     db: Session = Depends(get_session),
-):
-    """Publish a quiz to make it available for gameplay."""
+) -> dict[str, Any]:
+    """Publish a quiz to make it available to users."""
     service = QuizAdminService(db)
     try:
         quiz = service.publish_quiz(quiz_id)
         if not quiz:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Quiz nicht gefunden",
+                status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
             )
-        return quiz
+        return {"message": "Quiz erfolgreich veröffentlicht", "quiz_id": quiz_id}
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.post("/quizzes/{quiz_id}/archive", response_model=QuizResponse)
+@router.post("/quizzes/{quiz_id}/archive")
 async def archive_quiz(
     quiz_id: int,
     db: Session = Depends(get_session),
-):
-    """Archive a quiz to hide it from gameplay."""
+) -> dict[str, Any]:
+    """Archive a quiz to make it unavailable to users."""
     service = QuizAdminService(db)
-    quiz = service.archive_quiz(quiz_id)
-    if not quiz:
+    try:
+        quiz = service.archive_quiz(quiz_id)
+        if not quiz:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
+            )
+        return {"message": "Quiz erfolgreich archiviert", "quiz_id": quiz_id}
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Quiz nicht gefunden",
-        )
-    return quiz
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/quizzes/published", response_model=List[QuizResponse])
@@ -460,7 +434,7 @@ async def get_published_quizzes(
     limit: int = 100,
     topic_id: Optional[int] = None,
     db: Session = Depends(get_session),
-):
-    """Get all published quizzes available for gameplay."""
+) -> List[dict[str, Any]]:
+    """Get all published quizzes with optional topic filter."""
     service = QuizAdminService(db)
     return service.get_published_quizzes(skip=skip, limit=limit, topic_id=topic_id)
