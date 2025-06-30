@@ -295,33 +295,33 @@ export default function UserManual() {
                       {translate('userManual.soloModeDetailsDesc')}
                     </p>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b border-gray-600">
-                              <th className="text-left py-3 px-4 text-[#FCC822]">
-                                Zeit bis zur Antwort
-                              </th>
-                              <th className="text-left py-3 px-4 text-[#FCC822]">
-                                Punkte
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="text-gray-300">
-                            <tr className="border-b border-gray-700">
-                              <td className="py-3 px-4">≤ 3 Sekunden</td>
-                              <td className="py-3 px-4">100 Punkte</td>
-                            </tr>
-                            <tr className="border-b border-gray-700">
-                              <td className="py-3 px-4">3-6 Sekunden</td>
-                              <td className="py-3 px-4">50 Punkte</td>
-                            </tr>
-                            <tr>
-                              <td className="py-3 px-4">≥ 6 Sekunden</td>
-                              <td className="py-3 px-4">0 Punkte</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Zeit bis zur Antwort
+                            </th>
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Punkte
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-300">
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">≤ 3 Sekunden</td>
+                            <td className="py-3 px-4">100 Punkte</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">3-6 Sekunden</td>
+                            <td className="py-3 px-4">50 Punkte</td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">≥ 6 Sekunden</td>
+                            <td className="py-3 px-4">0 Punkte</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
                   <div>
@@ -332,33 +332,33 @@ export default function UserManual() {
                       {translate('userManual.collaborativeModeDetailsDesc')}
                     </p>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b border-gray-600">
-                              <th className="text-left py-3 px-4 text-[#FCC822]">
-                                Zeit bis zur Antwort
-                              </th>
-                              <th className="text-left py-3 px-4 text-[#FCC822]">
-                                Punkte
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="text-gray-300">
-                            <tr className="border-b border-gray-700">
-                              <td className="py-3 px-4">≤ 3 Sekunden</td>
-                              <td className="py-3 px-4">100 Punkte</td>
-                            </tr>
-                            <tr className="border-b border-gray-700">
-                              <td className="py-3 px-4">3-6 Sekunden</td>
-                              <td className="py-3 px-4">50 Punkte</td>
-                            </tr>
-                            <tr>
-                              <td className="py-3 px-4">≥ 6 Sekunden</td>
-                              <td className="py-3 px-4">0 Punkte</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Zeit bis zur Antwort
+                            </th>
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Punkte
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-300">
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">≤ 3 Sekunden</td>
+                            <td className="py-3 px-4">100 Punkte</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">3-6 Sekunden</td>
+                            <td className="py-3 px-4">50 Punkte</td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">≥ 6 Sekunden</td>
+                            <td className="py-3 px-4">0 Punkte</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
                   <div>
@@ -369,33 +369,39 @@ export default function UserManual() {
                       {translate('userManual.competitiveModeDetailsDesc')}
                     </p>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b border-gray-600">
-                              <th className="text-left py-3 px-4 text-[#FCC822]">
-                                Antwort
-                              </th>
-                              <th className="text-left py-3 px-4 text-[#FCC822]">
-                                Punkte
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="text-gray-300">
-                            <tr className="border-b border-gray-700">
-                              <td className="py-3 px-4">erste richtige Antwort</td>
-                              <td className="py-3 px-4">100 Punkte</td>
-                            </tr>
-                            <tr className="border-b border-gray-700">
-                              <td className="py-3 px-4">zweite richtige Antwort</td>
-                              <td className="py-3 px-4">50 Punkte</td>
-                            </tr>
-                            <tr>
-                              <td className="py-3 px-4">falsche Antwort/ Zeit ist abgelaufen</td>
-                              <td className="py-3 px-4">0 Punkte</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Antwort
+                            </th>
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Punkte
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-300">
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">
+                              erste richtige Antwort
+                            </td>
+                            <td className="py-3 px-4">100 Punkte</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">
+                              zweite richtige Antwort
+                            </td>
+                            <td className="py-3 px-4">50 Punkte</td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">
+                              falsche Antwort/ Zeit ist abgelaufen
+                            </td>
+                            <td className="py-3 px-4">0 Punkte</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
                   <div>

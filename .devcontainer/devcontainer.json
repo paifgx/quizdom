@@ -1,8 +1,6 @@
 {
   "name": "Quizdom Dev",
-  "dockerComposeFile": [
-    "compose.yml"
-  ],
+  "dockerComposeFile": ["compose.yml"],
   "service": "app",
   "workspaceFolder": "/workspace",
   "overrideCommand": false,

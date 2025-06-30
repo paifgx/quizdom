@@ -7,23 +7,27 @@ This document describes the implementation of file upload functionality for quiz
 ### Backend Changes
 
 #### 1. Database Model Updates
+
 - **File**: `backend/app/db/models.py`
 - **Changes**: Added new fields to the `Quiz` model:
   - `image_data: Optional[bytes]` - Stores binary image data
   - `image_filename: Optional[str]` - Stores original filename
 
 #### 2. Database Migration
+
 - **File**: `backend/add_image_fields.sql`
 - **Changes**: Added the new columns to the existing database
 - **Execute**: Run `python -c "from app.db.session import engine; from sqlmodel import text; conn = engine.connect(); conn.execute(text('ALTER TABLE quiz ADD COLUMN IF NOT EXISTS image_data BYTEA')); conn.execute(text('ALTER TABLE quiz ADD COLUMN IF NOT EXISTS image_filename VARCHAR(255)')); conn.commit(); print('Migration completed!')"` from the backend directory
 
 #### 3. Schema Updates
+
 - **File**: `backend/app/schemas/quiz_admin.py`
 - **Changes**:
   - Added `has_image: bool` field to `QuizResponse` to indicate if quiz has an image
   - Added `ImageUploadResponse` schema for image upload responses
 
 #### 4. Service Layer Updates
+
 - **File**: `backend/app/services/quiz_admin_service.py`
 - **Changes**: Added three new methods:
   - `upload_quiz_image(quiz_id, image_data, filename)` - Uploads and stores image
@@ -32,6 +36,7 @@ This document describes the implementation of file upload functionality for quiz
   - Updated quiz response methods to include `has_image` field
 
 #### 5. API Endpoints
+
 - **File**: `backend/app/routers/admin_router.py`
 - **Changes**: Added three new endpoints:
   - `POST /v1/admin/quiz/quizzes/{quiz_id}/image` - Upload image
@@ -41,6 +46,7 @@ This document describes the implementation of file upload functionality for quiz
 ### Frontend Changes
 
 #### 1. Quiz Edit Form Updates
+
 - **File**: `frontend/app/routes/admin.quiz-edit.tsx`
 - **Changes**:
   - Replaced URL input field with file upload input
@@ -98,6 +104,7 @@ curl -X DELETE \
 #### Frontend Integration
 
 The frontend now includes:
+
 - File upload with drag-and-drop support
 - Image preview with metadata display
 - File validation and error handling

@@ -9,17 +9,21 @@ The user administration system allows admin users to manage all user accounts, i
 ## Backend Implementation
 
 ### 1. Database Models
+
 **File:** `backend/app/db/models.py`
 
 The existing `User` and `Role` models support user administration:
+
 - `User` model with role_id foreign key
 - `Role` model for user permissions
 - Soft deletion support via `deleted_at` field
 
 ### 2. API Schemas
+
 **File:** `backend/app/schemas/user.py`
 
 New schemas for user management operations:
+
 - `UserListResponse` - User data with statistics
 - `UserCreateRequest` - Creating new users
 - `UserUpdateRequest` - Updating existing users
@@ -28,11 +32,13 @@ New schemas for user management operations:
 - `RoleResponse` - Available roles
 
 ### 3. API Endpoints
+
 **File:** `backend/app/routers/user.py`
 
 Comprehensive user management API:
 
 #### User Operations
+
 - `GET /admin/users` - List users with filtering and pagination
 - `GET /admin/users/{user_id}` - Get specific user details
 - `POST /admin/users` - Create new user
@@ -41,16 +47,19 @@ Comprehensive user management API:
 - `DELETE /admin/users/{user_id}` - Permanently delete user
 
 #### Statistics & Utilities
+
 - `GET /admin/users/stats` - Get user statistics for dashboard
 - `GET /admin/roles` - List available roles
 
 #### Security Features
+
 - All endpoints require admin authentication
 - Admin users cannot delete/deactivate themselves
 - Input validation and sanitization
 - Comprehensive error handling
 
 ### 4. Main Application Integration
+
 **File:** `backend/app/main.py`
 
 User management router registered under `/admin` prefix with proper tags.
@@ -58,18 +67,22 @@ User management router registered under `/admin` prefix with proper tags.
 ## Frontend Implementation
 
 ### 1. User Administration Service
+
 **File:** `frontend/app/services/user-admin.ts`
 
 API service client providing:
+
 - Full CRUD operations for users
 - User statistics retrieval
 - Role management
 - Proper error handling and type safety
 
 ### 2. User Management Modal Component
+
 **File:** `frontend/app/components/admin/user-management-modal.tsx`
 
 Reusable modal component for creating and editing users:
+
 - Form validation (email format, password length)
 - Role selection
 - Verification status toggle
@@ -78,11 +91,13 @@ Reusable modal component for creating and editing users:
 - German localization
 
 ### 3. Admin Users Page
+
 **File:** `frontend/app/routes/admin.users.tsx`
 
 Complete user administration interface:
 
 #### Features
+
 - **Statistics Dashboard**: Total users, active users, admin count, verified users, new users this month
 - **Advanced Filtering**: Search by email, filter by role, filter by status
 - **User Table**: Comprehensive user information display
@@ -90,6 +105,7 @@ Complete user administration interface:
 - **Real-time Updates**: Automatic refresh after operations
 
 #### UI Components
+
 - Statistics cards with color-coded metrics
 - Filterable and searchable user table
 - Action buttons with confirmation dialogs
@@ -99,14 +115,17 @@ Complete user administration interface:
 ## Testing
 
 ### Backend Tests
+
 **File:** `backend/tests/test_user_management.py`
 
 Comprehensive test suite covering:
+
 - Authentication requirements for all endpoints
 - Endpoint existence verification
 - Error handling validation
 
 ### Integration
+
 - All existing tests continue to pass
 - New functionality doesn't break existing features
 - Type checking passes without errors
@@ -114,16 +133,19 @@ Comprehensive test suite covering:
 ## Security Considerations
 
 ### Access Control
+
 - Admin-only endpoints with role verification
 - Prevents self-deletion/deactivation
 - Proper authentication checks
 
 ### Data Protection
+
 - Password hashing for new users
 - Input validation and sanitization
 - SQL injection prevention through SQLModel
 
 ### User Privacy
+
 - Soft deletion preserves data integrity
 - Audit trail through timestamps
 - Secure password handling
@@ -168,6 +190,7 @@ Comprehensive test suite covering:
 ## Database Seeding
 
 The system includes seeded data:
+
 - Admin user: `admin@quizdom.de` / `admin123`
 - Regular user: `user@quizdom.de` / `user123`
 - Basic roles: admin, user
@@ -219,12 +242,14 @@ The implementation follows clean architecture principles:
 ## Dependencies
 
 ### Backend
+
 - FastAPI for API framework
 - SQLModel for database ORM
 - Pydantic for data validation
 - Python-jose for JWT handling
 
 ### Frontend
+
 - React for UI components
 - TypeScript for type safety
 - Tailwind CSS for styling
