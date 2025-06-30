@@ -8,7 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
 from app.core.security import create_access_token, get_password_hash
-from app.db.models import Role, User
+from app.db.models import Role, User, UserRoles
 from app.db.session import get_session
 from app.main import app
 
@@ -69,12 +69,23 @@ def admin_user(session: Session, admin_role: Role):
         email="admin@example.com",
         password_hash=get_password_hash("adminpassword123"),
         is_verified=True,
-        role_id=admin_role.id,
         created_at=datetime.now(timezone.utc),
     )
     session.add(user)
     session.commit()
     session.refresh(user)
+
+    # Create association in UserRoles table
+    assert user.id is not None, "User ID should not be None"
+    assert admin_role.id is not None, "Role ID should not be None"
+    user_role = UserRoles(
+        user_id=user.id,
+        role_id=admin_role.id,
+        granted_at=datetime.now(timezone.utc),
+    )
+    session.add(user_role)
+    session.commit()
+
     return user
 
 
@@ -85,7 +96,8 @@ class TestUserRegistration:
         """Test successful user registration."""
         response = client.post(
             "/v1/auth/register",
-            json={"email": "newuser@example.com", "password": "newpassword123"},
+            json={"email": "newuser@example.com",
+                  "password": "newpassword123"},
         )
 
         assert response.status_code == 200
@@ -148,7 +160,8 @@ class TestUserLogin:
         """Test admin user login includes role information."""
         response = client.post(
             "/v1/auth/login",
-            data={"username": admin_user.email, "password": "adminpassword123"},
+            data={"username": admin_user.email,
+                  "password": "adminpassword123"},
         )
 
         assert response.status_code == 200
@@ -172,7 +185,8 @@ class TestUserLogin:
         """Test login with nonexistent user fails."""
         response = client.post(
             "/v1/auth/login",
-            data={"username": "nonexistent@example.com", "password": "somepassword"},
+            data={"username": "nonexistent@example.com",
+                  "password": "somepassword"},
         )
 
         assert response.status_code == 401
