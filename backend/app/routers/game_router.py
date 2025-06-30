@@ -312,7 +312,8 @@ async def submit_answer(
     game_service = GameService(db)
 
     try:
-        is_correct, points_earned, response_time_ms, player_score, explanation = (
+        # Call the enhanced service method that now returns more data
+        is_correct, points_earned, response_time_ms, player_score, explanation, player_hearts, correct_answer_id = (
             game_service.submit_answer(
                 session_id=session_id,
                 question_id=answer_data.question_id,
@@ -322,44 +323,19 @@ async def submit_answer(
             )
         )
 
-        # Get the correct answer
-        from sqlmodel import select
-        correct_answer = db.exec(
-            select(Answer)
-            .where(Answer.question_id == answer_data.question_id)
-            .where(Answer.is_correct == True)
-        ).first()
-
-        if not correct_answer:
-            raise ValueError("Keine korrekte Antwort gefunden")
-
-        # Make sure correct_answer.id is not None
-        correct_answer_id = correct_answer.id
-        if correct_answer_id is None:
-            raise ValueError("Antwort ID ist nicht verfügbar")
-
-        # Get player hearts
-        player = db.exec(
-            select(SessionPlayers)
-            .where(SessionPlayers.session_id == session_id)
-            .where(SessionPlayers.user_id == current_user.id)
-        ).first()
-
-        if not player:
-            raise ValueError("Spieler nicht gefunden")
-
         return SubmitAnswerResponse(
             is_correct=is_correct,
             correct_answer_id=correct_answer_id,
             points_earned=points_earned,
             response_time_ms=response_time_ms,
             player_score=player_score,
-            player_hearts=player.hearts_left,
+            player_hearts=player_hearts,
             explanation=explanation,
         )
 
     except ValueError as e:
         # Extract error code from error message
+        field = None
         if "nicht gefunden" in str(e):
             if "Session" in str(e):
                 error_code = "session_not_found"
@@ -399,7 +375,7 @@ async def submit_answer(
             detail={
                 "detail": str(e),
                 "code": error_code,
-                "field": field if 'field' in locals() else None,
+                "field": field,
                 "hint": hint
             },
             headers={

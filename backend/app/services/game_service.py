@@ -1,7 +1,11 @@
 """
 Game service for managing quiz sessions.
 
-This module handles game session creation, tracking answers, and scoring.
+This module provides a service layer for game-related functionality:
+- Starting game sessions with both curated quizzes and random topics
+- Retrieving questions and answers
+- Processing user answers and scoring
+- Game session completion and statistics
 """
 
 from datetime import datetime
@@ -27,24 +31,39 @@ from app.db.models import (
 
 
 class GameService:
-    """Service for game session management."""
+    """Service for game session management.
+
+    This service encapsulates all game-related business logic, handling game session
+    creation, question retrieval, answer processing, and game completion. It serves
+    as an abstraction layer between the API routers and the database models.
+
+    The service enforces game rules such as:
+    - Player participation validation
+    - Question accessibility and sequencing
+    - Score calculation based on response time
+    - Hearts/lives management for incorrect answers
+    - Game completion and statistics calculation
+    """
 
     def __init__(self, db: Session):
         """Initialize with database session.
 
         Args:
-            db: SQLModel database session
+            db: SQLModel database session for database operations
         """
         self.db = db
 
     def get_quizzes_by_topic(self, topic_id: Optional[int] = None) -> List[Quiz]:
         """Get published quizzes, optionally filtered by topic.
 
+        Retrieves only quizzes with PUBLISHED status that users can play.
+        When a topic_id is provided, filters quizzes to only those for that topic.
+
         Args:
-            topic_id: Optional topic filter
+            topic_id: Optional topic filter to narrow down quiz selection
 
         Returns:
-            List of published quizzes
+            List of published quizzes matching the criteria
         """
         query = select(Quiz).where(Quiz.status == QuizStatus.PUBLISHED)
         if topic_id is not None:
@@ -60,16 +79,26 @@ class GameService:
     ) -> GameSession:
         """Start a game session with a curated quiz.
 
+        Creates a new game session for the specified quiz and user. The game session
+        includes all questions from the quiz in the order defined in the quiz.
+        The session is initialized with:
+        - ACTIVE status
+        - Current question index set to 0 (first question)
+        - Start and updated timestamps
+        - Player added with 3 hearts and 0 score
+
+        The quiz play count is incremented to track popularity.
+
         Args:
-            user: User starting the game
+            user: User starting the game session
             quiz_id: ID of the quiz to play
-            mode: Game mode (solo, comp, collab)
+            mode: Game mode (solo, comp, collab) affecting game mechanics
 
         Returns:
-            Created GameSession
+            Created GameSession with initialized state
 
         Raises:
-            ValueError: When quiz doesn't exist or has no questions
+            ValueError: When quiz doesn't exist, isn't published, or has no questions
         """
         # Verify quiz exists and is published
         quiz = self.db.get(Quiz, quiz_id)
@@ -143,19 +172,30 @@ class GameService:
     ) -> GameSession:
         """Start a game session with random questions from a topic.
 
+        Creates a new game session with randomly selected questions from the specified topic.
+        Questions are filtered by difficulty if min/max parameters are provided.
+        The session is initialized with:
+        - ACTIVE status
+        - Current question index set to 0 (first question)
+        - Start and updated timestamps
+        - Player added with 3 hearts and 0 score
+
+        This differs from quiz games in that questions are randomly selected rather than
+        curated by a quiz creator, allowing for variety in repeated play.
+
         Args:
-            user: User starting the game
+            user: User starting the game session
             topic_id: ID of the topic to select questions from
-            mode: Game mode
-            question_count: Number of questions to include
-            difficulty_min: Minimum difficulty (1-5)
-            difficulty_max: Maximum difficulty (1-5)
+            mode: Game mode (solo, comp, collab) affecting game mechanics
+            question_count: Number of questions to include (5-50)
+            difficulty_min: Minimum difficulty level (1-5)
+            difficulty_max: Maximum difficulty level (1-5)
 
         Returns:
-            Created GameSession
+            Created GameSession with initialized state
 
         Raises:
-            ValueError: When topic doesn't exist or has no matching questions
+            ValueError: When topic doesn't exist or has no matching questions within the difficulty range
         """
         # Get topic
         topic = self.db.get(Topic, topic_id)
@@ -225,13 +265,26 @@ class GameService:
     ) -> Tuple[Question, List[Answer], int]:
         """Get a specific question from the game session.
 
+        Retrieves the question at the specified index from the game session.
+        This method enforces security by verifying:
+        - The session exists
+        - The user is a participant in the session
+        - The question index is valid for the session
+
+        The session's current_question_index is updated to track progress,
+        and the session timestamp is updated to monitor activity.
+
+        A time limit is calculated for the question:
+        - For quiz-based games, the time limit is determined from the quiz settings
+        - For topic-based games, a default 30-second limit is used
+
         Args:
             session_id: ID of the game session
             question_index: Index of the question to retrieve (0-based)
             user: User requesting the question
 
         Returns:
-            Tuple of Question, list of answers, and time limit in seconds
+            Tuple of (Question object, list of Answer objects, time limit in seconds)
 
         Raises:
             ValueError: When session doesn't exist, user is not participant, or question index is invalid
@@ -288,8 +341,26 @@ class GameService:
         answer_id: int,
         user: User,
         answered_at: int
-    ) -> Tuple[bool, int, int, int, Optional[str]]:
+    ) -> Tuple[bool, int, int, int, Optional[str], int, int]:
         """Submit an answer for a question in a game session.
+
+        Processes a player's answer to a question, handling:
+        - Validation of session, user participation, question, and answer
+        - Correctness checking against the correct answer
+        - Response time calculation
+        - Point calculation based on correctness and response time
+        - Player score updating
+        - Hearts/lives management for incorrect answers (except in collaborative mode)
+        - Recording the answer in the database
+
+        The scoring system rewards faster correct answers:
+        - 0-3 seconds: 100 points
+        - 3-6 seconds: 50 points
+        - >6 seconds: 25 points
+
+        Incorrect answers result in:
+        - No points gained
+        - Loss of one heart/life (except in collaborative mode)
 
         Args:
             session_id: ID of the game session
@@ -299,10 +370,12 @@ class GameService:
             answered_at: Timestamp when answer was submitted (milliseconds)
 
         Returns:
-            Tuple of (is_correct, points_earned, response_time_ms, player_score, explanation)
+            Tuple of (is_correct, points_earned, response_time_ms, player_score, 
+                     explanation, player_hearts, correct_answer_id)
 
         Raises:
-            ValueError: When session or question is invalid
+            ValueError: When session doesn't exist, user is not participant,
+                       question is invalid for the session, or answer is invalid for the question
         """
         # Verify session exists
         session = self.db.get(GameSession, session_id)
@@ -338,6 +411,10 @@ class GameService:
 
         if not correct_answer:
             raise ValueError("Keine korrekte Antwort für diese Frage gefunden")
+
+        # Ensure correct_answer.id is not None
+        if correct_answer.id is None:
+            raise ValueError("Antwort ID ist nicht verfügbar")
 
         # Check if answer is correct
         is_correct = selected_answer.id == correct_answer.id
@@ -391,7 +468,9 @@ class GameService:
             points_earned,
             response_time_ms,
             player.score,
-            question.explanation
+            question.explanation,
+            player.hearts_left,
+            correct_answer.id
         )
 
     def complete_session(
@@ -401,12 +480,36 @@ class GameService:
     ) -> Dict[str, Any]:
         """Complete a game session and get results.
 
+        Finalizes a game session, calculating statistics and setting the status to FINISHED.
+        This method:
+        - Verifies session exists and user is a participant
+        - Marks the session as finished with an end timestamp
+        - Calculates final statistics:
+          - Questions answered and correct answer count
+          - Total time spent
+          - Final score and hearts remaining
+          - Result (win/fail) based on hearts
+
+        Future enhancements:
+        - The rank and percentile are placeholders and will be implemented
+          with proper leaderboard calculations in the future
+
         Args:
-            session_id: ID of the game session
+            session_id: ID of the game session to complete
             user: User completing the session
 
         Returns:
-            Dict containing game results
+            Dictionary with game result statistics:
+            - session_id: The completed session ID
+            - mode: Game mode used
+            - result: "win" or "fail" based on hearts remaining
+            - final_score: Player's final score
+            - hearts_remaining: Hearts/lives remaining
+            - questions_answered: Total number of questions answered
+            - correct_answers: Number of correctly answered questions
+            - total_time_seconds: Total session duration in seconds
+            - rank: Placeholder for future leaderboard rank
+            - percentile: Placeholder for future percentile ranking
 
         Raises:
             ValueError: When session doesn't exist or user is not a participant
