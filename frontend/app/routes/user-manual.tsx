@@ -256,9 +256,9 @@ export default function UserManual() {
                     <div className="grid md:grid-cols-3 gap-4">
                       <div className="bg-[#16213E] rounded-lg p-6 text-center">
                         <img
-                          src="/playmodi/SOLO_withoutText.png"
+                          src="/playmodi/SOLO_withoutText.PNG"
                           alt="Solo Mission"
-                          className="h-24 w-16 mx-auto mb-3 rounded-lg"
+                          className="h-48 w-32 mx-auto mb-3 rounded-lg"
                         />
                         <p className="text-gray-300 text-sm">
                           {translate('userManual.soloMode')}
@@ -266,9 +266,9 @@ export default function UserManual() {
                       </div>
                       <div className="bg-[#16213E] rounded-lg p-6 text-center">
                         <img
-                          src="/playmodi/COLL_withoutText.png"
+                          src="/playmodi/COLL_withoutText.PNG"
                           alt="Team Battle"
-                          className="h-24 w-16 mx-auto mb-3 rounded-lg"
+                          className="h-48 w-32 mx-auto mb-3 rounded-lg"
                         />
                         <p className="text-gray-300 text-sm">
                           {translate('userManual.collaborativeMode')}
@@ -276,9 +276,9 @@ export default function UserManual() {
                       </div>
                       <div className="bg-[#16213E] rounded-lg p-6 text-center">
                         <img
-                          src="/playmodi/COMP_withoutText.png"
+                          src="/playmodi/COMP_withoutText.PNG"
                           alt="Duell"
-                          className="h-24 w-16 mx-auto mb-3 rounded-lg"
+                          className="h-48 w-32 mx-auto mb-3 rounded-lg"
                         />
                         <p className="text-gray-300 text-sm">
                           {translate('userManual.competitiveMode')}
