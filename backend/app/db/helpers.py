@@ -5,7 +5,7 @@ multiple endpoints to maintain DRY principles.
 """
 
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from sqlmodel import Session, func, select
 
@@ -38,7 +38,7 @@ def get_user_with_role_name(
     return (user, role_name)
 
 
-def get_user_quiz_statistics(session: Session, user_id: int) -> dict:
+def get_user_quiz_statistics(session: Session, user_id: int) -> dict[str, Any]:
     """Get user quiz statistics including completed quizzes and scores.
 
     Returns dictionary with quiz completion stats and scoring information.
@@ -48,10 +48,8 @@ def get_user_quiz_statistics(session: Session, user_id: int) -> dict:
     quiz_stats = session.exec(
         select(
             func.count().label("quizzes_completed"),
-            func.coalesce(func.avg(SessionPlayers.score),
-                          0).label("average_score"),
-            func.coalesce(func.sum(SessionPlayers.score),
-                          0).label("total_score"),
+            func.coalesce(func.avg(SessionPlayers.score), 0).label("average_score"),
+            func.coalesce(func.sum(SessionPlayers.score), 0).label("total_score"),
         ).where(SessionPlayers.user_id == user_id)
     ).first()
 

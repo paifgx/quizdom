@@ -4,7 +4,7 @@ This module provides endpoints for administrators to manage users,
 including creating, reading, updating, and deleting user accounts.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from sqlalchemy import func
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -50,8 +50,7 @@ def require_admin(
     ).first()
 
     if not admin_role:
-        log_operation(app_logger, "admin_access_denied",
-                      user_id=current_user.id)
+        log_operation(app_logger, "admin_access_denied", user_id=current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Administrator-Zugriff erforderlich",
@@ -84,10 +83,7 @@ def list_users(
     """
     total = session.exec(select(func.count(User.id))).one()
     users = session.exec(
-        select(User)
-        .offset(skip)
-        .limit(limit)
-        .order_by(User.created_at)
+        select(User).offset(skip).limit(limit).order_by(User.created_at)
     ).all()
 
     return UserListResponse(
@@ -117,11 +113,11 @@ def get_user_stats(
 
     # Get verified users count
     verified_users = session.exec(
-        select(func.count(User.id)).where(User.is_verified == True)
+        select(func.count(User.id)).where(User.is_verified)
     ).one()
 
     # Get recent registrations (last 7 days)
-    seven_days_ago = datetime.now(timezone.utc) - timezone.timedelta(days=7)
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
     recent_registrations = session.exec(
         select(func.count(User.id)).where(User.created_at >= seven_days_ago)
     ).one()

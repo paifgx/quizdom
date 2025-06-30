@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum, IntEnum
-from typing import Any, Optional
+from typing import Optional, Any
 
-from sqlalchemy import JSON, Column, Enum as SQLAlchemyEnum
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 
@@ -123,7 +123,7 @@ class AuditLogs(SQLModel, table=True):
     actor_id: int = Field(foreign_key="user.id", index=True)
     target_id: Optional[int] = None  # ID of the affected entity
     action: str  # e.g., "user.create", "quiz.delete", etc.
-    meta: Optional[dict] = Field(default=None, sa_column=Column(JSON))
+    meta: Optional[dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -248,6 +248,7 @@ class LeaderboardEntry(SQLModel, table=True):
 
 
 # The following models remain from the original implementation but are not in the ERM
+
 
 class QuizStatus(str, Enum):
     """Quiz publication status."""

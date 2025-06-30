@@ -5,7 +5,7 @@ following industry best practices and the project's security requirements.
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -53,7 +53,9 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
     """Create JWT access token.
 
     Generates a signed JWT token with user data and expiration.

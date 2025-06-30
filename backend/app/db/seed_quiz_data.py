@@ -10,12 +10,13 @@ def create_test_quiz_data(session: Session) -> None:
     """Create test topics, questions, and quizzes."""
 
     # Create a test topic
-    topic = session.exec(select(Topic).where(
-        Topic.title == "General Knowledge")).first()
+    topic = session.exec(
+        select(Topic).where(Topic.title == "General Knowledge")
+    ).first()
     if not topic:
         topic = Topic(
             title="General Knowledge",
-            description="Test your general knowledge with these questions"
+            description="Test your general knowledge with these questions",
         )
         session.add(topic)
         session.commit()
@@ -33,7 +34,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "Paris", "is_correct": True},
                 {"content": "Madrid", "is_correct": False},
                 {"content": "Lisbon", "is_correct": False},
-            ]
+            ],
         },
         {
             "content": "What is 2 + 2?",
@@ -44,7 +45,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "4", "is_correct": True},
                 {"content": "5", "is_correct": False},
                 {"content": "6", "is_correct": False},
-            ]
+            ],
         },
         {
             "content": "Which planet is known as the Red Planet?",
@@ -55,7 +56,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "Mars", "is_correct": True},
                 {"content": "Jupiter", "is_correct": False},
                 {"content": "Saturn", "is_correct": False},
-            ]
+            ],
         },
         {
             "content": "What is the largest ocean on Earth?",
@@ -66,7 +67,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "Indian", "is_correct": False},
                 {"content": "Arctic", "is_correct": False},
                 {"content": "Pacific", "is_correct": True},
-            ]
+            ],
         },
         {
             "content": "Who painted the Mona Lisa?",
@@ -77,7 +78,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "Picasso", "is_correct": False},
                 {"content": "Da Vinci", "is_correct": True},
                 {"content": "Rembrandt", "is_correct": False},
-            ]
+            ],
         },
         {
             "content": "What is the chemical symbol for gold?",
@@ -88,7 +89,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "Gd", "is_correct": False},
                 {"content": "Au", "is_correct": True},
                 {"content": "Ag", "is_correct": False},
-            ]
+            ],
         },
         {
             "content": "In which year did World War II end?",
@@ -99,7 +100,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "1944", "is_correct": False},
                 {"content": "1945", "is_correct": True},
                 {"content": "1946", "is_correct": False},
-            ]
+            ],
         },
         {
             "content": "What is the speed of light in vacuum?",
@@ -110,7 +111,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "150,000 km/s", "is_correct": False},
                 {"content": "500,000 km/s", "is_correct": False},
                 {"content": "1,000,000 km/s", "is_correct": False},
-            ]
+            ],
         },
         {
             "content": "Which programming language was created by Guido van Rossum?",
@@ -121,7 +122,7 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "Python", "is_correct": True},
                 {"content": "Ruby", "is_correct": False},
                 {"content": "JavaScript", "is_correct": False},
-            ]
+            ],
         },
         {
             "content": "What is the largest planet in our solar system?",
@@ -132,8 +133,8 @@ def create_test_quiz_data(session: Session) -> None:
                 {"content": "Neptune", "is_correct": False},
                 {"content": "Jupiter", "is_correct": True},
                 {"content": "Uranus", "is_correct": False},
-            ]
-        }
+            ],
+        },
     ]
 
     created_questions = []
@@ -148,7 +149,7 @@ def create_test_quiz_data(session: Session) -> None:
                 topic_id=topic.id,
                 content=q_data["content"],
                 explanation=q_data["explanation"],
-                difficulty=q_data["difficulty"]
+                difficulty=q_data["difficulty"],
             )
             session.add(question)
             session.commit()
@@ -160,7 +161,7 @@ def create_test_quiz_data(session: Session) -> None:
                     answer = Answer(
                         question_id=question.id,
                         content=a_data["content"],
-                        is_correct=a_data["is_correct"]
+                        is_correct=a_data["is_correct"],
                     )
                     session.add(answer)
 
@@ -182,7 +183,7 @@ def create_test_quiz_data(session: Session) -> None:
             time_limit_minutes=10,
             status=QuizStatus.PUBLISHED,
             published_at=datetime.utcnow(),
-            play_count=0
+            play_count=0,
         )
         session.add(quiz)
         session.commit()
@@ -194,9 +195,7 @@ def create_test_quiz_data(session: Session) -> None:
             for i, question in enumerate(created_questions[:5]):
                 if question.id is not None:
                     quiz_question = QuizQuestion(
-                        quiz_id=quiz.id,
-                        question_id=question.id,
-                        order=i
+                        quiz_id=quiz.id, question_id=question.id, order=i
                     )
                     session.add(quiz_question)
 

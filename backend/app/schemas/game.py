@@ -4,8 +4,7 @@ Defines all Pydantic schema models used in the game API.
 """
 
 from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator, root_validator
 
@@ -15,31 +14,19 @@ from app.db.models import GameMode
 class GameSessionCreate(BaseModel):
     """Request model for creating a game session."""
 
-    mode: GameMode = Field(
-        ...,
-        description="Spielmodus (solo, comp, collab)"
-    )
+    mode: GameMode = Field(..., description="Spielmodus (solo, comp, collab)")
 
     # For random games
     question_count: Optional[int] = Field(
-        10,
-        ge=5,
-        le=50,
-        description="Anzahl der Fragen für zufällige Themen-Spiele"
+        10, ge=5, le=50, description="Anzahl der Fragen für zufällige Themen-Spiele"
     )
 
     difficulty_min: Optional[int] = Field(
-        None,
-        ge=1,
-        le=5,
-        description="Minimale Schwierigkeitsstufe (1-5)"
+        None, ge=1, le=5, description="Minimale Schwierigkeitsstufe (1-5)"
     )
 
     difficulty_max: Optional[int] = Field(
-        None,
-        ge=1,
-        le=5,
-        description="Maximale Schwierigkeitsstufe (1-5)"
+        None, ge=1, le=5, description="Maximale Schwierigkeitsstufe (1-5)"
     )
 
     @validator("mode")
@@ -48,7 +35,8 @@ class GameSessionCreate(BaseModel):
         valid_modes = [mode.value for mode in GameMode]
         if v.value not in valid_modes:
             raise ValueError(
-                f"Ungültiger Spielmodus. Erlaubte Werte: {', '.join(valid_modes)}")
+                f"Ungültiger Spielmodus. Erlaubte Werte: {', '.join(valid_modes)}"
+            )
         return v
 
     @validator("question_count")
@@ -62,7 +50,9 @@ class GameSessionCreate(BaseModel):
         return v
 
     @validator("difficulty_min", "difficulty_max")
-    def validate_difficulty_range_values(cls, v: Optional[int], values: Dict[str, Any], **kwargs: Any) -> Optional[int]:
+    def validate_difficulty_range_values(
+        cls, v: Optional[int], values: Dict[str, Any], **kwargs: Any
+    ) -> Optional[int]:
         """Validiere die einzelnen Schwierigkeitswerte."""
         if v is not None:
             if v < 1:
@@ -112,8 +102,7 @@ class AnswerOption(BaseModel):
         if not v or not v.strip():
             raise ValueError("Antwortinhalt darf nicht leer sein")
         if len(v) > 500:
-            raise ValueError(
-                "Antwortinhalt darf nicht länger als 500 Zeichen sein")
+            raise ValueError("Antwortinhalt darf nicht länger als 500 Zeichen sein")
         return v
 
 
@@ -122,29 +111,14 @@ class QuestionResponse(BaseModel):
 
     question_id: int
     question_number: int = Field(
-        ...,
-        ge=1,
-        description="Fragennummer (beginnend bei 1)"
+        ..., ge=1, description="Fragennummer (beginnend bei 1)"
     )
-    content: str = Field(
-        ...,
-        min_length=1,
-        max_length=1000,
-        description="Fragetext"
-    )
-    answers: List[AnswerOption] = Field(
-        ...,
-        description="Antwortoptionen"
-    )
-    time_limit: int = Field(
-        30,
-        ge=10,
-        le=300,
-        description="Zeitlimit in Sekunden"
-    )
+    content: str = Field(..., min_length=1, max_length=1000, description="Fragetext")
+    answers: List[AnswerOption] = Field(..., description="Antwortoptionen")
+    time_limit: int = Field(30, ge=10, le=300, description="Zeitlimit in Sekunden")
     show_timestamp: int = Field(
         ...,
-        description="Unix-Zeitstempel in Millisekunden, wann die Frage angezeigt wurde"
+        description="Unix-Zeitstempel in Millisekunden, wann die Frage angezeigt wurde",
     )
 
     @validator("content")
@@ -161,7 +135,8 @@ class QuestionResponse(BaseModel):
         # Timestamp can't be from the future
         if v > current_time + 5000:  # Allow 5 seconds for clock differences
             raise ValueError(
-                "Ungültiger Zeitstempel: Zeitstempel kann nicht aus der Zukunft sein")
+                "Ungültiger Zeitstempel: Zeitstempel kann nicht aus der Zukunft sein"
+            )
         # Timestamp can't be too old (e.g., 1 hour)
         if v < current_time - 3600000:
             raise ValueError("Ungültiger Zeitstempel: Zeitstempel ist zu alt")
@@ -171,8 +146,7 @@ class QuestionResponse(BaseModel):
     def validate_answers(cls, v: List[AnswerOption]) -> List[AnswerOption]:
         """Validiere die Antwortoptionen."""
         if len(v) < 2:
-            raise ValueError(
-                "Mindestens zwei Antwortoptionen sind erforderlich")
+            raise ValueError("Mindestens zwei Antwortoptionen sind erforderlich")
         if len(v) > 10:
             raise ValueError("Maximal zehn Antwortoptionen sind erlaubt")
         return v
@@ -184,7 +158,8 @@ class SubmitAnswerRequest(BaseModel):
     question_id: int
     answer_id: int
     answered_at: int = Field(
-        ..., description="Unix timestamp in milliseconds when answer was submitted")
+        ..., description="Unix timestamp in milliseconds when answer was submitted"
+    )
 
     @validator("answered_at")
     def validate_timestamp(cls, v: int) -> int:
@@ -193,7 +168,8 @@ class SubmitAnswerRequest(BaseModel):
         # Answer can't be from the future
         if v > current_time + 5000:  # Allow 5 seconds for clock differences
             raise ValueError(
-                "Ungültiger Zeitstempel: Antwort kann nicht aus der Zukunft kommen")
+                "Ungültiger Zeitstempel: Antwort kann nicht aus der Zukunft kommen"
+            )
         # Answer can't be too old (e.g., 1 hour)
         if v < current_time - 3600000:
             raise ValueError("Ungültiger Zeitstempel: Antwort ist zu alt")
@@ -206,29 +182,15 @@ class SubmitAnswerResponse(BaseModel):
     is_correct: bool
     correct_answer_id: int
     points_earned: int = Field(
-        ...,
-        ge=0,
-        description="Erzielte Punkte für diese Antwort"
+        ..., ge=0, description="Erzielte Punkte für diese Antwort"
     )
-    response_time_ms: int = Field(
-        ...,
-        description="Antwortzeit in Millisekunden"
-    )
-    player_score: int = Field(
-        ...,
-        ge=0,
-        description="Aktueller Spielerstand"
-    )
+    response_time_ms: int = Field(..., description="Antwortzeit in Millisekunden")
+    player_score: int = Field(..., ge=0, description="Aktueller Spielerstand")
     player_hearts: int = Field(
-        ...,
-        ge=0,
-        le=3,
-        description="Verbleibende Leben des Spielers"
+        ..., ge=0, le=3, description="Verbleibende Leben des Spielers"
     )
     explanation: Optional[str] = Field(
-        None,
-        max_length=1000,
-        description="Erklärung zur Antwort"
+        None, max_length=1000, description="Erklärung zur Antwort"
     )
 
 
@@ -237,46 +199,21 @@ class GameResultResponse(BaseModel):
 
     session_id: int
     mode: GameMode
-    result: str = Field(
-        ...,
-        description="Spielergebnis (win oder fail)"
-    )
-    final_score: int = Field(
-        ...,
-        ge=0,
-        description="Endgültiger Punktestand"
-    )
-    hearts_remaining: int = Field(
-        ...,
-        ge=0,
-        le=3,
-        description="Verbleibende Leben"
-    )
+    result: str = Field(..., description="Spielergebnis (win oder fail)")
+    final_score: int = Field(..., ge=0, description="Endgültiger Punktestand")
+    hearts_remaining: int = Field(..., ge=0, le=3, description="Verbleibende Leben")
     questions_answered: int = Field(
-        ...,
-        ge=0,
-        description="Anzahl der beantworteten Fragen"
+        ..., ge=0, description="Anzahl der beantworteten Fragen"
     )
     correct_answers: int = Field(
-        ...,
-        ge=0,
-        description="Anzahl der korrekt beantworteten Fragen"
+        ..., ge=0, description="Anzahl der korrekt beantworteten Fragen"
     )
     total_time_seconds: int = Field(
-        ...,
-        ge=0,
-        description="Gesamtspielzeit in Sekunden"
+        ..., ge=0, description="Gesamtspielzeit in Sekunden"
     )
-    rank: Optional[int] = Field(
-        None,
-        ge=1,
-        description="Rang in der Bestenliste"
-    )
+    rank: Optional[int] = Field(None, ge=1, description="Rang in der Bestenliste")
     percentile: Optional[float] = Field(
-        None,
-        ge=0,
-        le=100,
-        description="Perzentilrang (0-100)"
+        None, ge=0, le=100, description="Perzentilrang (0-100)"
     )
 
     @validator("result")
@@ -292,5 +229,6 @@ class GameResultResponse(BaseModel):
         if "questions_answered" in values and "correct_answers" in values:
             if values["correct_answers"] > values["questions_answered"]:
                 raise ValueError(
-                    "Anzahl der korrekten Antworten kann nicht größer sein als die Anzahl der beantworteten Fragen")
+                    "Anzahl der korrekten Antworten kann nicht größer sein als die Anzahl der beantworteten Fragen"
+                )
         return v

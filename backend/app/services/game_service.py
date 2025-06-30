@@ -9,7 +9,7 @@ This module provides a service layer for game-related functionality:
 """
 
 from datetime import datetime
-from typing import List, Optional, Tuple, Any, Dict, Union, cast
+from typing import List, Optional, Tuple, Any, Dict, Union
 
 from sqlmodel import Session, select
 from random import sample
@@ -72,10 +72,7 @@ class GameService:
         return list(self.db.exec(query).all())
 
     def start_quiz_game(
-        self,
-        user: User,
-        quiz_id: int,
-        mode: Union[str, GameMode]
+        self, user: User, quiz_id: int, mode: Union[str, GameMode]
     ) -> GameSession:
         """Start a game session with a curated quiz.
 
@@ -131,7 +128,7 @@ class GameService:
             question_ids=[q.id for q in questions if q.id is not None],
             current_question_index=0,
             started_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
         self.db.add(session)
         self.db.flush()
@@ -168,7 +165,7 @@ class GameService:
         mode: Union[str, GameMode],
         question_count: int = 10,
         difficulty_min: Optional[int] = None,
-        difficulty_max: Optional[int] = None
+        difficulty_max: Optional[int] = None,
     ) -> GameSession:
         """Start a game session with random questions from a topic.
 
@@ -231,7 +228,7 @@ class GameService:
             question_ids=[q.id for q in questions if q.id is not None],
             current_question_index=0,
             started_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
         self.db.add(session)
         self.db.flush()
@@ -258,10 +255,7 @@ class GameService:
         return session
 
     def get_question(
-        self,
-        session_id: int,
-        question_index: int,
-        user: User
+        self, session_id: int, question_index: int, user: User
     ) -> Tuple[Question, List[Answer], int]:
         """Get a specific question from the game session.
 
@@ -307,7 +301,8 @@ class GameService:
         # Check if question index is valid
         if not session.question_ids or question_index >= len(session.question_ids):
             raise ValueError(
-                f"Frage nicht gefunden. Index muss zwischen 0 und {len(session.question_ids) - 1 if session.question_ids else 0} liegen")
+                f"Frage nicht gefunden. Index muss zwischen 0 und {len(session.question_ids) - 1 if session.question_ids else 0} liegen"
+            )
 
         # Get the question
         question_id = session.question_ids[question_index]
@@ -316,8 +311,9 @@ class GameService:
             raise ValueError("Frage nicht gefunden")
 
         # Get answers for the question
-        answers = self.db.exec(select(Answer).where(
-            Answer.question_id == question.id)).all()
+        answers = self.db.exec(
+            select(Answer).where(Answer.question_id == question.id)
+        ).all()
 
         # Update session timestamp and current question index
         session.updated_at = datetime.utcnow()
@@ -329,8 +325,7 @@ class GameService:
         if session.quiz_id is not None:
             quiz = self.db.get(Quiz, session.quiz_id)
             if quiz and quiz.time_limit_minutes:
-                time_limit = quiz.time_limit_minutes * \
-                    60 // len(session.question_ids)
+                time_limit = quiz.time_limit_minutes * 60 // len(session.question_ids)
 
         return question, list(answers), time_limit
 
@@ -340,7 +335,7 @@ class GameService:
         question_id: int,
         answer_id: int,
         user: User,
-        answered_at: int
+        answered_at: int,
     ) -> Tuple[bool, int, int, int, Optional[str], int, int]:
         """Submit an answer for a question in a game session.
 
@@ -370,7 +365,7 @@ class GameService:
             answered_at: Timestamp when answer was submitted (milliseconds)
 
         Returns:
-            Tuple of (is_correct, points_earned, response_time_ms, player_score, 
+            Tuple of (is_correct, points_earned, response_time_ms, player_score,
                      explanation, player_hearts, correct_answer_id)
 
         Raises:
@@ -394,7 +389,9 @@ class GameService:
 
         # Get the question and check if it's valid
         question = self.db.get(Question, question_id)
-        if not question or (session.question_ids and question_id not in session.question_ids):
+        if not question or (
+            session.question_ids and question_id not in session.question_ids
+        ):
             raise ValueError("Ungültige Frage für diese Spielsitzung")
 
         # Get the selected answer
@@ -406,7 +403,7 @@ class GameService:
         correct_answer = self.db.exec(
             select(Answer)
             .where(Answer.question_id == question.id)
-            .where(Answer.is_correct == True)
+            .where(Answer.is_correct)
         ).first()
 
         if not correct_answer:
@@ -455,7 +452,7 @@ class GameService:
             is_correct=is_correct,
             points_awarded=points_earned,
             answer_time_ms=response_time_ms,
-            answered_at=datetime.utcnow()
+            answered_at=datetime.utcnow(),
         )
         self.db.add(player_answer)
 
@@ -470,14 +467,10 @@ class GameService:
             player.score,
             question.explanation,
             player.hearts_left,
-            correct_answer.id
+            correct_answer.id,
         )
 
-    def complete_session(
-        self,
-        session_id: int,
-        user: User
-    ) -> Dict[str, Any]:
+    def complete_session(self, session_id: int, user: User) -> Dict[str, Any]:
         """Complete a game session and get results.
 
         Finalizes a game session, calculating statistics and setting the status to FINISHED.
@@ -535,19 +528,18 @@ class GameService:
 
         # Calculate session statistics
         player_answers = self.db.exec(
-            select(PlayerAnswer)
-            .where(PlayerAnswer.session_id == session_id)
+            select(PlayerAnswer).where(PlayerAnswer.session_id == session_id)
         ).all()
 
         questions_answered = len(player_answers)
-        correct_answers = sum(
-            1 for answer in player_answers if answer.is_correct)
+        correct_answers = sum(1 for answer in player_answers if answer.is_correct)
 
         # Calculate total time in seconds
         total_time_seconds = 0
         if session.started_at and session.ended_at:
             total_time_seconds = int(
-                (session.ended_at - session.started_at).total_seconds())
+                (session.ended_at - session.started_at).total_seconds()
+            )
 
         # Determine result (win/fail)
         result = "win"

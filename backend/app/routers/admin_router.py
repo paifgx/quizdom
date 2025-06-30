@@ -9,7 +9,7 @@ from starlette import status
 
 from app.db.models import User
 from app.db.session import get_session
-from app.routers.user import require_admin
+from app.routers.user_router import require_admin
 from app.schemas.quiz_admin import (
     ImageUploadResponse,
     QuestionCreate,

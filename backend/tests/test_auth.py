@@ -96,8 +96,7 @@ class TestUserRegistration:
         """Test successful user registration."""
         response = client.post(
             "/v1/auth/register",
-            json={"email": "newuser@example.com",
-                  "password": "newpassword123"},
+            json={"email": "newuser@example.com", "password": "newpassword123"},
         )
 
         assert response.status_code == 200
@@ -160,8 +159,7 @@ class TestUserLogin:
         """Test admin user login includes role information."""
         response = client.post(
             "/v1/auth/login",
-            data={"username": admin_user.email,
-                  "password": "adminpassword123"},
+            data={"username": admin_user.email, "password": "adminpassword123"},
         )
 
         assert response.status_code == 200
@@ -185,8 +183,7 @@ class TestUserLogin:
         """Test login with nonexistent user fails."""
         response = client.post(
             "/v1/auth/login",
-            data={"username": "nonexistent@example.com",
-                  "password": "somepassword"},
+            data={"username": "nonexistent@example.com", "password": "somepassword"},
         )
 
         assert response.status_code == 401

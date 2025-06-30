@@ -196,8 +196,7 @@ class TestAnswerModel:
         retrieved_answer = session.get(Answer, answer.id)
         assert retrieved_answer is not None
 
-        retrieved_question = session.get(
-            Question, retrieved_answer.question_id)
+        retrieved_question = session.get(Question, retrieved_answer.question_id)
         assert retrieved_question is not None
         assert retrieved_question.id == question.id
 

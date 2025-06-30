@@ -10,13 +10,13 @@ This router provides endpoints for:
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from starlette import status
 
-from app.db.models import User, Quiz, Topic, Answer, SessionPlayers
+from app.db.models import User, Quiz, Topic
 from app.db.session import get_session
 from app.routers.auth_router import get_current_user
 from app.schemas.game import (
@@ -63,7 +63,7 @@ async def start_quiz_game(
                             mode, quiz info, and question count
 
     Raises:
-        HTTPException: 
+        HTTPException:
             - 400 Bad Request: When quiz doesn't exist, isn't published, or has no questions
             - 400 Bad Request: When session creation fails for any other reason
     """
@@ -71,9 +71,7 @@ async def start_quiz_game(
 
     try:
         session = game_service.start_quiz_game(
-            user=current_user,
-            quiz_id=quiz_id,
-            mode=game_data.mode
+            user=current_user, quiz_id=quiz_id, mode=game_data.mode
         )
 
         # Get quiz title
@@ -93,9 +91,8 @@ async def start_quiz_game(
             mode=session.mode,
             quiz_id=quiz_id,
             quiz_title=quiz_title,
-            total_questions=len(
-                session.question_ids) if session.question_ids else 0,
-            time_limit=quiz.time_limit_minutes if 'quiz' in locals() and quiz else None,
+            total_questions=len(session.question_ids) if session.question_ids else 0,
+            time_limit=quiz.time_limit_minutes if "quiz" in locals() and quiz else None,
         )
 
     except ValueError as e:
@@ -117,12 +114,7 @@ async def start_quiz_game(
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "detail": str(e),
-                "code": error_code,
-                "field": field,
-                "hint": hint
-            },
+            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
@@ -159,7 +151,7 @@ async def start_random_game(
                             mode, topic info, and question count
 
     Raises:
-        HTTPException: 
+        HTTPException:
             - 400 Bad Request: When topic doesn't exist or has no matching questions
             - 400 Bad Request: When session creation fails for any other reason
     """
@@ -172,7 +164,7 @@ async def start_random_game(
             mode=game_data.mode,
             question_count=game_data.question_count or 10,
             difficulty_min=game_data.difficulty_min,
-            difficulty_max=game_data.difficulty_max
+            difficulty_max=game_data.difficulty_max,
         )
 
         # Get topic title
@@ -192,8 +184,7 @@ async def start_random_game(
             mode=session.mode,
             topic_id=topic_id,
             topic_title=topic_title,
-            total_questions=len(
-                session.question_ids) if session.question_ids else 0,
+            total_questions=len(session.question_ids) if session.question_ids else 0,
             time_limit=None,
         )
 
@@ -217,19 +208,16 @@ async def start_random_game(
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "detail": str(e),
-                "code": error_code,
-                "field": field,
-                "hint": hint
-            },
+            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
         )
 
 
-@router.get("/session/{session_id}/question/{question_index}", response_model=QuestionResponse)
+@router.get(
+    "/session/{session_id}/question/{question_index}", response_model=QuestionResponse
+)
 async def get_question(
     session_id: int,
     question_index: int,
@@ -263,7 +251,7 @@ async def get_question(
                          time limit, and timestamp when shown
 
     Raises:
-        HTTPException: 
+        HTTPException:
             - 404 Not Found: When session or question doesn't exist
             - 403 Forbidden: When user is not a participant in the session
             - 400 Bad Request: For invalid question indices or other errors
@@ -272,9 +260,7 @@ async def get_question(
 
     try:
         question, answers, time_limit = game_service.get_question(
-            session_id=session_id,
-            question_index=question_index,
-            user=current_user
+            session_id=session_id, question_index=question_index, user=current_user
         )
 
         # Ensure the question has an ID
@@ -328,12 +314,7 @@ async def get_question(
 
         raise HTTPException(
             status_code=status_code,
-            detail={
-                "detail": str(e),
-                "code": error_code,
-                "field": field,
-                "hint": hint
-            },
+            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
@@ -377,7 +358,7 @@ async def submit_answer(
                              remaining hearts, and explanation if available
 
     Raises:
-        HTTPException: 
+        HTTPException:
             - 404 Not Found: When session doesn't exist
             - 403 Forbidden: When user is not a participant in the session
             - 400 Bad Request: For invalid questions, answers, or other errors
@@ -386,14 +367,20 @@ async def submit_answer(
 
     try:
         # Call the enhanced service method that now returns more data
-        is_correct, points_earned, response_time_ms, player_score, explanation, player_hearts, correct_answer_id = (
-            game_service.submit_answer(
-                session_id=session_id,
-                question_id=answer_data.question_id,
-                answer_id=answer_data.answer_id,
-                user=current_user,
-                answered_at=answer_data.answered_at
-            )
+        (
+            is_correct,
+            points_earned,
+            response_time_ms,
+            player_score,
+            explanation,
+            player_hearts,
+            correct_answer_id,
+        ) = game_service.submit_answer(
+            session_id=session_id,
+            question_id=answer_data.question_id,
+            answer_id=answer_data.answer_id,
+            user=current_user,
+            answered_at=answer_data.answered_at,
         )
 
         return SubmitAnswerResponse(
@@ -449,12 +436,7 @@ async def submit_answer(
 
         raise HTTPException(
             status_code=status_code,
-            detail={
-                "detail": str(e),
-                "code": error_code,
-                "field": field,
-                "hint": hint
-            },
+            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
@@ -495,7 +477,7 @@ async def complete_session(
                            and outcome (win/fail)
 
     Raises:
-        HTTPException: 
+        HTTPException:
             - 404 Not Found: When session doesn't exist
             - 403 Forbidden: When user is not a participant in the session
             - 400 Bad Request: For any other errors during completion
@@ -504,8 +486,7 @@ async def complete_session(
 
     try:
         result: Dict[str, Any] = game_service.complete_session(
-            session_id=session_id,
-            user=current_user
+            session_id=session_id, user=current_user
         )
 
         # Convert dict to response model
@@ -550,12 +531,7 @@ async def complete_session(
 
         raise HTTPException(
             status_code=status_code,
-            detail={
-                "detail": str(e),
-                "code": error_code,
-                "field": field,
-                "hint": hint
-            },
+            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
