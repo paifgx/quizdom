@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum, IntEnum
-from typing import Optional, Any
+from typing import Any, Optional
 
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel

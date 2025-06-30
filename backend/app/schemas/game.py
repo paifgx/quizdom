@@ -6,7 +6,7 @@ Defines all Pydantic schema models used in the game API.
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, root_validator, validator
 
 from app.db.models import GameMode
 

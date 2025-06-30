@@ -16,17 +16,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from starlette import status
 
-from app.db.models import User, Quiz, Topic
+from app.db.models import Quiz, Topic, User
 from app.db.session import get_session
 from app.routers.auth_router import get_current_user
 from app.schemas.game import (
+    AnswerOption,
+    GameResultResponse,
     GameSessionCreate,
     GameSessionResponse,
     QuestionResponse,
     SubmitAnswerRequest,
     SubmitAnswerResponse,
-    GameResultResponse,
-    AnswerOption,
 )
 from app.services.game_service import GameService
 

@@ -4,10 +4,10 @@ This module provides endpoints for administrators to manage users,
 including creating, reading, updating, and deleting user accounts.
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.core.logging import app_logger, log_operation
@@ -15,9 +15,9 @@ from app.db.models import Role, SessionPlayers, User, UserRoles
 from app.db.session import get_session
 from app.routers.auth_router import get_current_user
 from app.schemas.user import (
+    UserListItemResponse,
     UserListResponse,
     UserStatsResponse,
-    UserListItemResponse,
 )
 
 router = APIRouter(prefix="/v1/users", tags=["users"])

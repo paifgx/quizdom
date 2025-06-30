@@ -11,10 +11,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.session import init_db
-from app.routers.auth_router import router as auth_router
-from app.routers.user_router import router as user_router
 from app.routers.admin_router import router as admin_router
+from app.routers.auth_router import router as auth_router
 from app.routers.game_router import router as game_router
+from app.routers.user_router import router as user_router
 
 
 @asynccontextmanager

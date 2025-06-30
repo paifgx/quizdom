@@ -5,7 +5,7 @@ following industry best practices and the project's security requirements.
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext

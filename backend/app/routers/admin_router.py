@@ -1,8 +1,8 @@
 """Admin router for quiz management."""
 
-import logging
-from typing import List, Optional, Any
 import io
+import logging
+from typing import Any, List, Optional
 
 from fastapi import (
     APIRouter,
@@ -12,8 +12,8 @@ from fastapi import (
     UploadFile,
     status,
 )
-from starlette.responses import StreamingResponse
 from sqlmodel import Session
+from starlette.responses import StreamingResponse
 
 from app.db.models import Topic
 from app.db.session import get_session

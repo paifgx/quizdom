@@ -1,9 +1,8 @@
 """Tests for database models."""
 
 import pytest
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 from sqlmodel.pool import StaticPool
-from sqlmodel import select
 
 from app.core.security import get_password_hash
 from app.db.models import (

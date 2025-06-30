@@ -1,8 +1,8 @@
 """Metrics tracking for game analytics."""
 
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
-from sqlmodel import Session, select, func
+from sqlmodel import Session, func, select
 
 from app.db.models import GameSession, Quiz, SessionPlayers
 

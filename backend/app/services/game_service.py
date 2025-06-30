@@ -9,16 +9,16 @@ This module provides a service layer for game-related functionality:
 """
 
 from datetime import datetime
-from typing import List, Optional, Tuple, Any, Dict, Union
+from random import sample
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from sqlmodel import Session, select
-from random import sample
 
 from app.db.models import (
     Answer,
+    GameMode,
     GameSession,
     GameStatus,
-    GameMode,
     PlayerAnswer,
     Question,
     Quiz,
