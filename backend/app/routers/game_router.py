@@ -4,16 +4,13 @@ Supports both curated quizzes and dynamic topic-based questions.
 """
 
 from datetime import datetime
-from typing import List, Optional
 from random import sample
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select, func
-from sqlalchemy import and_
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select
 
 from app.db.models import (
     Answer,
-    GameMode,
     GameSession,
     GameStatus,
     PlayerAnswer,
@@ -64,7 +61,7 @@ async def start_quiz_game(
         select(Question)
         .join(QuizQuestion)
         .where(QuizQuestion.quiz_id == quiz_id)
-        .order_by(QuizQuestion.order)
+        .order_by("order")
     )
     questions = list(db.exec(stmt).all())
 
@@ -79,10 +76,19 @@ async def start_quiz_game(
         mode=game_data.mode,
         status=GameStatus.ACTIVE,
         quiz_id=quiz_id,
-        question_ids=[q.id for q in questions]
+        question_ids=[q.id for q in questions if q.id is not None]
     )
     db.add(session)
     db.flush()
+
+    # Ensure session ID is available after flush
+    if session.id is None:
+        raise HTTPException(
+            status_code=500, detail="Failed to create game session")
+
+    # Ensure current user ID is available
+    if current_user.id is None:
+        raise HTTPException(status_code=500, detail="User ID not available")
 
     # Add player to session
     session_player = SessionPlayers(
@@ -127,12 +133,8 @@ async def start_random_game(
 
     # Apply difficulty filter if specified
     if game_data.difficulty_min and game_data.difficulty_max:
-        stmt = stmt.where(
-            and_(
-                Question.difficulty >= game_data.difficulty_min,
-                Question.difficulty <= game_data.difficulty_max
-            )
-        )
+        stmt = stmt.where(Question.difficulty >= game_data.difficulty_min)
+        stmt = stmt.where(Question.difficulty <= game_data.difficulty_max)
 
     all_questions = list(db.exec(stmt).all())
 
@@ -151,10 +153,19 @@ async def start_random_game(
         mode=game_data.mode,
         status=GameStatus.ACTIVE,
         topic_id=topic_id,
-        question_ids=[q.id for q in questions]
+        question_ids=[q.id for q in questions if q.id is not None]
     )
     db.add(session)
     db.flush()
+
+    # Ensure session ID is available after flush
+    if session.id is None:
+        raise HTTPException(
+            status_code=500, detail="Failed to create game session")
+
+    # Ensure current user ID is available
+    if current_user.id is None:
+        raise HTTPException(status_code=500, detail="User ID not available")
 
     # Add player to session
     session_player = SessionPlayers(
@@ -192,11 +203,10 @@ async def get_question(
         raise HTTPException(status_code=404, detail="Session nicht gefunden")
 
     # Check if user is in session
-    stmt = select(SessionPlayers).where(
-        and_(
-            SessionPlayers.session_id == session_id,
-            SessionPlayers.user_id == current_user.id
-        )
+    stmt = (
+        select(SessionPlayers)
+        .where(SessionPlayers.session_id == session_id)
+        .where(SessionPlayers.user_id == current_user.id)
     )
     player = db.exec(stmt).first()
     if not player:
@@ -212,6 +222,11 @@ async def get_question(
     question = db.get(Question, question_id)
     if not question:
         raise HTTPException(status_code=404, detail="Frage nicht gefunden")
+
+    # Ensure question ID is available
+    if question.id is None:
+        raise HTTPException(
+            status_code=500, detail="Question ID not available")
 
     # Get answers for the question
     stmt = select(Answer).where(Answer.question_id == question_id)
@@ -229,6 +244,7 @@ async def get_question(
         answers=[
             AnswerOption(id=a.id, content=a.content)
             for a in answers
+            if a.id is not None
         ],
         time_limit=30,  # 30 seconds per question
         show_timestamp=int(datetime.utcnow().timestamp() * 1000),
@@ -248,11 +264,10 @@ async def submit_answer(
     if not session:
         raise HTTPException(status_code=404, detail="Session nicht gefunden")
 
-    stmt = select(SessionPlayers).where(
-        and_(
-            SessionPlayers.session_id == session_id,
-            SessionPlayers.user_id == current_user.id
-        )
+    stmt = (
+        select(SessionPlayers)
+        .where(SessionPlayers.session_id == session_id)
+        .where(SessionPlayers.user_id == current_user.id)
     )
     player = db.exec(stmt).first()
     if not player:
@@ -265,6 +280,10 @@ async def submit_answer(
         raise HTTPException(status_code=400, detail="Ungültige Antwort")
 
     # Calculate points based on response time
+    if session.updated_at is None:
+        raise HTTPException(
+            status_code=500, detail="Session timestamp not available")
+
     response_time_ms = answer_data.answered_at - \
         int(session.updated_at.timestamp() * 1000)
     base_points = 100
@@ -290,11 +309,10 @@ async def submit_answer(
     db.add(player_answer)
 
     # Get correct answer for response
-    correct_answer_stmt = select(Answer).where(
-        and_(
-            Answer.question_id == answer_data.question_id,
-            Answer.is_correct == True
-        )
+    correct_answer_stmt = (
+        select(Answer)
+        .where(Answer.question_id == answer_data.question_id)
+        .where(Answer.is_correct)
     )
     correct_answer = db.exec(correct_answer_stmt).first()
 
@@ -304,9 +322,13 @@ async def submit_answer(
     db.commit()
     db.refresh(player)
 
+    # Ensure we have a valid correct answer ID
+    correct_answer_id = correct_answer.id if correct_answer and correct_answer.id is not None else (
+        answer.id if answer.id is not None else 0)
+
     return SubmitAnswerResponse(
         is_correct=answer.is_correct,
-        correct_answer_id=correct_answer.id if correct_answer else answer.id,
+        correct_answer_id=correct_answer_id,
         points_earned=points_earned,
         response_time_ms=response_time_ms,
         player_score=player.score,
@@ -327,11 +349,10 @@ async def complete_session(
     if not session:
         raise HTTPException(status_code=404, detail="Session nicht gefunden")
 
-    stmt = select(SessionPlayers).where(
-        and_(
-            SessionPlayers.session_id == session_id,
-            SessionPlayers.user_id == current_user.id
-        )
+    stmt = (
+        select(SessionPlayers)
+        .where(SessionPlayers.session_id == session_id)
+        .where(SessionPlayers.user_id == current_user.id)
     )
     player = db.exec(stmt).first()
     if not player:
@@ -357,6 +378,10 @@ async def complete_session(
     # TODO: Calculate rank and percentile from leaderboard
 
     db.commit()
+
+    # Ensure session ID is available
+    if session.id is None:
+        raise HTTPException(status_code=500, detail="Session ID not available")
 
     return GameResultResponse(
         session_id=session.id,
