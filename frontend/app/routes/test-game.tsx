@@ -7,6 +7,43 @@ import { LoadingSpinner } from '../components/home/loading-spinner';
 import { gameService } from '../services/game';
 import { useAuthenticatedGame } from '../hooks/useAuthenticatedGame';
 
+// Types for test game data - using the actual service types
+interface TestQuestion {
+  question_id: number;
+  question_number: number;
+  content: string;
+  answers: Array<{
+    id: number;
+    content: string;
+  }>;
+  time_limit: number;
+  show_timestamp: number;
+}
+
+// Union type for different result types
+type TestResult = 
+  | {
+      is_correct: boolean;
+      correct_answer_id: number;
+      points_earned: number;
+      response_time_ms: number;
+      player_score: number;
+      player_hearts: number;
+      explanation?: string;
+    }
+  | {
+      session_id: number;
+      mode: string;
+      result: string;
+      final_score: number;
+      hearts_remaining: number;
+      questions_answered: number;
+      correct_answers: number;
+      total_time_seconds: number;
+      rank?: number;
+      percentile?: number;
+    };
+
 export default function TestGamePage() {
   const _navigate = useNavigate(); // Keep for future use but mark as unused
   const { isAuthenticated, isLoading: authLoading } = useAuthenticatedGame();
@@ -14,8 +51,8 @@ export default function TestGamePage() {
   const [error, setError] = useState<string | null>(null);
   const [topicId, setTopicId] = useState<string>('1');
   const [sessionId, setSessionId] = useState<number | null>(null);
-  const [question, setQuestion] = useState<any>(null);
-  const [result, setResult] = useState<any>(null);
+  const [question, setQuestion] = useState<TestQuestion | null>(null);
+  const [result, setResult] = useState<TestResult | null>(null);
 
   const startGame = async () => {
     try {
@@ -144,7 +181,7 @@ export default function TestGamePage() {
           <p className="text-white mb-4">{question.content}</p>
           
           <div className="space-y-2">
-            {question.answers.map((answer: any) => (
+            {question.answers.map((answer) => (
               <button 
                 key={answer.id}
                 onClick={() => answerQuestion(answer.id)}

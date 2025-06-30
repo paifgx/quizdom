@@ -27,7 +27,11 @@ export const topicsService = {
    * Fetch all topics.
    */
   async getAll(): Promise<GameTopic[]> {
-    const response = await apiClient.get<any[]>('/v1/admin/topics');
+    const response = await apiClient.get<Array<{
+      id: number;
+      title: string;
+      description?: string;
+    }>>('/v1/admin/topics');
     return response.map(topic => ({
       id: topic.id.toString(),
       title: topic.title,
@@ -49,7 +53,11 @@ export const topicsService = {
    */
   async getById(id: string): Promise<GameTopic | null> {
     try {
-      const response = await apiClient.get<any>(`/v1/admin/topics/${id}`);
+      const response = await apiClient.get<{
+        id: number;
+        title: string;
+        description?: string;
+      }>(`/v1/admin/topics/${id}`);
       return {
         id: response.id.toString(),
         title: response.title,

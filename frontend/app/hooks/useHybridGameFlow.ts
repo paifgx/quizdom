@@ -159,7 +159,7 @@ export function useHybridGameFlow(): UseHybridGameFlowReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [session, questionIndex]);
+  }, [session, questionIndex, endGame]);
 
   const endGame = useCallback(async () => {
     if (!session) return;
