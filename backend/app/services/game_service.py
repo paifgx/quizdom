@@ -418,7 +418,7 @@ class GameService:
 
         # Calculate response time
         current_time = int(datetime.utcnow().timestamp() * 1000)
-        response_time_ms = answered_at - current_time
+        response_time_ms = current_time - answered_at
 
         # Calculate points based on response time
         points_earned = 0
