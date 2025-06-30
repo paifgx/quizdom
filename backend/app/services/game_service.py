@@ -5,7 +5,7 @@ This module handles game session creation, tracking answers, and scoring.
 """
 
 from datetime import datetime
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Any, Dict, Union, cast
 
 from sqlmodel import Session, select
 from random import sample
@@ -21,6 +21,7 @@ from app.db.models import (
     QuizQuestion,
     QuizStatus,
     SessionPlayers,
+    Topic,
     User,
 )
 
@@ -29,7 +30,27 @@ class GameService:
     """Service for game session management."""
 
     def __init__(self, db: Session):
+        """Initialize with database session.
+
+        Args:
+            db: SQLModel database session
+        """
         self.db = db
+
+    def get_quizzes_by_topic(self, topic_id: Optional[int] = None) -> List[Quiz]:
+        """Get published quizzes, optionally filtered by topic.
+
+        Args:
+            topic_id: Optional topic filter
+
+        Returns:
+            List of published quizzes
+        """
+        query = select(Quiz).where(Quiz.status == QuizStatus.PUBLISHED)
+        if topic_id is not None:
+            query = query.where(Quiz.topic_id == topic_id)
+
+        return list(self.db.exec(query).all())
 
     def start_quiz_game(
         self,
@@ -37,7 +58,19 @@ class GameService:
         quiz_id: int,
         mode: Union[str, GameMode]
     ) -> GameSession:
-        """Start a game session with a curated quiz."""
+        """Start a game session with a curated quiz.
+
+        Args:
+            user: User starting the game
+            quiz_id: ID of the quiz to play
+            mode: Game mode (solo, comp, collab)
+
+        Returns:
+            Created GameSession
+
+        Raises:
+            ValueError: When quiz doesn't exist or has no questions
+        """
         # Verify quiz exists and is published
         quiz = self.db.get(Quiz, quiz_id)
         if not quiz:
@@ -67,6 +100,7 @@ class GameService:
             status=GameStatus.ACTIVE,
             quiz_id=quiz_id,
             question_ids=[q.id for q in questions if q.id is not None],
+            current_question_index=0,
             started_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
@@ -82,14 +116,13 @@ class GameService:
             raise ValueError("User ID nicht verfügbar")
 
         # Add player to session
-        if session.id is not None:  # Type guard to make user_id non-None for SessionPlayers
-            session_player = SessionPlayers(
-                session_id=session.id,
-                user_id=user.id,
-                hearts_left=3,
-                score=0,
-            )
-            self.db.add(session_player)
+        session_player = SessionPlayers(
+            session_id=session.id,
+            user_id=user.id,
+            hearts_left=3,
+            score=0,
+        )
+        self.db.add(session_player)
 
         # Increment quiz play count
         quiz.play_count += 1
@@ -108,9 +141,23 @@ class GameService:
         difficulty_min: Optional[int] = None,
         difficulty_max: Optional[int] = None
     ) -> GameSession:
-        """Start a game session with random questions from a topic."""
+        """Start a game session with random questions from a topic.
+
+        Args:
+            user: User starting the game
+            topic_id: ID of the topic to select questions from
+            mode: Game mode
+            question_count: Number of questions to include
+            difficulty_min: Minimum difficulty (1-5)
+            difficulty_max: Maximum difficulty (1-5)
+
+        Returns:
+            Created GameSession
+
+        Raises:
+            ValueError: When topic doesn't exist or has no matching questions
+        """
         # Get topic
-        from app.db.models import Topic
         topic = self.db.get(Topic, topic_id)
         if not topic:
             raise ValueError("Thema nicht gefunden")
@@ -133,7 +180,7 @@ class GameService:
         question_count = min(question_count, len(all_questions))
         questions = sample(all_questions, question_count)
 
-        # Convert string mode to enum if needed - ensure lowercase to match database enum values
+        # Convert string mode to enum if needed
         game_mode = GameMode(mode.lower()) if isinstance(mode, str) else mode
 
         # Create game session
@@ -154,6 +201,9 @@ class GameService:
             raise ValueError("Session ID nicht verfügbar")
 
         # Add player to session
+        if user.id is None:
+            raise ValueError("User ID nicht verfügbar")
+
         session_player = SessionPlayers(
             session_id=session.id,
             user_id=user.id,
@@ -172,8 +222,20 @@ class GameService:
         session_id: int,
         question_index: int,
         user: User
-    ) -> Tuple[Question, List[Answer]]:
-        """Get a specific question from the game session."""
+    ) -> Tuple[Question, List[Answer], int]:
+        """Get a specific question from the game session.
+
+        Args:
+            session_id: ID of the game session
+            question_index: Index of the question to retrieve (0-based)
+            user: User requesting the question
+
+        Returns:
+            Tuple of Question, list of answers, and time limit in seconds
+
+        Raises:
+            ValueError: When session doesn't exist, user is not participant, or question index is invalid
+        """
         # Verify session exists and user is participant
         session = self.db.get(GameSession, session_id)
         if not session:
@@ -187,11 +249,12 @@ class GameService:
         )
         player = self.db.exec(stmt).first()
         if not player:
-            raise ValueError("Nicht Teil dieser Session")
+            raise ValueError("Nicht Teil dieser Spielsitzung")
 
         # Check if question index is valid
         if not session.question_ids or question_index >= len(session.question_ids):
-            raise ValueError("Frage nicht gefunden")
+            raise ValueError(
+                f"Frage nicht gefunden. Index muss zwischen 0 und {len(session.question_ids) - 1 if session.question_ids else 0} liegen")
 
         # Get the question
         question_id = session.question_ids[question_index]
@@ -200,15 +263,23 @@ class GameService:
             raise ValueError("Frage nicht gefunden")
 
         # Get answers for the question
-        stmt = select(Answer).where(Answer.question_id == question_id)
-        answers = list(self.db.exec(stmt).all())
+        answers = self.db.exec(select(Answer).where(
+            Answer.question_id == question.id)).all()
 
-        # Update session's current question index
-        session.current_question_index = question_index
+        # Update session timestamp and current question index
         session.updated_at = datetime.utcnow()
+        session.current_question_index = question_index
         self.db.commit()
 
-        return question, answers
+        # Calculate time limit
+        time_limit = 30  # Default time limit in seconds
+        if session.quiz_id is not None:
+            quiz = self.db.get(Quiz, session.quiz_id)
+            if quiz and quiz.time_limit_minutes:
+                time_limit = quiz.time_limit_minutes * \
+                    60 // len(session.question_ids)
+
+        return question, list(answers), time_limit
 
     def submit_answer(
         self,
@@ -218,16 +289,27 @@ class GameService:
         user: User,
         answered_at: int
     ) -> Tuple[bool, int, int, int, Optional[str]]:
-        """
-        Submit answer for a question.
+        """Submit an answer for a question in a game session.
 
-        Returns: (is_correct, points_earned, response_time_ms, player_score, explanation)
+        Args:
+            session_id: ID of the game session
+            question_id: ID of the question being answered
+            answer_id: ID of the selected answer
+            user: User submitting the answer
+            answered_at: Timestamp when answer was submitted (milliseconds)
+
+        Returns:
+            Tuple of (is_correct, points_earned, response_time_ms, player_score, explanation)
+
+        Raises:
+            ValueError: When session or question is invalid
         """
-        # Verify session and player
+        # Verify session exists
         session = self.db.get(GameSession, session_id)
         if not session:
-            raise ValueError("Session nicht gefunden")
+            raise ValueError("Spielsitzung nicht gefunden")
 
+        # Check if user is in session
         stmt = (
             select(SessionPlayers)
             .where(SessionPlayers.session_id == session_id)
@@ -235,58 +317,77 @@ class GameService:
         )
         player = self.db.exec(stmt).first()
         if not player:
-            raise ValueError("Nicht Teil dieser Session")
+            raise ValueError("Nicht Teil dieser Spielsitzung")
 
-        # Get the answer and check if it's correct
-        answer = self.db.get(Answer, answer_id)
-        if not answer or answer.question_id != question_id:
-            raise ValueError("Ungültige Antwort")
-
-        # Get the question
+        # Get the question and check if it's valid
         question = self.db.get(Question, question_id)
-        if not question:
-            raise ValueError("Frage nicht gefunden")
+        if not question or (session.question_ids and question_id not in session.question_ids):
+            raise ValueError("Ungültige Frage für diese Spielsitzung")
+
+        # Get the selected answer
+        selected_answer = self.db.get(Answer, answer_id)
+        if not selected_answer or selected_answer.question_id != question.id:
+            raise ValueError("Ungültige Antwort für diese Frage")
+
+        # Get the correct answer
+        correct_answer = self.db.exec(
+            select(Answer)
+            .where(Answer.question_id == question.id)
+            .where(Answer.is_correct == True)
+        ).first()
+
+        if not correct_answer:
+            raise ValueError("Keine korrekte Antwort für diese Frage gefunden")
+
+        # Check if answer is correct
+        is_correct = selected_answer.id == correct_answer.id
+
+        # Calculate response time
+        current_time = int(datetime.utcnow().timestamp() * 1000)
+        response_time_ms = answered_at - current_time
 
         # Calculate points based on response time
-        if session.updated_at is None:
-            raise ValueError("Session timestamp nicht verfügbar")
+        points_earned = 0
+        if is_correct:
+            if response_time_ms <= 3000:  # 0-3 seconds
+                points_earned = 100
+            elif response_time_ms <= 6000:  # 3-6 seconds
+                points_earned = 50
+            else:  # > 6 seconds
+                points_earned = 25
 
-        response_time_ms = answered_at - \
-            int(session.updated_at.timestamp() * 1000)
-        base_points = 100
-        time_bonus = max(0, 100 - (response_time_ms // 300)
-                         )  # Lose 1 point per 300ms
-        points_earned = (base_points + time_bonus) if answer.is_correct else 0
+        # Update player score
+        player.score += points_earned
 
-        # Update player state
-        if answer.is_correct:
-            player.score += points_earned
-        else:
+        # Update hearts if answer was wrong
+        if not is_correct and session.mode != GameMode.COLLAB:
             player.hearts_left = max(0, player.hearts_left - 1)
 
-        # Save player answer
+        # Ensure IDs are available
+        if question.id is None:
+            raise ValueError("Question ID nicht verfügbar")
+
+        if selected_answer.id is None:
+            raise ValueError("Answer ID nicht verfügbar")
+
+        # Record the answer
         player_answer = PlayerAnswer(
             session_id=session_id,
-            question_id=question_id,
-            selected_answer_id=answer_id,
-            is_correct=answer.is_correct,
+            question_id=question.id,
+            selected_answer_id=selected_answer.id,
+            is_correct=is_correct,
             points_awarded=points_earned,
             answer_time_ms=response_time_ms,
+            answered_at=datetime.utcnow()
         )
         self.db.add(player_answer)
-        self.db.commit()
-        self.db.refresh(player)
 
-        # Get correct answer ID
-        correct_answer_stmt = (
-            select(Answer)
-            .where(Answer.question_id == question_id)
-            .where(Answer.is_correct)
-        )
-        correct_answer = self.db.exec(correct_answer_stmt).first()
+        # Update session timestamp
+        session.updated_at = datetime.utcnow()
+        self.db.commit()
 
         return (
-            answer.is_correct,
+            is_correct,
             points_earned,
             response_time_ms,
             player.score,
@@ -297,13 +398,25 @@ class GameService:
         self,
         session_id: int,
         user: User
-    ) -> dict:
-        """Complete a game session and get results."""
-        # Verify session and player
+    ) -> Dict[str, Any]:
+        """Complete a game session and get results.
+
+        Args:
+            session_id: ID of the game session
+            user: User completing the session
+
+        Returns:
+            Dict containing game results
+
+        Raises:
+            ValueError: When session doesn't exist or user is not a participant
+        """
+        # Verify session exists
         session = self.db.get(GameSession, session_id)
         if not session:
-            raise ValueError("Session nicht gefunden")
+            raise ValueError("Spielsitzung nicht gefunden")
 
+        # Check if user is in session
         stmt = (
             select(SessionPlayers)
             .where(SessionPlayers.session_id == session_id)
@@ -311,30 +424,41 @@ class GameService:
         )
         player = self.db.exec(stmt).first()
         if not player:
-            raise ValueError("Nicht Teil dieser Session")
+            raise ValueError("Nicht Teil dieser Spielsitzung")
 
-        # Update session status
+        # Mark session as finished
         session.status = GameStatus.FINISHED
         session.ended_at = datetime.utcnow()
 
-        # Calculate statistics
-        stmt = select(PlayerAnswer).where(
-            PlayerAnswer.session_id == session_id)
-        player_answers = list(self.db.exec(stmt).all())
+        # Calculate session statistics
+        player_answers = self.db.exec(
+            select(PlayerAnswer)
+            .where(PlayerAnswer.session_id == session_id)
+        ).all()
 
         questions_answered = len(player_answers)
-        correct_answers = sum(1 for a in player_answers if a.is_correct)
-        total_time_seconds = int(
-            (session.ended_at - session.started_at).total_seconds()
-        )
+        correct_answers = sum(
+            1 for answer in player_answers if answer.is_correct)
 
-        # Determine result
-        result = "win" if player.hearts_left > 0 else "fail"
+        # Calculate total time in seconds
+        total_time_seconds = 0
+        if session.started_at and session.ended_at:
+            total_time_seconds = int(
+                (session.ended_at - session.started_at).total_seconds())
+
+        # Determine result (win/fail)
+        result = "win"
+        if player.hearts_left <= 0:
+            result = "fail"
+
+        # TODO: Calculate rank and percentile
+        rank = 1
+        percentile = 100
 
         self.db.commit()
 
         return {
-            "session_id": session.id,
+            "session_id": session_id,
             "mode": session.mode,
             "result": result,
             "final_score": player.score,
@@ -342,4 +466,6 @@ class GameService:
             "questions_answered": questions_answered,
             "correct_answers": correct_answers,
             "total_time_seconds": total_time_seconds,
+            "rank": rank,
+            "percentile": percentile,
         }
