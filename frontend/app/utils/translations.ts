@@ -381,12 +381,13 @@ export const translations = {
     timeLimitReasoning:
       'Die Zeitbegrenzung gibt es, um dir eine möglichst Prüfungs-nahe Vorbereitung bieten zu können, da es dort meistens auch eine Zeitbegrenzung gibt. Zudem macht es das Spiel doch spannend, wenn ein bisschen Druck da ist, oder? Gleichzeitig ist es natürlich ebenso wichtig, ganz entspannt und ohne Druck lernen zu können. Das geht dann im Spielmodus Solo Mission.',
 
-      // Features Section
+    // Features Section
     wisecoins: 'Was sind Wisecoins und warum gibt es sie?',
     wisecoinsDesc:
       'Wisecoins sind die Ingame-Währung in QUIZDOM. Sie werden für das erfolgreiche Absolvieren von Quizzes vergeben und sollen in Zukunft für verschiedene Verbesserungen und Belohnungen eingesetzt werden können.',
 
-    hearts: 'Wofür gibt es während eines Quiz Herzen und was sollte ich alles dazu wissen?',
+    hearts:
+      'Wofür gibt es während eines Quiz Herzen und was sollte ich alles dazu wissen?',
     heartsDesc:
       'Herzen repräsentieren dein Leben während eines Quiz. Bei falschen Antworten oder beim Erreichen der Zeitbegrenzung verlierst du Herzen. Hast du alle Herzen verloren, ist das Quiz beendet.',
 
