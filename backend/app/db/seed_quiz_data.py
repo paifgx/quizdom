@@ -203,7 +203,7 @@ def create_test_quiz_data(session: Session) -> None:
         print(f"✅ Created and published quiz: {quiz.title}")
 
 
-def main():
+def main() -> None:
     """Run the quiz data seeding."""
     print("🎮 Starting quiz data seeding...")
 

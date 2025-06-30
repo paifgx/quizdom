@@ -3,13 +3,19 @@
 import logging
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlmodel import Session
-from starlette import status
 
-from app.db.models import User
+from app.db.models import Topic
 from app.db.session import get_session
-from app.routers.user_router import require_admin
 from app.schemas.quiz_admin import (
     ImageUploadResponse,
     QuestionCreate,
@@ -36,9 +42,8 @@ logger = logging.getLogger(__name__)
 async def get_topics(
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
-):
+) -> List[Topic]:
     """Get all topics."""
     service = QuizAdminService(db)
     return service.get_topics(skip=skip, limit=limit)
@@ -47,9 +52,8 @@ async def get_topics(
 @router.get("/topics/{topic_id}", response_model=TopicResponse)
 async def get_topic(
     topic_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
-):
+) -> Topic:
     """Get a single topic by ID."""
     service = QuizAdminService(db)
     topic = service.get_topic(topic_id)
@@ -65,9 +69,8 @@ async def get_topic(
 )
 async def create_topic(
     topic_data: TopicCreate,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
-):
+) -> Topic:
     """Create a new topic."""
     service = QuizAdminService(db)
     return service.create_topic(topic_data)
@@ -77,9 +80,8 @@ async def create_topic(
 async def update_topic(
     topic_id: int,
     topic_data: TopicUpdate,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
-):
+) -> Topic:
     """Update an existing topic."""
     service = QuizAdminService(db)
     topic = service.update_topic(topic_id, topic_data)
@@ -93,9 +95,8 @@ async def update_topic(
 @router.delete("/topics/{topic_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_topic(
     topic_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
-):
+) -> None:
     """Delete a topic."""
     service = QuizAdminService(db)
     try:
@@ -105,7 +106,8 @@ async def delete_topic(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Thema nicht gefunden"
             )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # Question endpoints
@@ -114,7 +116,6 @@ async def get_questions(
     skip: int = 0,
     limit: int = 100,
     topic_id: Optional[int] = None,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Get all questions with optional topic filter."""
@@ -125,7 +126,6 @@ async def get_questions(
 @router.get("/questions/{question_id}", response_model=QuestionResponse)
 async def get_question(
     question_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Get a single question by ID."""
@@ -143,7 +143,6 @@ async def get_question(
 )
 async def create_question(
     question_data: QuestionCreate,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Create a new question with answers."""
@@ -161,7 +160,6 @@ async def create_question(
 async def update_question(
     question_id: int,
     question_data: QuestionUpdate,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Update an existing question."""
@@ -177,7 +175,6 @@ async def update_question(
 @router.delete("/questions/{question_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_question(
     question_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Delete a question."""
@@ -189,7 +186,8 @@ async def delete_question(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Frage nicht gefunden"
             )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post(
@@ -199,7 +197,6 @@ async def delete_question(
 )
 async def create_questions_batch(
     questions_data: List[QuestionCreate],
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Create multiple questions in a single batch operation."""
@@ -213,7 +210,8 @@ async def create_questions_batch(
 
         return created_questions
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # Quiz endpoints
@@ -222,7 +220,6 @@ async def get_quizzes(
     skip: int = 0,
     limit: int = 100,
     topic_id: Optional[int] = None,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Get all quizzes with optional topic filter."""
@@ -233,7 +230,6 @@ async def get_quizzes(
 @router.get("/quizzes/{quiz_id}", response_model=QuizDetailResponse)
 async def get_quiz(
     quiz_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Get a single quiz by ID with questions."""
@@ -252,7 +248,6 @@ async def get_quiz(
 )
 async def create_quiz(
     quiz_data: QuizCreate,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Create a new quiz with questions."""
@@ -273,7 +268,6 @@ async def create_quiz(
 )
 async def create_quiz_batch(
     quiz_data: QuizBatchCreate,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Create a new quiz with questions in a single batch operation."""
@@ -291,7 +285,6 @@ async def create_quiz_batch(
 async def update_quiz(
     quiz_id: int,
     quiz_data: QuizUpdate,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Update an existing quiz."""
@@ -322,7 +315,6 @@ async def update_quiz(
 @router.delete("/quizzes/{quiz_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_quiz(
     quiz_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Delete a quiz."""
@@ -340,7 +332,6 @@ async def delete_quiz(
 async def upload_quiz_image(
     quiz_id: int,
     file: UploadFile = File(...),
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Upload an image for a quiz."""
@@ -361,7 +352,8 @@ async def upload_quiz_image(
     service = QuizAdminService(db)
     try:
         image_data = await file.read()
-        service.upload_quiz_image(quiz_id, image_data, file.filename or "image")
+        service.upload_quiz_image(
+            quiz_id, image_data, file.filename or "image")
         return ImageUploadResponse(
             message="Bild erfolgreich hochgeladen",
             filename=file.filename or "image",
@@ -377,7 +369,6 @@ async def upload_quiz_image(
 @router.get("/quizzes/{quiz_id}/image")
 async def get_quiz_image(
     quiz_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Get the image for a quiz."""
@@ -410,7 +401,6 @@ async def get_quiz_image(
 @router.delete("/quizzes/{quiz_id}/image")
 async def delete_quiz_image(
     quiz_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Delete the image for a quiz."""
@@ -429,7 +419,6 @@ async def delete_quiz_image(
 @router.post("/quizzes/{quiz_id}/publish", response_model=QuizResponse)
 async def publish_quiz(
     quiz_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Publish a quiz to make it available for gameplay."""
@@ -452,7 +441,6 @@ async def publish_quiz(
 @router.post("/quizzes/{quiz_id}/archive", response_model=QuizResponse)
 async def archive_quiz(
     quiz_id: int,
-    current_user: User = Depends(require_admin),
     db: Session = Depends(get_session),
 ):
     """Archive a quiz to hide it from gameplay."""

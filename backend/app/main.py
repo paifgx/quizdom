@@ -5,6 +5,7 @@ routing, and lifecycle management for the Quizdom backend.
 """
 
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +18,7 @@ from app.routers.game_router import router as game_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Handle startup and shutdown events.
 
     Initializes the database connection on startup.
