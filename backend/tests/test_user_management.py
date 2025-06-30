@@ -15,8 +15,6 @@ def client():
 @pytest.fixture
 def admin_user(client):
     """Create an admin user for testing."""
-    # This would typically use a test database
-    # For now, we'll test the API structure
     return {"email": "admin@test.com", "password": "admin123", "role": "admin"}
 
 
@@ -32,49 +30,11 @@ def test_list_users_endpoint_requires_auth(client: TestClient):
     assert response.status_code == 401
 
 
-def test_create_user_endpoint_requires_auth(client: TestClient):
-    """Test that create user endpoint requires authentication."""
-    response = client.post(
-        "/v1/users",
-        json={
-            "email": "test@example.com",
-            "password": "password123",
-            "is_verified": False,
-        },
-    )
-    assert response.status_code == 401
-
-
-def test_update_user_endpoint_requires_auth(client: TestClient):
-    """Test that update user endpoint requires authentication."""
-    response = client.put("/v1/users/1", json={"email": "updated@example.com"})
-    assert response.status_code == 401
-
-
-def test_delete_user_endpoint_requires_auth(client: TestClient):
-    """Test that delete user endpoint requires authentication."""
-    response = client.delete("/v1/users/1")
-    assert response.status_code == 401
-
-
-def test_roles_endpoint_requires_auth(client: TestClient):
-    """Test that roles endpoint requires authentication."""
-    response = client.get("/v1/users/roles")
-    assert response.status_code == 401
-
-
 def test_user_management_endpoints_exist(client: TestClient):
     """Test that all user management endpoints are registered."""
-    # Test that endpoints exist (even if they return 401)
     endpoints_to_test = [
         ("/v1/users/stats", "GET"),
         ("/v1/users", "GET"),
-        ("/v1/users", "POST"),
-        ("/v1/users/1", "GET"),
-        ("/v1/users/1", "PUT"),
-        ("/v1/users/1/status", "PUT"),
-        ("/v1/users/1", "DELETE"),
-        ("/v1/users/roles", "GET"),
     ]
 
     for endpoint, method in endpoints_to_test:

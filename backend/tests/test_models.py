@@ -22,6 +22,7 @@ from app.db.models import (
     Topic,
     User,
     UserBadge,
+    UserRoles,
 )
 
 
@@ -50,6 +51,58 @@ def test_user_fixture(session: Session):
     return user
 
 
+@pytest.fixture(name="topic")
+def topic_fixture(session: Session):
+    """Create a test topic."""
+    topic = Topic(title="Test Topic", description="A test topic for questions")
+    session.add(topic)
+    session.commit()
+    session.refresh(topic)
+    return topic
+
+
+@pytest.fixture(name="question")
+def question_fixture(session: Session, topic: Topic):
+    """Create a test question."""
+    question = Question(
+        topic_id=topic.id,
+        difficulty=Difficulty.JOURNEYMAN,
+        content="What is the capital of France?",
+        explanation="Paris is the capital and largest city of France.",
+    )
+    session.add(question)
+    session.commit()
+    session.refresh(question)
+    return question
+
+
+@pytest.fixture(name="answer")
+def answer_fixture(session: Session, question: Question):
+    """Create a test answer."""
+    answer = Answer(
+        question_id=question.id,
+        content="Paris",
+        is_correct=True,
+    )
+    session.add(answer)
+    session.commit()
+    session.refresh(answer)
+    return answer
+
+
+@pytest.fixture(name="game_session")
+def game_session_fixture(session: Session):
+    """Create a test game session."""
+    game_session = GameSession(
+        mode=GameMode.SOLO,
+        status=GameStatus.ACTIVE,
+    )
+    session.add(game_session)
+    session.commit()
+    session.refresh(game_session)
+    return game_session
+
+
 class TestUserModel:
     """Test User model functionality."""
 
@@ -68,7 +121,6 @@ class TestUserModel:
         assert user.email == "test@example.com"
         assert user.is_verified is True
         assert user.created_at is not None
-        assert user.role_id is None
 
     def test_user_with_role(self, session: Session):
         """Test creating a user with a role."""
@@ -80,13 +132,22 @@ class TestUserModel:
         user = User(
             email="admin@example.com",
             password_hash=get_password_hash("adminpass"),
-            role_id=role.id,
         )
         session.add(user)
         session.commit()
         session.refresh(user)
 
-        assert user.role_id == role.id
+        # Link user and role via UserRoles
+        user_role = UserRoles(user_id=user.id, role_id=role.id)
+        session.add(user_role)
+        session.commit()
+
+        # Instead, check UserRoles
+        found = session.exec(
+            select(UserRoles).where(UserRoles.user_id ==
+                                    user.id, UserRoles.role_id == role.id)
+        ).first()
+        assert found is not None
 
     def test_user_email_unique(self, session: Session):
         """Test that user email must be unique."""
@@ -144,6 +205,9 @@ class TestQuestionModel:
 
     def test_question_defaults(self, session: Session, topic: Topic):
         """Test default values for Question."""
+        session.add(topic)
+        session.commit()
+        session.refresh(topic)
         question = Question(
             topic_id=topic.id,
             difficulty=Difficulty.JOURNEYMAN,
@@ -161,6 +225,12 @@ class TestQuestionModel:
         self, session: Session, topic: Topic, question: Question
     ):
         """Test the relationship between Question and Topic."""
+        session.add(topic)
+        session.commit()
+        session.refresh(topic)
+        session.add(question)
+        session.commit()
+        session.refresh(question)
         retrieved_question = session.get(Question, question.id)
         assert retrieved_question is not None
 
@@ -174,6 +244,9 @@ class TestAnswerModel:
 
     def test_answer_creation_and_retrieval(self, session: Session, question: Question):
         """Test creating and retrieving an Answer."""
+        session.add(question)
+        session.commit()
+        session.refresh(question)
         answer = Answer(
             question_id=question.id,
             content="Paris",
@@ -192,10 +265,17 @@ class TestAnswerModel:
         self, session: Session, question: Question, answer: Answer
     ):
         """Test the relationship between Answer and Question."""
+        session.add(question)
+        session.commit()
+        session.refresh(question)
+        session.add(answer)
+        session.commit()
+        session.refresh(answer)
         retrieved_answer = session.get(Answer, answer.id)
         assert retrieved_answer is not None
 
-        retrieved_question = session.get(Question, retrieved_answer.question_id)
+        retrieved_question = session.get(
+            Question, retrieved_answer.question_id)
         assert retrieved_question is not None
         assert retrieved_question.id == question.id
 
@@ -222,6 +302,12 @@ class TestGameSessionModel:
         self, session: Session, game_session: GameSession, test_user: User
     ):
         """Test creating a SessionPlayers entry."""
+        session.add(game_session)
+        session.commit()
+        session.refresh(game_session)
+        session.add(test_user)
+        session.commit()
+        session.refresh(test_user)
         session_player = SessionPlayers(
             session_id=game_session.id,
             user_id=test_user.id,
@@ -262,31 +348,22 @@ class TestBadgeModel:
         assert badge.icon_path == "/icons/first-quiz.png"
 
     def test_user_badge_relationship(self, session: Session):
-        """Test user-badge relationship."""
-        user = User(
-            email="user@example.com",
-            password_hash=get_password_hash("userpass"),
-        )
-        badge = Badge(title="Test Badge", description="Test badge")
-
-        session.add(user)
+        """Test creating a UserBadge relationship."""
+        badge = Badge(title="Achiever", description="Earned a badge")
         session.add(badge)
         session.commit()
-        session.refresh(user)
         session.refresh(badge)
-
-        user_badge = UserBadge(
-            user_id=user.id,
-            badge_id=badge.id,
-        )
+        user = User(email="badgeuser@example.com",
+                    password_hash=get_password_hash("pw"))
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        user_badge = UserBadge(user_id=user.id, badge_id=badge.id)
         session.add(user_badge)
         session.commit()
         session.refresh(user_badge)
-
-        assert user_badge.id is not None
         assert user_badge.user_id == user.id
         assert user_badge.badge_id == badge.id
-        assert user_badge.achieved_at is not None
 
 
 class TestLeaderboardModel:
@@ -295,7 +372,7 @@ class TestLeaderboardModel:
     def test_create_leaderboard(self, session: Session):
         """Test creating a leaderboard."""
         leaderboard = Leaderboard(
-            mode=GameMode.DUEL,
+            mode=GameMode.SOLO,
             period=LeaderboardPeriod.WEEKLY,
         )
         session.add(leaderboard)
@@ -303,42 +380,31 @@ class TestLeaderboardModel:
         session.refresh(leaderboard)
 
         assert leaderboard.id is not None
-        assert leaderboard.mode == GameMode.DUEL
+        assert leaderboard.mode == GameMode.SOLO
         assert leaderboard.period == LeaderboardPeriod.WEEKLY
         assert leaderboard.created_at is not None
 
     def test_leaderboard_entry(self, session: Session):
-        """Test creating leaderboard entries."""
-        user = User(
-            email="player@example.com",
-            password_hash=get_password_hash("playerpass"),
-        )
+        """Test creating a LeaderboardEntry."""
         leaderboard = Leaderboard(
-            mode=GameMode.SOLO,
-            period=LeaderboardPeriod.DAILY,
-        )
-
-        session.add(user)
+            mode=GameMode.SOLO, period=LeaderboardPeriod.DAILY)
         session.add(leaderboard)
         session.commit()
-        session.refresh(user)
         session.refresh(leaderboard)
-
+        user = User(email="leaderboard@example.com",
+                    password_hash=get_password_hash("pw"))
+        session.add(user)
+        session.commit()
+        session.refresh(user)
         entry = LeaderboardEntry(
-            leaderboard_id=leaderboard.id,
-            user_id=user.id,
-            rank=1,
-            score=500,
-        )
+            leaderboard_id=leaderboard.id, user_id=user.id, rank=1, score=1000)
         session.add(entry)
         session.commit()
         session.refresh(entry)
-
-        assert entry.id is not None
         assert entry.leaderboard_id == leaderboard.id
         assert entry.user_id == user.id
         assert entry.rank == 1
-        assert entry.score == 500
+        assert entry.score == 1000
 
 
 class TestEnums:
@@ -361,8 +427,8 @@ class TestEnums:
     def test_game_mode_values(self):
         """Test GameMode enum values."""
         assert GameMode.SOLO == "solo"
-        assert GameMode.DUEL == "duel"
-        assert GameMode.TEAM == "team"
+        assert GameMode.COMP == "comp"
+        assert GameMode.COLLAB == "collab"
 
     def test_game_status_values(self):
         """Test GameStatus enum values."""

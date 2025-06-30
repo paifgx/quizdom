@@ -146,7 +146,8 @@ def register_user(
     Raises:
         HTTPException: When registration fails
     """
-    log_operation(app_logger, "user_registration_attempt", email=user_data.email)
+    log_operation(app_logger, "user_registration_attempt",
+                  email=user_data.email)
 
     # WHY: Check for existing user to prevent duplicates
     existing_user = get_user_by_email(session, user_data.email)
@@ -218,7 +219,6 @@ def login_user(
             headers={
                 "WWW-Authenticate": "Bearer",
                 "X-Error-Code": "invalid_credentials",
-                "X-Error-Hint": "Überprüfen Sie Ihre E-Mail-Adresse und Ihr Passwort",
             },
         )
 

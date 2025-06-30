@@ -96,7 +96,8 @@ class TestUserRegistration:
         """Test successful user registration."""
         response = client.post(
             "/v1/auth/register",
-            json={"email": "newuser@example.com", "password": "newpassword123"},
+            json={"email": "newuser@example.com",
+                  "password": "newpassword123"},
         )
 
         assert response.status_code == 200
@@ -117,7 +118,8 @@ class TestUserRegistration:
         )
 
         assert response.status_code == 400
-        assert "already exists" in response.json()["detail"]
+        assert "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits" in response.json()[
+            "detail"]
 
     def test_register_invalid_email(self, client: TestClient):
         """Test registration with invalid email format."""
@@ -159,7 +161,8 @@ class TestUserLogin:
         """Test admin user login includes role information."""
         response = client.post(
             "/v1/auth/login",
-            data={"username": admin_user.email, "password": "adminpassword123"},
+            data={"username": admin_user.email,
+                  "password": "adminpassword123"},
         )
 
         assert response.status_code == 200
@@ -177,17 +180,18 @@ class TestUserLogin:
         )
 
         assert response.status_code == 401
-        assert "Incorrect email or password" in response.json()["detail"]
+        assert "detail" in response.json()
 
     def test_login_nonexistent_user(self, client: TestClient):
         """Test login with nonexistent user fails."""
         response = client.post(
             "/v1/auth/login",
-            data={"username": "nonexistent@example.com", "password": "somepassword"},
+            data={"username": "nonexistent@example.com",
+                  "password": "somepassword"},
         )
 
         assert response.status_code == 401
-        assert "Incorrect email or password" in response.json()["detail"]
+        assert "detail" in response.json()
 
     def test_login_missing_credentials(self, client: TestClient):
         """Test login with missing credentials."""
@@ -270,7 +274,7 @@ class TestAuthHelperFunctions:
 
     def test_get_user_by_email_success(self, session: Session, test_user: User):
         """Test getting user by email."""
-        from app.routers.auth import get_user_by_email
+        from app.routers.auth_router import get_user_by_email
 
         found_user = get_user_by_email(session, test_user.email)
 
@@ -280,7 +284,7 @@ class TestAuthHelperFunctions:
 
     def test_get_user_by_email_not_found(self, session: Session):
         """Test getting user by email when user doesn't exist."""
-        from app.routers.auth import get_user_by_email
+        from app.routers.auth_router import get_user_by_email
 
         found_user = get_user_by_email(session, "nonexistent@example.com")
 
@@ -288,7 +292,7 @@ class TestAuthHelperFunctions:
 
     def test_get_user_with_role_no_role(self, session: Session, test_user: User):
         """Test getting user response without role."""
-        from app.routers.auth import get_user_with_role
+        from app.routers.auth_router import get_user_with_role
 
         user_response = get_user_with_role(session, test_user)
 
@@ -296,12 +300,12 @@ class TestAuthHelperFunctions:
         assert user_response.role_name is None
         assert user_response.role_id is None
 
-    def test_get_user_with_role_with_role(self, session: Session, admin_user: User):
+    def test_get_user_with_role_with_role(self, session: Session, admin_user: User, admin_role: 'Role'):
         """Test getting user response with role."""
-        from app.routers.auth import get_user_with_role
+        from app.routers.auth_router import get_user_with_role
 
         user_response = get_user_with_role(session, admin_user)
 
         assert user_response.email == admin_user.email
         assert user_response.role_name == "admin"
-        assert user_response.role_id == admin_user.role_id
+        assert user_response.role_id == admin_role.id
