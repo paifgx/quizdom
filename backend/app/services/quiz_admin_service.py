@@ -1,6 +1,6 @@
 """Service for admin operations on quizzes and related entities."""
 
-from typing import Any, List, Optional, Sequence
+from typing import Any, List, Optional
 from datetime import datetime
 
 from sqlmodel import Session, func, select
@@ -203,12 +203,15 @@ class QuizAdminService:
         return self.get_question(question_id)
 
     def delete_question(self, question_id: int) -> bool:
-        """Delete a question and its answers."""
+        """Delete a question and its answers.
+
+        Returns True if successful, False if question not found.
+        """
         question = self.db.get(Question, question_id)
         if not question:
             return False
 
-        # Check if question is used in any quiz
+        # Check if question is used in any quizzes
         statement = (
             select(func.count())
             .select_from(QuizQuestion)
@@ -222,8 +225,8 @@ class QuizAdminService:
             )
 
         # Delete answers first (cascade should handle this, but being explicit)
-        statement = select(Answer).where(Answer.question_id == question_id)
-        answers: Sequence[Answer] = self.db.exec(statement).all()
+        answer_statement = select(Answer).where(Answer.question_id == question_id)
+        answers = self.db.exec(answer_statement).all()
         for answer in answers:
             self.db.delete(answer)
 

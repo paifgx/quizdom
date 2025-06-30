@@ -84,7 +84,7 @@ def get_user_with_role(session: Session, user: User) -> UserResponse:
 
     # Check if user has direct role_id (backwards compatibility)
     if hasattr(user, "role_id") and getattr(user, "role_id") is not None:
-        role_id = user.role_id
+        role_id = getattr(user, "role_id")
         role = session.get(Role, role_id)
         if role:
             role_name = role.name
@@ -93,7 +93,8 @@ def get_user_with_role(session: Session, user: User) -> UserResponse:
         # Query for user's role through UserRoles table
         statement = (
             select(Role.id, Role.name)
-            .join(UserRoles, Role.id == UserRoles.role_id)
+            .join(UserRoles)
+            .where(UserRoles.role_id == Role.id)
             .where(UserRoles.user_id == user.id)
         )
         result = session.exec(statement).first()

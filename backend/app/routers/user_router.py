@@ -17,6 +17,7 @@ from app.routers.auth_router import get_current_user
 from app.schemas.user import (
     UserListResponse,
     UserStatsResponse,
+    UserListItemResponse,
 )
 
 router = APIRouter(prefix="/v1/users", tags=["users"])
@@ -44,7 +45,8 @@ def require_admin(
     # Check if user has admin role through UserRoles
     admin_role = session.exec(
         select(Role)
-        .join(UserRoles, Role.id == UserRoles.role_id)
+        .join(UserRoles)
+        .where(UserRoles.role_id == Role.id)
         .where(UserRoles.user_id == current_user.id)
         .where(Role.name == "admin")
     ).first()
@@ -81,10 +83,25 @@ def list_users(
     Returns:
         UserListResponse: List of users with pagination metadata
     """
-    total = session.exec(select(func.count(User.id))).one()
-    users = session.exec(
-        select(User).offset(skip).limit(limit).order_by(User.created_at)
-    ).all()
+    total = session.exec(select(func.count())).one()
+    users_db = session.exec(select(User).offset(skip).limit(limit)).all()
+
+    # Convert User models to UserListItemResponse objects
+    users = [
+        UserListItemResponse(
+            id=user.id or 0,  # Use 0 if id is None (should never happen)
+            email=user.email,
+            is_verified=user.is_verified,
+            created_at=user.created_at,
+            deleted_at=user.deleted_at,
+            role_name=None,  # Would need a join to get this
+            last_login=None,  # Would need to add this field to model
+            quizzes_completed=0,  # Would need to calculate this
+            average_score=0.0,  # Would need to calculate this
+            total_score=0,  # Would need to calculate this
+        )
+        for user in users_db
+    ]
 
     return UserListResponse(
         total=total,
@@ -109,17 +126,15 @@ def get_user_stats(
         UserStatsResponse: User statistics
     """
     # Get total users
-    total_users = session.exec(select(func.count(User.id))).one()
+    total_users = session.exec(select(func.count())).one()
 
     # Get verified users count
-    verified_users = session.exec(
-        select(func.count(User.id)).where(User.is_verified)
-    ).one()
+    verified_users = session.exec(select(func.count()).where(User.is_verified)).one()
 
     # Get recent registrations (last 7 days)
     seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
     recent_registrations = session.exec(
-        select(func.count(User.id)).where(User.created_at >= seven_days_ago)
+        select(func.count()).where(User.created_at >= seven_days_ago)
     ).one()
 
     # Get active users (users who have played games)

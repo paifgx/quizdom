@@ -10,7 +10,7 @@ from typing import Any, Optional, Tuple
 from sqlmodel import Session, func, select
 
 from app.db.models import GameSession, Role, SessionPlayers, User, UserRoles
-from app.schemas.user import UserListResponse
+from app.schemas.user import UserListItemResponse
 
 
 def get_user_with_role_name(
@@ -117,10 +117,10 @@ def check_email_available(
 
 def build_user_list_response(
     session: Session, user: User, role_name: Optional[str] = None
-) -> UserListResponse:
-    """Build a complete UserListResponse with statistics.
+) -> UserListItemResponse:
+    """Build a complete UserListItemResponse with statistics.
 
-    Creates a UserListResponse object with all required data including
+    Creates a UserListItemResponse object with all required data including
     quiz statistics and last session information.
     """
     if not user.id:
@@ -129,7 +129,7 @@ def build_user_list_response(
     quiz_stats = get_user_quiz_statistics(session, user.id)
     last_session = get_user_last_session(session, user.id)
 
-    return UserListResponse(
+    return UserListItemResponse(
         id=user.id,
         email=user.email,
         is_verified=user.is_verified,
