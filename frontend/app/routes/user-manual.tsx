@@ -256,9 +256,9 @@ export default function UserManual() {
                     <div className="grid md:grid-cols-3 gap-4">
                       <div className="bg-[#16213E] rounded-lg p-6 text-center">
                         <img
-                          src="/playmodi/solo.png"
-                          alt="Solo Mode"
-                          className="h-16 w-16 mx-auto mb-3 rounded-lg"
+                          src="/playmodi/SOLO_withoutText.PNG"
+                          alt="Solo Mission"
+                          className="h-48 w-32 mx-auto mb-3 rounded-lg"
                         />
                         <p className="text-gray-300 text-sm">
                           {translate('userManual.soloMode')}
@@ -266,9 +266,9 @@ export default function UserManual() {
                       </div>
                       <div className="bg-[#16213E] rounded-lg p-6 text-center">
                         <img
-                          src="/playmodi/collaborative.png"
-                          alt="Collaborative Mode"
-                          className="h-16 w-16 mx-auto mb-3 rounded-lg"
+                          src="/playmodi/COLL_withoutText.PNG"
+                          alt="Team Battle"
+                          className="h-48 w-32 mx-auto mb-3 rounded-lg"
                         />
                         <p className="text-gray-300 text-sm">
                           {translate('userManual.collaborativeMode')}
@@ -276,14 +276,131 @@ export default function UserManual() {
                       </div>
                       <div className="bg-[#16213E] rounded-lg p-6 text-center">
                         <img
-                          src="/playmodi/competitive.png"
-                          alt="Competitive Mode"
-                          className="h-16 w-16 mx-auto mb-3 rounded-lg"
+                          src="/playmodi/COMP_withoutText.PNG"
+                          alt="Duell"
+                          className="h-48 w-32 mx-auto mb-3 rounded-lg"
                         />
                         <p className="text-gray-300 text-sm">
                           {translate('userManual.competitiveMode')}
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-3">
+                      {translate('userManual.soloModeDetails')}
+                    </h3>
+                    <p className="text-gray-300 leading-relaxed mb-4">
+                      {translate('userManual.soloModeDetailsDesc')}
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Zeit bis zur Antwort
+                            </th>
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Punkte
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-300">
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">≤ 3 Sekunden</td>
+                            <td className="py-3 px-4">100 Punkte</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">3-6 Sekunden</td>
+                            <td className="py-3 px-4">50 Punkte</td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">≥ 6 Sekunden</td>
+                            <td className="py-3 px-4">0 Punkte</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-3">
+                      {translate('userManual.collaborativeModeDetails')}
+                    </h3>
+                    <p className="text-gray-300 leading-relaxed mb-4">
+                      {translate('userManual.collaborativeModeDetailsDesc')}
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Zeit bis zur Antwort
+                            </th>
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Punkte
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-300">
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">≤ 3 Sekunden</td>
+                            <td className="py-3 px-4">100 Punkte</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">3-6 Sekunden</td>
+                            <td className="py-3 px-4">50 Punkte</td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">≥ 6 Sekunden</td>
+                            <td className="py-3 px-4">0 Punkte</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-3">
+                      {translate('userManual.competitiveModeDetails')}
+                    </h3>
+                    <p className="text-gray-300 leading-relaxed mb-4">
+                      {translate('userManual.competitiveModeDetailsDesc')}
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Antwort
+                            </th>
+                            <th className="text-left py-3 px-4 text-[#FCC822]">
+                              Punkte
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-300">
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">
+                              erste richtige Antwort
+                            </td>
+                            <td className="py-3 px-4">100 Punkte</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-3 px-4">
+                              zweite richtige Antwort
+                            </td>
+                            <td className="py-3 px-4">50 Punkte</td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">
+                              falsche Antwort/ Zeit ist abgelaufen
+                            </td>
+                            <td className="py-3 px-4">0 Punkte</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
@@ -315,7 +432,18 @@ export default function UserManual() {
                       {translate('userManual.timeLimit')}
                     </h3>
                     <p className="text-gray-300 leading-relaxed">
-                      {translate('userManual.timeLimitDesc')}
+                      {translate('userManual.timeLimitSoloMission')} <br />
+                      {translate('userManual.timeLimitTeamBattle')} <br />
+                      {translate('userManual.timeLimitDuell')}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-3">
+                      {translate('userManual.timeLimitPurpose')}
+                    </h3>
+                    <p className="text-gray-300 leading-relaxed">
+                      {translate('userManual.timeLimitReasoning')}
                     </p>
                   </div>
                 </div>
@@ -375,6 +503,9 @@ export default function UserManual() {
                     </h3>
                     <p className="text-gray-300 leading-relaxed mb-4">
                       {translate('userManual.aiWizardDesc')}
+                    </p>
+                    <p className="text-gray-300 leading-relaxed mb-4">
+                      {translate('userManual.aiWizardDesc2')}
                     </p>
                     <div className="bg-[#16213E] rounded-lg p-4">
                       <h4 className="text-lg font-medium text-[#FCC822] mb-2">

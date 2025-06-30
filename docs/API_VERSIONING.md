@@ -1,11 +1,13 @@
 # API Versioning Structure
 
 ## Overview
+
 All public API endpoints now use consistent `/v1/` prefixes following the cursor rules conventions.
 
 ## Router Structure
 
 ### Authentication (`/v1/auth/`)
+
 - **File**: `app/routers/auth.py`
 - **Prefix**: `/v1/auth`
 - **Tags**: `["auth"]`
@@ -15,6 +17,7 @@ All public API endpoints now use consistent `/v1/` prefixes following the cursor
   - `GET /v1/auth/me` - Get current user info
 
 ### Quiz Game (`/v1/quiz/`)
+
 - **File**: `app/routers/quiz.py`
 - **Prefix**: `/v1/quiz`
 - **Tags**: `["quiz"]`
@@ -26,6 +29,7 @@ All public API endpoints now use consistent `/v1/` prefixes following the cursor
   - `WebSocket /v1/quiz/session/{session_id}/ws/{player_id}` - Real-time game updates
 
 ### User Management (`/v1/users/`)
+
 - **File**: `app/routers/user.py`
 - **Prefix**: `/v1/users`
 - **Tags**: `["users"]`
@@ -40,6 +44,7 @@ All public API endpoints now use consistent `/v1/` prefixes following the cursor
   - `GET /v1/users/roles` - List roles (admin only)
 
 ### Quiz Administration (`/v1/admin/quiz/`)
+
 - **File**: `app/routers/admin_router.py`
 - **Prefix**: `/v1/admin/quiz`
 - **Tags**: `["admin-quiz"]`
@@ -64,9 +69,11 @@ All public API endpoints now use consistent `/v1/` prefixes following the cursor
 ## Non-Versioned Endpoints
 
 ### Health Check
+
 - `GET /` - API health status
 
 ### Documentation (Auto-generated)
+
 - `GET /docs` - Swagger UI
 - `GET /redoc` - ReDoc UI
 - `GET /openapi.json` - OpenAPI schema
@@ -74,12 +81,15 @@ All public API endpoints now use consistent `/v1/` prefixes following the cursor
 ## Implementation Details
 
 ### Router Configuration
+
 Each router follows the cursor rules pattern:
+
 ```python
 router = APIRouter(prefix="/v1/<resource>", tags=["<resource>"])
 ```
 
 ### Main App Configuration
+
 ```python
 # Clean router includes without redundant prefixes
 app.include_router(auth.router)
@@ -89,7 +99,9 @@ app.include_router(admin_router)
 ```
 
 ### OAuth2 Token URL
+
 Updated to match new auth endpoint:
+
 ```python
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/auth/login")
 ```
@@ -97,13 +109,16 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/auth/login")
 ## Migration Notes
 
 ### Breaking Changes
+
 - **Auth endpoints**: `/auth/*` → `/v1/auth/*`
 - **Quiz endpoints**: `/quiz/*` → `/v1/quiz/*`
 - **User admin endpoints**: `/v1/admin/*` → `/v1/users/*`
 - **Quiz admin endpoints**: `/v1/admin/*` → `/v1/admin/quiz/*`
 
 ### Frontend Updates Required
+
 Frontend applications need to update their API base URLs:
+
 - Authentication calls: `api/auth/login` → `api/v1/auth/login`
 - Quiz game calls: `api/quiz/session/create` → `api/v1/quiz/session/create`
 - WebSocket connections: `ws://host/quiz/session/{id}/ws/{player}` → `ws://host/v1/quiz/session/{id}/ws/{player}`

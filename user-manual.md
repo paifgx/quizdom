@@ -13,11 +13,7 @@ Willkommen bei **QUIZDOM - Rise of the Wise!** Gratulation - es war eine weise E
 > - SCRUM-153: kontinuierlicher Betrieb
 > - SCRUM-151: Benutzerhandbuch
 >
-> **Unbeantwortete Fragen: ?**
->
-> **Beantwortete Fragen: ?**
->
-> Stand: 28.06.2025
+> Stand: 29.06.2025
 
 ---
 
@@ -36,7 +32,9 @@ Willkommen bei **QUIZDOM - Rise of the Wise!** Gratulation - es war eine weise E
 
 `relates to SCRUM-170`
 
-QUIZDOM ist eine interaktive Quiz-Plattform, die Bildung mit Gaming-Elementen verbindet. Spieler können ihr Wissen in verschiedenen Themenbereichen testen, Wisecoins sammeln und durch verschiedene Spielmodi ihre Fähigkeiten verbessern.
+Mit “QUIZDOM – Rise of the Wise” bringen wir die Kraft von Gamification, Kollaboration und Kooperation sowie künstlicher Intelligenz in die akademische Bildung. Mit einer interaktiven Quiz-Plattform wollen wir Lernen neugestalten – als positives, motivierendes Erlebnis, ausgerichtet auf die Bedürfnisse der Studierenden. Wir glauben: Wenn Lernen richtig gestaltet ist, fühlt es sich nicht wie Mühe an, sondern wie ein sinnvoller, belohnender Prozess.
+
+Mit QUIZDOM kannst dich auf spielerische Art und Weise in einer Fantasy-Mittelalter-Atmosphäre auf deine Prüfungen vorbereiten. Dabei bist du nicht auf dich allein gestellt - z.B. im Spielmodus Team Battle kannst du zusammen mit anderen Quizfragen zu verschiedenen Themenbereichen beantworten.
 
 ---
 
@@ -52,7 +50,10 @@ Aktuell kannst QUIZDOM online in der Web-App über deinen Internet-Browser spiel
 
 `relates to SCRUM-147`
 
-Lorem ipsum
+Nach der Registrierung bzw. dem Log In landest du auf deinem Dashboard. Hier findest du deine als Favorit markierten Themenbereiche, deine Badges und siehst, welche Spieler gerade online sind.
+Über die Navigationsleiste kannst du durch QUIZDOM navigieren:
+
+- ...
 
 ---
 
@@ -113,7 +114,11 @@ Logge dich ein, wenn du bereits ein Konto hast. Auf der Seite _Start_ werden dir
 
 `relates to SCRUM-163`
 
-lorem ipsum
+QUIZDOM bietet unterschiedliche Spielmodi für unterschiedliche Präferenzen:
+
+_Solo Mission_: Spiele alleine und teste dein Wissen in deinem eigenen Tempo.
+_Team Battle_: Arbeite mit anderen Studierenden zusammen, um gemeinsam zu lernen.
+(Aktuell noch nicht verfügbar) _Duell_: Trete direkt gegen andere Studierende an und beweise dein Wissen in einem spannenden Wissensduell.
 
 ---
 
@@ -121,7 +126,17 @@ lorem ipsum
 
 `relates to SCRUM-163 && SCRUM-161`
 
-lorem ipsum
+Im Spielmodus _Solo Mission_ werden dir verschiedene Fragen zum gewählten Themenbereich ohne Zeitbegrenzung gestellt.
+
+Du beginnst das Spiel mit drei Herzen. Wenn du eine Frage falsch beantwortest, verlierst du nur ein Herz - aber pass auf! Wenn alle Herzen weg sind, endet das Spiel.
+
+Die Bepunktung ist abhängig davon, wie schnell du es schaffst zu antworten:
+
+| Zeit bis zur Antwort | Punkte     |
+| -------------------- | ---------- |
+| ≤ 3 Sekunden         | 100 Punkte |
+| 3-6 Sekunden         | 50 Punkte  |
+| ≥ 6 Sekunden         | 0 Punkte   |
 
 ---
 
@@ -129,7 +144,20 @@ lorem ipsum
 
 `relates to SCRUM-159 && SCRUM-161`
 
-lorem ipsum
+Im Spielmodus _Team Battle_ könnt ihr euch gemeinsam als Team verschiedenen Fragen zum gewählten Themenbereich stellen.
+Pro Frage haben alle Teammitglieder 15 Sekunden Zeit ihre Antwort abzugeben.
+
+Ihr beginnt das Spiel mit drei Herzen, die für das gesamte Team gelten.
+Wenn ihr eine Frage falsch beantwortet oder die Zeit abgelaufen ist, verliert ihr nur ein Herz - aber passt auf!
+Wenn alle Herzen weg sind, endet das Spiel.
+
+Die Bepunktung ist abhängig davon, wie schnell ihr es schafft zu antworten - die schnellste richtige Antwort zählt.
+
+| Zeit bis zur Antwort | Punkte     |
+| -------------------- | ---------- |
+| ≤ 3 Sekunden         | 100 Punkte |
+| 3-6 Sekunden         | 50 Punkte  |
+| ≥ 6 Sekunden         | 0 Punkte   |
 
 ---
 
@@ -137,7 +165,23 @@ lorem ipsum
 
 `relates to SCRUM-179 && SCRUM-161`
 
-lorem ipsum
+In der aktuellen prototypischen Umsetzung ist dieser Spielmodus noch nicht verfügbar, hier aber bereits ein Sneak Peek wie der Spielmodus _Duell_ geplant ist:
+
+Der Spielmodus _Duell_ ist für alle, die den Wettkampf lieben.
+Tretet gegeneinander an und findet heraus, wer weiser ist - oder einfach schneller.
+Jeder Spieler hat pro Frage 10 Sekunden Zeit zu antworten.
+
+Beide Spieler beginnen das Spiel mit drei Herzen.
+Herzen werden abgezogen, wenn eine Frage falsch beantwortet wurde oder die Zeit abgelaufen ist.
+Wenn ein Spieler alle seine Herzen verbraucht hat, hat er verloren und das Spiel ist beendet.
+
+Die Bepunktung ist abhängig davon, wie schnell ihr es schafft zu antworten.
+
+| Antwort                              | Punkte     |
+| ------------------------------------ | ---------- |
+| erste richtige Antwort               | 100 Punkte |
+| zweite richtige Antwort              | 50 Punkte  |
+| falsche Antwort/ Zeit ist abgelaufen | 0 Punkte   |
 
 ---
 
@@ -162,7 +206,9 @@ In dieser prototypischen Umsetzung gibt es nur Single- bzw. Multiple-Choice-Frag
 
 `relates to SCRUM-174`
 
-lorem ipsum
+1. _Solo Mission_ ➡️ In diesem Spielmodus hast du alle Zeit der Welt für ein entspanntes Solo-Lernen.
+2. _Team Battle_ ➡️ Für jede Frage habt ihr gemeinsam 15 Sekunden Zeit.
+3. _Duell_ ➡️ Für die Beantwortung der Frage haben dein Gegner und du 10 Sekunden Zeit.
 
 ---
 
@@ -170,7 +216,7 @@ lorem ipsum
 
 `relates to SCRUM-174`
 
-Die Zeitbegrenzung gibt es, um dir eine möglichst Klausur-nahe Vorbereitung bieten zu können, da es dort meistens auch eine Zeitbegrenzung gibt. Zudem macht es das Spiel doch spannend, wenn ein bisschen Druck da ist, oder? Gleichzeitig ist es natürlich ebenso wichtig, ganz entspannt und ohne Druck lernen zu können. Das geht im Spielmodus _Solo Mission_.
+Die Zeitbegrenzung gibt es, um dir eine möglichst Prüfungs-nahe Vorbereitung bieten zu können, da es dort meistens auch eine Zeitbegrenzung gibt. Zudem macht es das Spiel doch spannend, wenn ein bisschen Druck da ist, oder? Gleichzeitig ist es natürlich ebenso wichtig, ganz entspannt und ohne Druck lernen zu können. Das geht dann im Spielmodus _Solo Mission_.
 
 ---
 
@@ -178,7 +224,7 @@ Die Zeitbegrenzung gibt es, um dir eine möglichst Klausur-nahe Vorbereitung bie
 
 `relates to SCRUM-174`
 
-lorem ipsum
+In der aktuellen prototypischen Umsetzung gibt es noch keine Möglichkeit die Zeitbegrenzung individuelll umzustellen.
 
 ---
 
@@ -188,7 +234,7 @@ lorem ipsum
 
 `relates to SCRUM-175`
 
-Wisecoins sind die Spielwährung in QUIZDOM. Sie werden für das erfolgreiche Absolvieren von Quizzes vergeben und sollen in Zukunft für verschiedene Verbesserungen und Belohnungen eingesetzt werden können.
+Wisecoins sind die Ingame-Währung in QUIZDOM. Sie werden für das erfolgreiche Absolvieren von Quizzes vergeben und sollen in Zukunft für verschiedene Verbesserungen und Belohnungen eingesetzt werden können.
 
 ---
 
@@ -196,7 +242,7 @@ Wisecoins sind die Spielwährung in QUIZDOM. Sie werden für das erfolgreiche Ab
 
 `relates to SCRUM-159 && SCRUM-179 && SCRUM-163`
 
-Herzen schützen dich vor Minuspunkten während eines Quiz. Solange du Herzen hast, verlierst du ein Herz bei einer falschen Antwort, du bekommst aber keine Punkte abgezogen. Wenn du alle Herzen verloren hast, geben falsche Antworten Minuspunkte.
+Herzen repräsentieren dein Leben während eines Quiz. Bei falschen Antworten oder beim Erreichen der Zeitbegrenzung verlierst du Herzen. Hast du alle Herzen verloren, ist das Quiz beendet.
 
 ---
 
@@ -204,7 +250,9 @@ Herzen schützen dich vor Minuspunkten während eines Quiz. Solange du Herzen ha
 
 `relates to SCRUM-165`
 
-lorem ipsum
+Der AI Wizard ist dein persönlicher Lehrmeister, der dir detaillierte Erklärungen zu den richtigen Antworten gibt, um dein Verständnis zu vertiefen. In die prototypische Umsetzung hat er es leider noch nicht geschafft, Zauberer haben eben ihr eigenes Timing: "Ein Zauberer kommt nie zu spät, Frodo Beutlin, ebenso wenig zu früh. Er trifft genau dann ein, wenn er es beabsichtigt." (Gandalf, "Der Herr der Ringe: Die Gefährten")
+
+Wenn du während eines Quiz Fragen markiert hast, dann kannst du sie dir später unter "Markierte Fragen" in dem Fach zu dem sie gehören wieder ansehen und dort findest du dann auch den AI Wizard.
 
 ---
 
@@ -212,7 +260,7 @@ lorem ipsum
 
 `relates to SCRUM-165`
 
-lorem ipsum
+Sobald der AI Wizard seinen Weg ins Spiel gefunden hat, bietet er detaillierte Erklärungen zu den richtigen Antworten, um dein Verständnis zu vertiefen.
 
 ---
 
@@ -220,7 +268,7 @@ lorem ipsum
 
 `relates to SCRUM-164`
 
-lorem ipsum
+Ihr Fortschritt wird automatisch gespeichert und kann über die "Fortschritt"-Seite eingesehen werden. Dort sehen Sie Ihre Statistiken, verdiente Badges und gesammelte Wisecoins.
 
 ---
 
@@ -228,7 +276,7 @@ lorem ipsum
 
 `relates to SCRUM-176 && SCRUM-174`
 
-lorem ipsum
+Ja, du kannst Fragen markieren und später unter "Markierte Fragen" in dem Fach, zu dem sie gehören wiederfinden, um sie erneut zu üben.
 
 ---
 
@@ -236,7 +284,7 @@ lorem ipsum
 
 `relates to SCRUM-176 && SCRUM-174`
 
-lorem ipsum
+Markierte Fragen sind Fragen, die du für ein späteres Wiederholen oder für die Erklärung durch den AI Wizard gespeichert hast. Diese findest du, unter "Markierte Fragen" in dem Fach, zu dem sie gehören. Zu einem späteren Zeitpunkt, bietet dir das auch die Möglichkeit, dir die richtige Antwort vom AI Wizard erklären zu lassen.
 
 ---
 
@@ -246,7 +294,7 @@ lorem ipsum
 
 `relates to SCRUM-160`
 
-lorem ipsum
+Ja, für die vollständige QUIZDOM-Erfahrung benötigst du ein Konto. Klick auf "Registrieren" und folge den Anweisungen.
 
 ---
 
@@ -254,7 +302,7 @@ lorem ipsum
 
 `relates to SCRUM-160`
 
-lorem ipsum
+Nutze die "Passwort vergessen?"-Funktion auf der Anmeldeseite oder ändere dein Passwort in den Profileinstellungen.
 
 ---
 
@@ -262,7 +310,7 @@ lorem ipsum
 
 `relates to SCRUM-160`
 
-lorem ipsum
+Gehe zu deinem Profil (Bild oben rechts in der Navigationsleiste) und klicke auf "Bearbeiten", um Profilbild, Benutzername oder E-Mail-Adresse zu ändern.
 
 ---
 
@@ -270,7 +318,7 @@ lorem ipsum
 
 `relates to SCRUM-162`
 
-lorem ipsum
+Die Kontolöschung erfolgt über die Profileinstellungen. (...)
 
 ---
 
@@ -278,25 +326,26 @@ lorem ipsum
 
 ### Wie starte ich mein erstes Quiz?
 
-Melden Sie sich an, gehen Sie zu "Themen", wählen Sie ein Thema aus und klicken Sie auf "SPIELEN".
+Melde dich an, gehe zu "Themen", wähle ein Thema aus und klicke auf "SPIELEN". Dann geht es direkt los!
 
 ---
 
 ### Was passiert, wenn ich eine Frage falsch beantworte?
 
-Sie verlieren ein Herz und erhalten eine Erklärung der richtigen Antwort vom AI Wizard.
+Du verlierst ein Herz und bekommst keine Punkte für eine Frage.
+Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass nie entmutigen und bleibe dran.
 
 ---
 
 ### Kann ich mein Quiz pausieren?
 
-In der aktuellen Version ist das Pausieren von Quiz nicht möglich. Planen Sie ausreichend Zeit für Ihr Quiz ein.
+In der aktuellen Version ist das Pausieren von Quizzen nicht möglich. Plane dir ausreichend Zeit für dein Quiz ein.
 
 ---
 
 ### Wie kann ich meine Statistiken einsehen?
 
-Ihre Statistiken finden Sie auf der "Fortschritt"-Seite und in Ihrem Profil.
+Deine Statistiken findest du auf der "Fortschritt"-Seite und in deinem Profil.
 
 ---
 
