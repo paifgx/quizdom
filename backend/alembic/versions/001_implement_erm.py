@@ -173,20 +173,24 @@ def upgrade() -> None:
     # Migrate existing data
 
     # Migrate role data from user.role_id to user_roles
-    op.execute("""
+    op.execute(
+        """
         INSERT INTO userroles (user_id, role_id, granted_at)
         SELECT id, role_id, created_at
         FROM "user"
         WHERE role_id IS NOT NULL
-    """)
+    """
+    )
 
     # Migrate game session data to session_players
-    op.execute("""
+    op.execute(
+        """
         INSERT INTO sessionplayers (session_id, user_id, hearts_left, score)
         SELECT id, user_id, 3, score
         FROM gamesession
         WHERE user_id IS NOT NULL
-    """)
+    """
+    )
 
     # Drop old columns
     op.drop_column("user", "role_id")
@@ -214,19 +218,23 @@ def downgrade() -> None:
     op.add_column("user", sa.Column("role_id", sa.Integer(), nullable=True))
 
     # Restore data
-    op.execute("""
+    op.execute(
+        """
         UPDATE "user" u
         SET role_id = ur.role_id
         FROM userroles ur
         WHERE u.id = ur.user_id
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         UPDATE gamesession g
         SET user_id = sp.user_id, score = sp.score
         FROM sessionplayers sp
         WHERE g.id = sp.session_id
-    """)
+    """
+    )
 
     # Rename columns back
     op.alter_column("playeranswer", "session_id", new_column_name="game_session_id")
