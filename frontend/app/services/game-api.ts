@@ -75,7 +75,7 @@ class GameApiService {
     quizId: number,
     mode: GameMode
   ): Promise<GameSessionResponse> {
-    const response = await apiClient.post<GameSessionResponse>(
+    const response = await apiClient.post<any>(
       `/v1/game/quiz/${quizId}/start`,
       { mode }
     );
@@ -98,7 +98,7 @@ class GameApiService {
     topicId: number,
     options: GameSessionCreate
   ): Promise<GameSessionResponse> {
-    const response = await apiClient.post<GameSessionResponse>(
+    const response = await apiClient.post<any>(
       `/v1/game/topic/${topicId}/random`,
       {
         mode: options.mode,
@@ -126,7 +126,7 @@ class GameApiService {
     sessionId: number,
     questionIndex: number
   ): Promise<QuestionResponse> {
-    const response = await apiClient.get<QuestionResponse>(
+    const response = await apiClient.get<any>(
       `/v1/game/session/${sessionId}/question/${questionIndex}`
     );
     
@@ -147,7 +147,7 @@ class GameApiService {
     sessionId: number,
     answer: SubmitAnswerRequest
   ): Promise<SubmitAnswerResponse> {
-    const response = await apiClient.post<SubmitAnswerResponse>(
+    const response = await apiClient.post<any>(
       `/v1/game/session/${sessionId}/answer`,
       {
         question_id: answer.questionId,
@@ -171,7 +171,7 @@ class GameApiService {
    * Complete a game session and get results.
    */
   async completeSession(sessionId: number): Promise<GameResultResponse> {
-    const response = await apiClient.post<GameResultResponse>(
+    const response = await apiClient.post<any>(
       `/v1/game/session/${sessionId}/complete`,
       {}
     );
@@ -188,6 +188,32 @@ class GameApiService {
       rank: response.rank,
       percentile: response.percentile,
     };
+  }
+
+  /**
+   * Get published quizzes for a topic.
+   */
+  async getPublishedQuizzes(topicId?: number): Promise<Array<{
+    id: number;
+    title: string;
+    description?: string;
+    questionCount: number;
+    difficulty: number;
+    playCount: number;
+  }>> {
+    const params = topicId ? `?topic_id=${topicId}` : '';
+    const response = await apiClient.get<any[]>(
+      `/v1/admin/quizzes/published${params}`
+    );
+    
+    return response.map(quiz => ({
+      id: quiz.id,
+      title: quiz.title,
+      description: quiz.description,
+      questionCount: quiz.question_count,
+      difficulty: quiz.difficulty,
+      playCount: quiz.play_count,
+    }));
   }
 }
 

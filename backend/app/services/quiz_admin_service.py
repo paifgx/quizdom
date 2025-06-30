@@ -522,7 +522,7 @@ class QuizAdminService:
         quiz = self.db.get(Quiz, quiz_id)
         if not quiz:
             return None
-        
+
         # Check if quiz has questions
         statement = (
             select(func.count())
@@ -530,15 +530,15 @@ class QuizAdminService:
             .where(QuizQuestion.quiz_id == quiz_id)
         )
         question_count = self.db.exec(statement).one()
-        
+
         if question_count == 0:
             raise ValueError("Quiz muss mindestens eine Frage enthalten")
-        
+
         from app.db.models import QuizStatus
         from datetime import datetime
         quiz.status = QuizStatus.PUBLISHED
         quiz.published_at = datetime.utcnow()
-        
+
         self.db.commit()
         self.db.refresh(quiz)
         return self.get_quiz(quiz_id)
@@ -548,10 +548,10 @@ class QuizAdminService:
         quiz = self.db.get(Quiz, quiz_id)
         if not quiz:
             return None
-        
+
         from app.db.models import QuizStatus
         quiz.status = QuizStatus.ARCHIVED
-        
+
         self.db.commit()
         self.db.refresh(quiz)
         return self.get_quiz(quiz_id)
@@ -561,19 +561,19 @@ class QuizAdminService:
     ) -> List[dict]:
         """Get only published quizzes."""
         from app.db.models import QuizStatus
-        
+
         statement = (
             select(Quiz)
             .where(Quiz.status == QuizStatus.PUBLISHED)
             .offset(skip)
             .limit(limit)
         )
-        
+
         if topic_id:
             statement = statement.where(Quiz.topic_id == topic_id)
-        
+
         quizzes = list(self.db.exec(statement).all())
-        
+
         # Add topic and question count as before
         quiz_responses = []
         for quiz in quizzes:
@@ -583,9 +583,9 @@ class QuizAdminService:
                 .where(QuizQuestion.quiz_id == quiz.id)
             )
             question_count = self.db.exec(count_stmt).one()
-            
+
             topic = self.db.get(Topic, quiz.topic_id)
-            
+
             quiz_dict = {
                 "id": quiz.id,
                 "title": quiz.title,
@@ -602,5 +602,94 @@ class QuizAdminService:
                 "has_image": quiz.image_data is not None,
             }
             quiz_responses.append(quiz_dict)
-        
+
+        return quiz_responses
+
+    # Publishing operations
+    def publish_quiz(self, quiz_id: int) -> Optional[dict]:
+        """Publish a quiz for gameplay."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            return None
+
+        # Check if quiz has questions
+        statement = (
+            select(func.count())
+            .select_from(QuizQuestion)
+            .where(QuizQuestion.quiz_id == quiz_id)
+        )
+        question_count = self.db.exec(statement).one()
+
+        if question_count == 0:
+            raise ValueError("Quiz muss mindestens eine Frage enthalten")
+
+        from app.db.models import QuizStatus
+        from datetime import datetime
+        quiz.status = QuizStatus.PUBLISHED
+        quiz.published_at = datetime.utcnow()
+
+        self.db.commit()
+        self.db.refresh(quiz)
+        return self.get_quiz(quiz_id)
+
+    def archive_quiz(self, quiz_id: int) -> Optional[dict]:
+        """Archive a quiz to hide it from gameplay."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            return None
+
+        from app.db.models import QuizStatus
+        quiz.status = QuizStatus.ARCHIVED
+
+        self.db.commit()
+        self.db.refresh(quiz)
+        return self.get_quiz(quiz_id)
+
+    def get_published_quizzes(
+        self, skip: int = 0, limit: int = 100, topic_id: Optional[int] = None
+    ) -> List[dict]:
+        """Get only published quizzes."""
+        from app.db.models import QuizStatus
+
+        statement = (
+            select(Quiz)
+            .where(Quiz.status == QuizStatus.PUBLISHED)
+            .offset(skip)
+            .limit(limit)
+        )
+
+        if topic_id:
+            statement = statement.where(Quiz.topic_id == topic_id)
+
+        quizzes = list(self.db.exec(statement).all())
+
+        # Add topic and question count as before
+        quiz_responses = []
+        for quiz in quizzes:
+            count_stmt = (
+                select(func.count())
+                .select_from(QuizQuestion)
+                .where(QuizQuestion.quiz_id == quiz.id)
+            )
+            question_count = self.db.exec(count_stmt).one()
+
+            topic = self.db.get(Topic, quiz.topic_id)
+
+            quiz_dict = {
+                "id": quiz.id,
+                "title": quiz.title,
+                "description": quiz.description,
+                "topic_id": quiz.topic_id,
+                "difficulty": quiz.difficulty,
+                "time_limit_minutes": quiz.time_limit_minutes,
+                "status": quiz.status,
+                "published_at": quiz.published_at,
+                "play_count": quiz.play_count,
+                "created_at": quiz.created_at,
+                "topic": topic,
+                "question_count": question_count,
+                "has_image": quiz.image_data is not None,
+            }
+            quiz_responses.append(quiz_dict)
+
         return quiz_responses

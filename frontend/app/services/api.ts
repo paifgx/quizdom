@@ -25,20 +25,48 @@ export const healthService = {
 export const topicsService = {
   /**
    * Fetch all topics.
-   * TODO: Replace with real backend endpoint when available.
    */
   async getAll(): Promise<GameTopic[]> {
-    // For now, throw error to indicate backend endpoint needed
-    throw new Error('Backend endpoint /topics not implemented yet');
+    const response = await apiClient.get<any[]>('/v1/admin/topics');
+    return response.map(topic => ({
+      id: topic.id.toString(),
+      title: topic.title,
+      description: topic.description || '',
+      category: 'General', // Topics don't have categories in our backend
+      totalQuestions: 0, // Would need to fetch this separately
+      completedQuestions: 0, // Not tracked in backend yet
+      image: '📚', // Default icon as image
+      stars: 0, // Not implemented in backend yet
+      popularity: 0, // Not implemented in backend yet
+      wisecoinReward: 10, // Default reward
+      isCompleted: false, // Not tracked in backend yet
+      isFavorite: false, // Not implemented in backend yet
+    }));
   },
 
   /**
    * Fetch topic by ID.
-   * TODO: Replace with real backend endpoint when available.
    */
-  async getById(_id: string): Promise<GameTopic | null> {
-    // For now, throw error to indicate backend endpoint needed
-    throw new Error(`Backend endpoint /topics/${_id} not implemented yet`);
+  async getById(id: string): Promise<GameTopic | null> {
+    try {
+      const response = await apiClient.get<any>(`/v1/admin/topics/${id}`);
+      return {
+        id: response.id.toString(),
+        title: response.title,
+        description: response.description || '',
+        category: 'General',
+        totalQuestions: 0,
+        completedQuestions: 0,
+        image: '📚',
+        stars: 0,
+        popularity: 0,
+        wisecoinReward: 10,
+        isCompleted: false,
+        isFavorite: false,
+      };
+    } catch {
+      return null;
+    }
   },
 
   /**

@@ -10,7 +10,7 @@ from app.db.models import GameMode
 
 class GameSessionCreate(BaseModel):
     """Request model for creating a game session."""
-    
+
     mode: GameMode
     # For random games
     question_count: Optional[int] = 10
@@ -20,7 +20,7 @@ class GameSessionCreate(BaseModel):
 
 class GameSessionResponse(BaseModel):
     """Response model for game session creation."""
-    
+
     session_id: int
     mode: GameMode
     # Either quiz or topic info
@@ -34,14 +34,14 @@ class GameSessionResponse(BaseModel):
 
 class AnswerOption(BaseModel):
     """Answer option for a question."""
-    
+
     id: int
     content: str
 
 
 class QuestionResponse(BaseModel):
     """Response model for a game question."""
-    
+
     question_id: int
     question_number: int
     content: str
@@ -52,7 +52,7 @@ class QuestionResponse(BaseModel):
 
 class SubmitAnswerRequest(BaseModel):
     """Request model for submitting an answer."""
-    
+
     question_id: int
     answer_id: int
     answered_at: int  # Unix timestamp in milliseconds
@@ -60,7 +60,7 @@ class SubmitAnswerRequest(BaseModel):
 
 class SubmitAnswerResponse(BaseModel):
     """Response model for answer submission."""
-    
+
     is_correct: bool
     correct_answer_id: int
     points_earned: int
@@ -72,7 +72,7 @@ class SubmitAnswerResponse(BaseModel):
 
 class GameResultResponse(BaseModel):
     """Response model for game completion."""
-    
+
     session_id: int
     mode: GameMode
     result: str  # "win" or "fail"
@@ -83,4 +83,4 @@ class GameResultResponse(BaseModel):
     total_time_seconds: int
     # For leaderboard
     rank: Optional[int] = None
-    percentile: Optional[float] = None 
+    percentile: Optional[float] = None
