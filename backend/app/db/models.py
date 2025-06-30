@@ -133,6 +133,11 @@ class GameSession(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     mode: GameMode
     status: GameStatus
+    # Track source of questions
+    quiz_id: Optional[int] = Field(default=None, foreign_key="quiz.id")
+    topic_id: Optional[int] = Field(default=None, foreign_key="topic.id")
+    question_ids: Optional[list[int]] = Field(default=None, sa_column=Column(JSON))
+    current_question_index: int = Field(default=0)
     started_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
@@ -244,6 +249,14 @@ class LeaderboardEntry(SQLModel, table=True):
 
 # The following models remain from the original implementation but are not in the ERM
 
+class QuizStatus(str, Enum):
+    """Quiz publication status."""
+
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    ARCHIVED = "archived"
+
+
 class Quiz(SQLModel, table=True):
     """Quiz definitions."""
 
@@ -253,6 +266,9 @@ class Quiz(SQLModel, table=True):
     topic_id: int = Field(foreign_key="topic.id")
     difficulty: int
     time_limit_minutes: Optional[int] = None
+    status: QuizStatus = Field(default=QuizStatus.DRAFT)
+    published_at: Optional[datetime] = None
+    play_count: int = Field(default=0)
     image_data: Optional[bytes] = None
     image_filename: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

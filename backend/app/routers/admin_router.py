@@ -424,3 +424,55 @@ async def delete_quiz_image(
         )
 
     return {"message": "Bild erfolgreich gelöscht"}
+
+
+@router.post("/quizzes/{quiz_id}/publish", response_model=QuizResponse)
+async def publish_quiz(
+    quiz_id: int,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_session),
+):
+    """Publish a quiz to make it available for gameplay."""
+    service = QuizAdminService(db)
+    try:
+        quiz = service.publish_quiz(quiz_id)
+        if not quiz:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Quiz nicht gefunden",
+            )
+        return quiz
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.post("/quizzes/{quiz_id}/archive", response_model=QuizResponse)
+async def archive_quiz(
+    quiz_id: int,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_session),
+):
+    """Archive a quiz to hide it from gameplay."""
+    service = QuizAdminService(db)
+    quiz = service.archive_quiz(quiz_id)
+    if not quiz:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz nicht gefunden",
+        )
+    return quiz
+
+
+@router.get("/quizzes/published", response_model=List[QuizResponse])
+async def get_published_quizzes(
+    skip: int = 0,
+    limit: int = 100,
+    topic_id: Optional[int] = None,
+    db: Session = Depends(get_session),
+):
+    """Get all published quizzes available for gameplay."""
+    service = QuizAdminService(db)
+    return service.get_published_quizzes(skip=skip, limit=limit, topic_id=topic_id)
