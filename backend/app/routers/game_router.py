@@ -2,10 +2,15 @@
 Game router for actual gameplay.
 
 Supports both curated quizzes and dynamic topic-based questions.
+This router provides endpoints for:
+- Starting game sessions with curated quizzes or random topic questions
+- Retrieving questions during gameplay
+- Submitting and validating answers
+- Completing game sessions and retrieving results
 """
 
 from datetime import datetime
-from typing import List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
@@ -37,17 +42,30 @@ async def start_quiz_game(
 ) -> GameSessionResponse:
     """Start a game session with a curated quiz.
 
+    Creates a new game session for the specified quiz and authenticated user.
+    The game session includes all questions from the quiz in the order defined
+    in the quiz configuration.
+
+    This endpoint:
+    - Validates that the quiz exists and is published
+    - Creates a game session with the specified mode
+    - Adds the current user as a player with initial state (3 hearts, 0 score)
+    - Returns session details including question count and time limits
+
     Args:
         quiz_id: ID of the quiz to play
-        game_data: Game session configuration
-        current_user: Authenticated user
-        db: Database session
+        game_data: Game session configuration including mode and options
+        current_user: Authenticated user retrieved from auth token
+        db: Database session for data operations
 
     Returns:
-        GameSessionResponse: Created game session details
+        GameSessionResponse: Created game session details including session ID,
+                            mode, quiz info, and question count
 
     Raises:
-        HTTPException: When quiz doesn't exist or has no questions
+        HTTPException: 
+            - 400 Bad Request: When quiz doesn't exist, isn't published, or has no questions
+            - 400 Bad Request: When session creation fails for any other reason
     """
     game_service = GameService(db)
 
@@ -59,7 +77,7 @@ async def start_quiz_game(
         )
 
         # Get quiz title
-        quiz_title = None
+        quiz_title: Optional[str] = None
         if session.quiz_id is not None:
             quiz = db.get(Quiz, session.quiz_id)
             if quiz:
@@ -81,9 +99,9 @@ async def start_quiz_game(
         )
 
     except ValueError as e:
-        error_code = "quiz_game_error"
-        field = None
-        hint = None
+        error_code: str = "quiz_game_error"
+        field: Optional[str] = None
+        hint: Optional[str] = None
 
         if "nicht verfügbar" in str(e):
             if "Session ID" in str(e):
@@ -120,17 +138,30 @@ async def start_random_game(
 ) -> GameSessionResponse:
     """Start a game session with random questions from a topic.
 
+    Creates a new game session with randomly selected questions from the specified topic.
+    Questions are filtered by difficulty if min/max parameters are provided in game_data.
+
+    This endpoint:
+    - Validates that the topic exists and has questions matching the criteria
+    - Selects random questions based on provided count and difficulty range
+    - Creates a game session with the specified mode
+    - Adds the current user as a player with initial state (3 hearts, 0 score)
+    - Returns session details including question count
+
     Args:
         topic_id: ID of the topic to select questions from
-        game_data: Game session configuration
-        current_user: Authenticated user
-        db: Database session
+        game_data: Game session configuration including mode, question count, and difficulty range
+        current_user: Authenticated user retrieved from auth token
+        db: Database session for data operations
 
     Returns:
-        GameSessionResponse: Created game session details
+        GameSessionResponse: Created game session details including session ID,
+                            mode, topic info, and question count
 
     Raises:
-        HTTPException: When topic doesn't exist or has no questions
+        HTTPException: 
+            - 400 Bad Request: When topic doesn't exist or has no matching questions
+            - 400 Bad Request: When session creation fails for any other reason
     """
     game_service = GameService(db)
 
@@ -145,7 +176,7 @@ async def start_random_game(
         )
 
         # Get topic title
-        topic_title = None
+        topic_title: Optional[str] = None
         if session.topic_id is not None:
             topic = db.get(Topic, session.topic_id)
             if topic:
@@ -167,9 +198,9 @@ async def start_random_game(
         )
 
     except ValueError as e:
-        error_code = "topic_game_error"
-        field = None
-        hint = None
+        error_code: str = "topic_game_error"
+        field: Optional[str] = None
+        hint: Optional[str] = None
 
         if "nicht verfügbar" in str(e):
             if "Session ID" in str(e):
@@ -207,18 +238,35 @@ async def get_question(
 ) -> QuestionResponse:
     """Get a specific question from the game session.
 
+    Retrieves the question at the specified index from an active game session.
+    This endpoint enforces security by verifying that:
+    - The session exists
+    - The user is a participant in the session
+    - The question index is valid for the session
+
+    The session's current_question_index is updated to track progress,
+    and a timestamp is generated to calculate response time when the answer
+    is submitted.
+
+    Time limits are applied based on:
+    - For quiz-based games: time is divided evenly among questions
+    - For topic-based games: default 30-second limit per question
+
     Args:
-        session_id: ID of the game session
-        question_index: Index of the question to retrieve
-        current_user: Authenticated user
-        db: Database session
+        session_id: ID of the game session to retrieve a question from
+        question_index: Zero-based index of the question to retrieve
+        current_user: Authenticated user retrieved from auth token
+        db: Database session for data operations
 
     Returns:
-        QuestionResponse: Question with answer options
+        QuestionResponse: Question content, answer options, question number,
+                         time limit, and timestamp when shown
 
     Raises:
-        HTTPException: When session doesn't exist, user is not a participant,
-                      or question index is invalid
+        HTTPException: 
+            - 404 Not Found: When session or question doesn't exist
+            - 403 Forbidden: When user is not a participant in the session
+            - 400 Bad Request: For invalid question indices or other errors
     """
     game_service = GameService(db)
 
@@ -249,6 +297,11 @@ async def get_question(
 
     except ValueError as e:
         # Extract error code from error message
+        error_code: str
+        status_code: int
+        field: Optional[str] = None
+        hint: Optional[str]
+
         if "nicht gefunden" in str(e):
             if "Session" in str(e):
                 error_code = "session_not_found"
@@ -278,7 +331,7 @@ async def get_question(
             detail={
                 "detail": str(e),
                 "code": error_code,
-                "field": field if 'field' in locals() else None,
+                "field": field,
                 "hint": hint
             },
             headers={
@@ -296,18 +349,38 @@ async def submit_answer(
 ) -> SubmitAnswerResponse:
     """Submit an answer to a question in a game session.
 
+    Processes a player's answer to a question, handling:
+    - Validation of session, user participation, question, and answer
+    - Correctness checking against the correct answer
+    - Response time calculation based on the provided timestamp
+    - Point calculation based on correctness and response time
+    - Player score updating
+    - Hearts/lives management for incorrect answers (except in collaborative mode)
+
+    The scoring system rewards faster correct answers:
+    - 0-3 seconds: 100 points
+    - 3-6 seconds: 50 points
+    - >6 seconds: 25 points
+
+    Incorrect answers result in:
+    - No points gained
+    - Loss of one heart/life (except in collaborative mode)
+
     Args:
-        session_id: ID of the game session
-        answer_data: Answer submission data
-        current_user: Authenticated user
-        db: Database session
+        session_id: ID of the game session the answer belongs to
+        answer_data: Answer submission data containing question ID, answer ID, and timestamp
+        current_user: Authenticated user retrieved from auth token
+        db: Database session for data operations
 
     Returns:
-        SubmitAnswerResponse: Result of answer submission with feedback
+        SubmitAnswerResponse: Result including correctness, points earned, player score,
+                             remaining hearts, and explanation if available
 
     Raises:
-        HTTPException: When session doesn't exist, user is not a participant,
-                      or answer is invalid
+        HTTPException: 
+            - 404 Not Found: When session doesn't exist
+            - 403 Forbidden: When user is not a participant in the session
+            - 400 Bad Request: For invalid questions, answers, or other errors
     """
     game_service = GameService(db)
 
@@ -335,7 +408,11 @@ async def submit_answer(
 
     except ValueError as e:
         # Extract error code from error message
-        field = None
+        error_code: str
+        status_code: int
+        field: Optional[str] = None
+        hint: Optional[str]
+
         if "nicht gefunden" in str(e):
             if "Session" in str(e):
                 error_code = "session_not_found"
@@ -392,21 +469,41 @@ async def complete_session(
 ) -> GameResultResponse:
     """Complete a game session and get results.
 
+    Finalizes a game session, calculating statistics and setting the status to FINISHED.
+    This endpoint:
+    - Verifies session exists and user is a participant
+    - Marks the session as finished with an end timestamp
+    - Calculates final statistics:
+      - Questions answered and correct answer count
+      - Total time spent
+      - Final score and hearts remaining
+      - Result (win/fail) based on hearts
+
+    A game is considered won if the player still has at least one heart remaining
+    at the end of the session. Otherwise, it's considered a failure.
+
+    Note: The rank and percentile features are placeholders for future leaderboard
+    functionality and currently return default values.
+
     Args:
         session_id: ID of the game session to complete
-        current_user: Authenticated user
-        db: Database session
+        current_user: Authenticated user retrieved from auth token
+        db: Database session for data operations
 
     Returns:
-        GameResultResponse: Game session results
+        GameResultResponse: Complete game results including score, statistics,
+                           and outcome (win/fail)
 
     Raises:
-        HTTPException: When session doesn't exist or user is not a participant
+        HTTPException: 
+            - 404 Not Found: When session doesn't exist
+            - 403 Forbidden: When user is not a participant in the session
+            - 400 Bad Request: For any other errors during completion
     """
     game_service = GameService(db)
 
     try:
-        result = game_service.complete_session(
+        result: Dict[str, Any] = game_service.complete_session(
             session_id=session_id,
             user=current_user
         )
@@ -427,7 +524,11 @@ async def complete_session(
 
     except ValueError as e:
         # Extract error code from error message
-        field = None
+        error_code: str
+        status_code: int
+        field: Optional[str] = None
+        hint: Optional[str]
+
         if "nicht gefunden" in str(e):
             if "Session" in str(e):
                 error_code = "session_not_found"

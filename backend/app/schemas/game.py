@@ -106,18 +106,76 @@ class AnswerOption(BaseModel):
     id: int
     content: str
 
+    @validator("content")
+    def validate_content(cls, v: str) -> str:
+        """Validiere den Antwortinhalt."""
+        if not v or not v.strip():
+            raise ValueError("Antwortinhalt darf nicht leer sein")
+        if len(v) > 500:
+            raise ValueError(
+                "Antwortinhalt darf nicht länger als 500 Zeichen sein")
+        return v
+
 
 class QuestionResponse(BaseModel):
     """Response model for a game question."""
 
     question_id: int
-    question_number: int
-    content: str
-    answers: List[AnswerOption]
+    question_number: int = Field(
+        ...,
+        ge=1,
+        description="Fragennummer (beginnend bei 1)"
+    )
+    content: str = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="Fragetext"
+    )
+    answers: List[AnswerOption] = Field(
+        ...,
+        description="Antwortoptionen"
+    )
     time_limit: int = Field(
-        30, ge=10, le=300, description="Time limit in seconds")
+        30,
+        ge=10,
+        le=300,
+        description="Zeitlimit in Sekunden"
+    )
     show_timestamp: int = Field(
-        ..., description="Unix timestamp in milliseconds when question was shown")
+        ...,
+        description="Unix-Zeitstempel in Millisekunden, wann die Frage angezeigt wurde"
+    )
+
+    @validator("content")
+    def validate_content(cls, v: str) -> str:
+        """Validiere den Frageinhalt."""
+        if not v or not v.strip():
+            raise ValueError("Frageinhalt darf nicht leer sein")
+        return v
+
+    @validator("show_timestamp")
+    def validate_timestamp(cls, v: int) -> int:
+        """Validiere den Zeitstempel."""
+        current_time = int(datetime.utcnow().timestamp() * 1000)
+        # Timestamp can't be from the future
+        if v > current_time + 5000:  # Allow 5 seconds for clock differences
+            raise ValueError(
+                "Ungültiger Zeitstempel: Zeitstempel kann nicht aus der Zukunft sein")
+        # Timestamp can't be too old (e.g., 1 hour)
+        if v < current_time - 3600000:
+            raise ValueError("Ungültiger Zeitstempel: Zeitstempel ist zu alt")
+        return v
+
+    @validator("answers")
+    def validate_answers(cls, v: List[AnswerOption]) -> List[AnswerOption]:
+        """Validiere die Antwortoptionen."""
+        if len(v) < 2:
+            raise ValueError(
+                "Mindestens zwei Antwortoptionen sind erforderlich")
+        if len(v) > 10:
+            raise ValueError("Maximal zehn Antwortoptionen sind erlaubt")
+        return v
 
 
 class SubmitAnswerRequest(BaseModel):
@@ -147,11 +205,31 @@ class SubmitAnswerResponse(BaseModel):
 
     is_correct: bool
     correct_answer_id: int
-    points_earned: int
-    response_time_ms: int
-    player_score: int
-    player_hearts: int
-    explanation: Optional[str] = None
+    points_earned: int = Field(
+        ...,
+        ge=0,
+        description="Erzielte Punkte für diese Antwort"
+    )
+    response_time_ms: int = Field(
+        ...,
+        description="Antwortzeit in Millisekunden"
+    )
+    player_score: int = Field(
+        ...,
+        ge=0,
+        description="Aktueller Spielerstand"
+    )
+    player_hearts: int = Field(
+        ...,
+        ge=0,
+        le=3,
+        description="Verbleibende Leben des Spielers"
+    )
+    explanation: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Erklärung zur Antwort"
+    )
 
 
 class GameResultResponse(BaseModel):
@@ -159,19 +237,60 @@ class GameResultResponse(BaseModel):
 
     session_id: int
     mode: GameMode
-    result: str = Field(..., description="win or fail")
-    final_score: int
-    hearts_remaining: int
-    questions_answered: int
-    correct_answers: int
-    total_time_seconds: int
-    rank: Optional[int] = None
+    result: str = Field(
+        ...,
+        description="Spielergebnis (win oder fail)"
+    )
+    final_score: int = Field(
+        ...,
+        ge=0,
+        description="Endgültiger Punktestand"
+    )
+    hearts_remaining: int = Field(
+        ...,
+        ge=0,
+        le=3,
+        description="Verbleibende Leben"
+    )
+    questions_answered: int = Field(
+        ...,
+        ge=0,
+        description="Anzahl der beantworteten Fragen"
+    )
+    correct_answers: int = Field(
+        ...,
+        ge=0,
+        description="Anzahl der korrekt beantworteten Fragen"
+    )
+    total_time_seconds: int = Field(
+        ...,
+        ge=0,
+        description="Gesamtspielzeit in Sekunden"
+    )
+    rank: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Rang in der Bestenliste"
+    )
     percentile: Optional[float] = Field(
-        None, ge=0, le=100, description="Percentile rank (0-100)")
+        None,
+        ge=0,
+        le=100,
+        description="Perzentilrang (0-100)"
+    )
 
     @validator("result")
     def validate_result(cls, v: str) -> str:
         """Validate that result is either 'win' or 'fail'."""
         if v not in ["win", "fail"]:
             raise ValueError("Ergebnis muss entweder 'win' oder 'fail' sein")
+        return v
+
+    @validator("correct_answers", "questions_answered")
+    def validate_answers_count(cls, v: int, values: Dict[str, Any]) -> int:
+        """Validiere die Fragenanzahl."""
+        if "questions_answered" in values and "correct_answers" in values:
+            if values["correct_answers"] > values["questions_answered"]:
+                raise ValueError(
+                    "Anzahl der korrekten Antworten kann nicht größer sein als die Anzahl der beantworteten Fragen")
         return v
