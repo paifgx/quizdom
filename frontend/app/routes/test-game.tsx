@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { LoadingSpinner } from '../components/home/loading-spinner';
 import { gameService } from '../services/game';
 import { useAuthenticatedGame } from '../hooks/useAuthenticatedGame';
+import type { GameModeId } from '../types/game';
 
 // Types for test game data - using the actual service types
 interface TestQuestion {
@@ -65,7 +66,7 @@ export default function TestGamePage() {
       // Start game session
       const sessionResponse = await gameService.startTopicGame(
         topicId,
-        'solo',
+        'solo' as GameModeId,
         5 // 5 questions
       );
 

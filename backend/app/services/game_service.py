@@ -117,8 +117,10 @@ class GameService:
         if not questions:
             raise ValueError("Quiz enthält keine Fragen")
 
-        # Convert string mode to enum if needed
-        game_mode = GameMode(mode.lower()) if isinstance(mode, str) else mode
+        # Ensure mode is lowercase as the database enum expects lowercase values
+        if isinstance(mode, str):
+            mode_str = mode.lower()
+            game_mode = GameMode(mode_str)
 
         # Create game session
         session = GameSession(
@@ -218,7 +220,12 @@ class GameService:
         questions = sample(all_questions, question_count)
 
         # Convert string mode to enum if needed
-        game_mode = GameMode(mode.lower()) if isinstance(mode, str) else mode
+        if isinstance(mode, str):
+            # Ensure mode is lowercase as the database enum expects lowercase values
+            mode_str = mode.lower()
+            game_mode = GameMode(mode_str)
+        else:
+            game_mode = mode
 
         # Create game session
         session = GameSession(
@@ -325,7 +332,8 @@ class GameService:
         if session.quiz_id is not None:
             quiz = self.db.get(Quiz, session.quiz_id)
             if quiz and quiz.time_limit_minutes:
-                time_limit = quiz.time_limit_minutes * 60 // len(session.question_ids)
+                time_limit = quiz.time_limit_minutes * \
+                    60 // len(session.question_ids)
 
         return question, list(answers), time_limit
 
@@ -532,7 +540,8 @@ class GameService:
         ).all()
 
         questions_answered = len(player_answers)
-        correct_answers = sum(1 for answer in player_answers if answer.is_correct)
+        correct_answers = sum(
+            1 for answer in player_answers if answer.is_correct)
 
         # Calculate total time in seconds
         total_time_seconds = 0
