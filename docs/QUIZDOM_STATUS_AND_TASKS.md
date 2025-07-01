@@ -50,12 +50,15 @@ Complete all code quality improvements and establish testing framework to achiev
 - [x] Week planning and task prioritization
 
 #### Tuesday, July 1 - Error Handling 🎯
+- [ ] check deployment-status
+  - [ ] if deployable -> deploy
 - [ ] Create ErrorBoundary component
 - [ ] Design error fallback UI
-- [ ] Add error logging utility
+- [ ] ~Add error logging utility~
 - [ ] Wrap game components with error boundaries
-- [ ] Test error scenarios
-- [ ] Document error handling patterns
+- [ ] Test error scenarios (rudimentär)
+- [ ] ~Document error handling patterns~
+
 
 #### Wednesday, July 2 - TypeScript Migration 🎯
 - [ ] Fix `any` types in game-api.ts (6 instances)
@@ -64,9 +67,10 @@ Complete all code quality improvements and establish testing framework to achiev
 - [ ] Add missing `endGame` dependency in useCallback
 - [ ] Run full TypeScript check
 - [ ] Ensure zero warnings
+- [ ] Deployment
 
 #### Thursday, July 3 - E2E Testing Day 1 🎯
-- [ ] Set up E2E testing framework (Playwright/Cypress)
+- [ ] ~Set up E2E testing framework (Playwright)~
 - [ ] Write quiz game flow tests:
   - [ ] Quiz selection
   - [ ] Question navigation
