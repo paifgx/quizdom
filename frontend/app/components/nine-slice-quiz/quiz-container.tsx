@@ -21,6 +21,7 @@ export interface QuizContainerProps {
     correct: number;
     selected?: number;
   };
+  waitingForOpponent?: boolean;
 }
 
 /**
@@ -33,6 +34,7 @@ export function QuizContainer({
   onQuestionClick,
   disabled = false,
   showCorrectAnswer,
+  waitingForOpponent = false,
 }: QuizContainerProps) {
   return (
     <div className="max-w-4xl mx-auto">
@@ -80,6 +82,16 @@ export function QuizContainer({
           );
         })}
       </div>
+      
+      {/* Waiting for opponent overlay */}
+      {waitingForOpponent && (
+        <div className="mt-6 bg-gray-800/80 rounded-lg p-4 text-center">
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-5 h-5 rounded-full border-2 border-t-transparent border-[#FCC822] animate-spin"></div>
+            <p className="text-white font-medium">Warte auf Mitspieler...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

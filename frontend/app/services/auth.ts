@@ -81,8 +81,11 @@ function handleAuthError(error: unknown): never {
 /**
  * Authentication service class.
  *
- * Provides centralized authentication management with persistent storage.
+ * Provides centralized authentication management with tab-isolated storage.
  * Handles token lifecycle and user session state.
+ * 
+ * Uses sessionStorage for tokens to ensure proper isolation in multi-user scenarios.
+ * Uses localStorage for user data to maintain profile across tabs.
  */
 class AuthService {
   private tokenKey = 'quizdom_access_token';
@@ -196,11 +199,11 @@ class AuthService {
   /**
    * Logout user and clear stored data.
    *
-   * Removes all authentication data from localStorage.
+   * Removes all authentication data from storage.
    * Forces user to re-authenticate on next access.
    */
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
+    sessionStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
   }
 
@@ -219,21 +222,25 @@ class AuthService {
   /**
    * Get stored authentication token.
    *
-   * Retrieves JWT token from localStorage.
+   * Retrieves JWT token from sessionStorage.
    * Returns null if no token is stored.
+   * 
+   * Uses sessionStorage to ensure proper tab isolation for multi-user scenarios.
    */
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    return sessionStorage.getItem(this.tokenKey);
   }
 
   /**
    * Set authentication token.
    *
-   * Stores JWT token in localStorage for persistence.
+   * Stores JWT token in sessionStorage for tab-isolated persistence.
    * Used internally after successful authentication.
+   * 
+   * Uses sessionStorage to prevent token sharing between browser tabs.
    */
   private setToken(token: string): void {
-    localStorage.setItem(this.tokenKey, token);
+    sessionStorage.setItem(this.tokenKey, token);
   }
 
   /**
@@ -241,6 +248,9 @@ class AuthService {
    *
    * Retrieves and parses user data from localStorage.
    * Cleans up invalid JSON and returns null if not found.
+   * 
+   * Note: User data remains in localStorage for profile consistency,
+   * but authentication is validated through the tab-isolated token.
    */
   getUser(): User | null {
     const userStr = localStorage.getItem(this.userKey);

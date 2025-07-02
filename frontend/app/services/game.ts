@@ -24,6 +24,25 @@ function toBackendGameMode(mode: GameModeId): BackendGameMode {
   }
 }
 
+// Session metadata for joining an existing session
+export interface PlayerMeta {
+  id: string;
+  name: string;
+  score: number;
+  hearts: number;
+  isHost: boolean;
+}
+
+export interface SessionMeta {
+  sessionId: string;
+  mode: BackendGameMode;
+  players: PlayerMeta[];
+  currentQuestion: number;
+  totalQuestions: number;
+  quizId?: number;
+  topicId?: number;
+}
+
 // Backend response types
 interface GameSessionResponse {
   session_id: number;
@@ -71,6 +90,22 @@ interface GameResultResponse {
   total_time_seconds: number;
   rank?: number;
   percentile?: number;
+}
+
+interface SessionJoinResponse {
+  session_id: string;
+  mode: string;
+  players: Array<{
+    id: string;
+    name: string;
+    score: number;
+    hearts: number;
+    is_host: boolean;
+  }>;
+  current_question: number;
+  total_questions: number;
+  quiz_id?: number;
+  topic_id?: number;
 }
 
 class GameService {
@@ -133,6 +168,108 @@ class GameService {
     } catch (error) {
       console.error('Failed to start quiz game:', error);
       throw new Error('Failed to start game. Please try again.');
+    }
+  }
+
+  /**
+   * Join an existing game session.
+   */
+  async joinSession(sessionId: string): Promise<SessionMeta> {
+    try {
+      const sessionIdInt = parseInt(sessionId);
+      if (isNaN(sessionIdInt)) {
+        throw new Error('Invalid session ID');
+      }
+      
+      const response = await apiClient.post<SessionJoinResponse>(
+        `/v1/game/session/${sessionIdInt}/join`,
+        {},
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+
+      // Convert snake_case to camelCase
+      return {
+        sessionId: response.session_id,
+        mode: response.mode as BackendGameMode,
+        players: response.players.map(player => ({
+          id: player.id,
+          name: player.name,
+          score: player.score,
+          hearts: player.hearts,
+          isHost: player.is_host
+        })),
+        currentQuestion: response.current_question,
+        totalQuestions: response.total_questions,
+        quizId: response.quiz_id,
+        topicId: response.topic_id
+      };
+    } catch (error) {
+      console.error('Failed to join session:', error);
+      throw new Error('Failed to join game session. It may be full or no longer available.');
+    }
+  }
+
+  /**
+   * Get the status of a game session.
+   */
+  async getSessionStatus(sessionId: string): Promise<{
+    sessionId: number;
+    status: string;
+    mode: string;
+    players: PlayerMeta[];
+    currentQuestion: number;
+    totalQuestions: number;
+    playerCount: number;
+  }> {
+    try {
+      // Ensure sessionId is parsed as integer for backend
+      const sessionIdInt = parseInt(sessionId);
+      if (isNaN(sessionIdInt)) {
+        throw new Error('Invalid session ID');
+      }
+      
+      const response = await apiClient.get<{
+        session_id: number;
+        status: string;
+        mode: string;
+        players: Array<{
+          id: string;
+          name: string;
+          score: number;
+          hearts: number;
+          is_host: boolean;
+        }>;
+        current_question: number;
+        total_questions: number;
+        player_count: number;
+      }>(
+        `/v1/game/session/${sessionIdInt}/status`,
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+
+      // Convert snake_case to camelCase
+      return {
+        sessionId: response.session_id,
+        status: response.status,
+        mode: response.mode,
+        players: response.players.map(player => ({
+          id: player.id,
+          name: player.name,
+          score: player.score,
+          hearts: player.hearts,
+          isHost: player.is_host
+        })),
+        currentQuestion: response.current_question,
+        totalQuestions: response.total_questions,
+        playerCount: response.player_count,
+      };
+    } catch (error) {
+      console.error('Failed to get session status:', error);
+      throw new Error('Failed to get session status.');
     }
   }
 
@@ -215,24 +352,33 @@ class GameService {
     totalQuestions: number
   ): Promise<QuestionResponse[]> {
     try {
+      console.log(`Fetching all ${totalQuestions} questions for session ${sessionId}`);
       const questions: QuestionResponse[] = [];
       
-      // Load all questions in parallel for better performance
-      const promises = Array.from({ length: totalQuestions }, (_, i) =>
-        this.getQuestion(sessionId, i)
-      );
+      if (!sessionId) {
+        console.error('Invalid sessionId provided:', sessionId);
+        throw new Error('Invalid session ID');
+      }
       
-      const results = await Promise.allSettled(promises);
+      if (!totalQuestions || totalQuestions <= 0) {
+        console.error('Invalid totalQuestions:', totalQuestions);
+        throw new Error('Invalid total questions count');
+      }
       
-      for (const result of results) {
-        if (result.status === 'fulfilled') {
-          questions.push(result.value);
-        } else {
-          console.error('Failed to load question:', result.reason);
-          throw new Error('Failed to load all questions');
+      // Load questions sequentially if there are issues with parallel loading
+      for (let i = 0; i < totalQuestions; i++) {
+        try {
+          console.log(`Fetching question ${i} for session ${sessionId}`);
+          const question = await this.getQuestion(sessionId, i);
+          questions.push(question);
+          console.log(`Successfully loaded question ${i}:`, question.content.substring(0, 20) + '...');
+        } catch (questionError) {
+          console.error(`Failed to load question ${i}:`, questionError);
+          throw new Error(`Failed to load question ${i}`);
         }
       }
       
+      console.log(`Successfully loaded all ${questions.length} questions`);
       return questions;
     } catch (error) {
       console.error('Failed to load questions:', error);
@@ -244,4 +390,4 @@ class GameService {
 // Export singleton instance
 export const gameService = new GameService();
 export { GameService };
-export default gameService; 
+export default gameService;

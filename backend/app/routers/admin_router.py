@@ -107,7 +107,8 @@ async def delete_topic(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Thema nicht gefunden"
             )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # Question endpoints
@@ -186,7 +187,8 @@ async def delete_question(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Frage nicht gefunden"
             )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post(
@@ -209,7 +211,8 @@ async def create_questions_batch(
 
         return created_questions
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # Quiz endpoints
@@ -223,6 +226,18 @@ async def get_quizzes(
     """Get all quizzes with optional topic filter."""
     service = QuizAdminService(db)
     return service.get_quizzes(skip=skip, limit=limit, topic_id=topic_id)
+
+
+@router.get("/quizzes/published", response_model=List[QuizResponse])
+async def get_published_quizzes(
+    skip: int = 0,
+    limit: int = 100,
+    topic_id: Optional[int] = None,
+    db: Session = Depends(get_session),
+) -> List[dict[str, Any]]:
+    """Get all published quizzes with optional topic filter."""
+    service = QuizAdminService(db)
+    return service.get_published_quizzes(skip=skip, limit=limit, topic_id=topic_id)
 
 
 @router.get("/quizzes/{quiz_id}", response_model=QuizDetailResponse)
@@ -252,7 +267,8 @@ async def create_quiz(
     try:
         return service.create_quiz(quiz_data)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post(
@@ -269,7 +285,8 @@ async def create_quiz_batch(
     try:
         return service.create_quiz_batch(quiz_data)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.put("/quizzes/{quiz_id}", response_model=QuizDetailResponse)
@@ -302,7 +319,8 @@ async def delete_quiz(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
             )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # Image upload endpoints
@@ -340,7 +358,8 @@ async def upload_quiz_image(
             quiz_id=quiz_id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/quizzes/{quiz_id}/image")
@@ -361,7 +380,8 @@ async def get_quiz_image(
             io.BytesIO(image_data), media_type=content_type or "image/jpeg"
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.delete("/quizzes/{quiz_id}/image", status_code=status.HTTP_204_NO_CONTENT)
@@ -378,7 +398,8 @@ async def delete_quiz_image(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Bild nicht gefunden"
             )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/quizzes/{quiz_id}/publish")
@@ -396,7 +417,8 @@ async def publish_quiz(
             )
         return {"message": "Quiz erfolgreich veröffentlicht", "quiz_id": quiz_id}
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/quizzes/{quiz_id}/archive")
@@ -414,16 +436,5 @@ async def archive_quiz(
             )
         return {"message": "Quiz erfolgreich archiviert", "quiz_id": quiz_id}
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-
-
-@router.get("/quizzes/published", response_model=List[QuizResponse])
-async def get_published_quizzes(
-    skip: int = 0,
-    limit: int = 100,
-    topic_id: Optional[int] = None,
-    db: Session = Depends(get_session),
-) -> List[dict[str, Any]]:
-    """Get all published quizzes with optional topic filter."""
-    service = QuizAdminService(db)
-    return service.get_published_quizzes(skip=skip, limit=limit, topic_id=topic_id)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

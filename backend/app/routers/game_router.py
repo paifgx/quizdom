@@ -13,10 +13,10 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, select
 from starlette import status
 
-from app.db.models import Quiz, Topic, User
+from app.db.models import Quiz, Topic, User, GameSession, SessionPlayers
 from app.db.session import get_session
 from app.routers.auth_router import get_current_user
 from app.schemas.game import (
@@ -27,6 +27,7 @@ from app.schemas.game import (
     QuestionResponse,
     SubmitAnswerRequest,
     SubmitAnswerResponse,
+    SessionJoinResponse,
 )
 from app.services.game_service import GameService
 
@@ -91,7 +92,8 @@ async def start_quiz_game(
             mode=session.mode,
             quiz_id=quiz_id,
             quiz_title=quiz_title,
-            total_questions=len(session.question_ids) if session.question_ids else 0,
+            total_questions=len(
+                session.question_ids) if session.question_ids else 0,
             time_limit=quiz.time_limit_minutes if "quiz" in locals() and quiz else None,
         )
 
@@ -114,7 +116,8 @@ async def start_quiz_game(
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
+            detail={"detail": str(e), "code": error_code,
+                    "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
@@ -184,7 +187,8 @@ async def start_random_game(
             mode=session.mode,
             topic_id=topic_id,
             topic_title=topic_title,
-            total_questions=len(session.question_ids) if session.question_ids else 0,
+            total_questions=len(
+                session.question_ids) if session.question_ids else 0,
             time_limit=None,
         )
 
@@ -208,7 +212,113 @@ async def start_random_game(
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
+            detail={"detail": str(e), "code": error_code,
+                    "field": field, "hint": hint},
+            headers={
+                "X-Error-Code": error_code,
+            },
+        )
+
+
+@router.post("/session/{session_id}/join", response_model=SessionJoinResponse)
+async def join_session(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> SessionJoinResponse:
+    """Join an existing game session.
+
+    Allows a user to join an existing multiplayer game session via invite link.
+    This endpoint:
+    - Validates that the session exists and is active
+    - Checks if the user is already a participant (returns current state if so)
+    - Adds the user as a new player if the session has room
+    - Returns session details including all players and progress
+
+    For multiplayer games:
+    - Competitive mode: 2 players compete against each other
+    - Collaborative mode: 2 players work together
+    - Solo mode: Only 1 player allowed (joining not permitted)
+
+    The first player to create the session is marked as the host.
+
+    Args:
+        session_id: ID of the game session to join
+        current_user: Authenticated user retrieved from auth token
+        db: Database session for data operations
+
+    Returns:
+        SessionJoinResponse: Session details including players and current state
+
+    Raises:
+        HTTPException:
+            - 404 Not Found: When session doesn't exist
+            - 400 Bad Request: When session is not active, full, or other errors
+    """
+    game_service = GameService(db)
+
+    try:
+        session, players = game_service.join_session(
+            session_id=session_id, user=current_user
+        )
+
+        # Get all users for the players
+        player_details = []
+        for idx, player in enumerate(players):
+            player_user = db.get(User, player.user_id)
+            if player_user:
+                player_details.append({
+                    "id": str(player_user.id),
+                    "name": player_user.nickname or player_user.email.split('@')[0],
+                    "score": player.score,
+                    "hearts": player.hearts_left,
+                    "is_host": idx == 0,  # First player is the host
+                })
+
+        return SessionJoinResponse(
+            session_id=str(session_id),
+            mode=session.mode.value,
+            players=player_details,
+            current_question=session.current_question_index,
+            total_questions=len(
+                session.question_ids) if session.question_ids else 0,
+            quiz_id=session.quiz_id,
+            topic_id=session.topic_id,
+        )
+
+    except ValueError as e:
+        error_code: str
+        status_code: int
+        field: Optional[str] = None
+        hint: Optional[str]
+
+        error_msg = str(e)
+        if "nicht gefunden" in error_msg:
+            error_code = "session_not_found"
+            status_code = status.HTTP_404_NOT_FOUND
+            field = "session_id"
+            hint = "Die Spielsitzung existiert nicht oder wurde beendet"
+        elif "nicht mehr aktiv" in error_msg:
+            error_code = "session_not_active"
+            status_code = status.HTTP_400_BAD_REQUEST
+            hint = "Die Spielsitzung ist nicht mehr aktiv"
+        elif "bereits voll" in error_msg:
+            error_code = "session_full"
+            status_code = status.HTTP_400_BAD_REQUEST
+            hint = "Die Spielsitzung ist bereits voll"
+        elif "nur einen Spieler" in error_msg:
+            error_code = "solo_session"
+            status_code = status.HTTP_400_BAD_REQUEST
+            hint = "Solo-Spiele erlauben keine weiteren Spieler"
+        else:
+            error_code = "join_error"
+            status_code = status.HTTP_400_BAD_REQUEST
+            hint = "Es ist ein Problem beim Beitreten aufgetreten"
+
+        raise HTTPException(
+            status_code=status_code,
+            detail={"detail": str(e), "code": error_code,
+                    "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
@@ -314,7 +424,8 @@ async def get_question(
 
         raise HTTPException(
             status_code=status_code,
-            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
+            detail={"detail": str(e), "code": error_code,
+                    "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
@@ -436,7 +547,8 @@ async def submit_answer(
 
         raise HTTPException(
             status_code=status_code,
-            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
+            detail={"detail": str(e), "code": error_code,
+                    "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
@@ -531,8 +643,82 @@ async def complete_session(
 
         raise HTTPException(
             status_code=status_code,
-            detail={"detail": str(e), "code": error_code, "field": field, "hint": hint},
+            detail={"detail": str(e), "code": error_code,
+                    "field": field, "hint": hint},
             headers={
                 "X-Error-Code": error_code,
             },
         )
+
+
+@router.get("/session/{session_id}/status")
+async def get_session_status(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> Dict[str, Any]:
+    """Get status of a game session.
+
+    Returns current session state including players and game progress.
+    Useful for polling to check if all players have joined.
+
+    Args:
+        session_id: ID of the game session to check
+        current_user: Authenticated user retrieved from auth token
+        db: Database session for data operations
+
+    Returns:
+        Dict with session status, players, and current state
+
+    Raises:
+        HTTPException:
+            - 404 Not Found: When session doesn't exist
+            - 403 Forbidden: When user is not a participant
+    """
+    # Get session
+    session = db.get(GameSession, session_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"detail": "Spielsitzung nicht gefunden",
+                    "code": "session_not_found"},
+        )
+
+    # Get all players
+    players_stmt = (
+        select(SessionPlayers)
+        .where(SessionPlayers.session_id == session_id)
+    )
+    players = list(db.exec(players_stmt).all())
+
+    # Check if current user is a participant
+    is_participant = any(p.user_id == current_user.id for p in players)
+    if not is_participant:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"detail": "Nicht Teil dieser Spielsitzung",
+                    "code": "not_session_participant"},
+        )
+
+    # Get player details
+    player_details = []
+    for idx, player in enumerate(players):
+        player_user = db.get(User, player.user_id)
+        if player_user:
+            player_details.append({
+                "id": str(player_user.id),
+                "name": player_user.nickname or player_user.email.split('@')[0],
+                "score": player.score,
+                "hearts": player.hearts_left,
+                "is_host": idx == 0,
+            })
+
+    return {
+        "session_id": session_id,
+        "status": session.status.value,
+        "mode": session.mode.value,
+        "players": player_details,
+        "current_question": session.current_question_index,
+        "total_questions": len(session.question_ids) if session.question_ids else 0,
+        "player_count": len(players),
+    }

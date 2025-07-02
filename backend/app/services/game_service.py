@@ -117,8 +117,10 @@ class GameService:
         if not questions:
             raise ValueError("Quiz enthält keine Fragen")
 
-        # Convert string mode to enum if needed
-        game_mode = GameMode(mode.lower()) if isinstance(mode, str) else mode
+        # Ensure mode is lowercase as the database enum expects lowercase values
+        if isinstance(mode, str):
+            mode_str = mode.lower()
+            game_mode = GameMode(mode_str)
 
         # Create game session
         session = GameSession(
@@ -218,7 +220,12 @@ class GameService:
         questions = sample(all_questions, question_count)
 
         # Convert string mode to enum if needed
-        game_mode = GameMode(mode.lower()) if isinstance(mode, str) else mode
+        if isinstance(mode, str):
+            # Ensure mode is lowercase as the database enum expects lowercase values
+            mode_str = mode.lower()
+            game_mode = GameMode(mode_str)
+        else:
+            game_mode = mode
 
         # Create game session
         session = GameSession(
@@ -253,6 +260,89 @@ class GameService:
         self.db.refresh(session)
 
         return session
+
+    def join_session(self, session_id: int, user: User) -> Tuple[GameSession, List[SessionPlayers]]:
+        """Join an existing game session.
+
+        Allows a user to join an existing multiplayer game session.
+        This method:
+        - Verifies the session exists and is active
+        - Checks if the user is already in the session
+        - Adds the user as a new player if the session allows it
+        - Returns session details and all players
+
+        For multiplayer games (competitive/collaborative), multiple players can join
+        until the game starts or reaches capacity.
+
+        Args:
+            session_id: ID of the game session to join
+            user: User attempting to join
+
+        Returns:
+            Tuple of (GameSession, list of all SessionPlayers)
+
+        Raises:
+            ValueError: When session doesn't exist, is not active, user already joined,
+                       or session is full
+        """
+        # Verify session exists
+        session = self.db.get(GameSession, session_id)
+        if not session:
+            raise ValueError("Spielsitzung nicht gefunden")
+
+        # Check if session is active
+        if session.status != GameStatus.ACTIVE:
+            raise ValueError("Spielsitzung ist nicht mehr aktiv")
+
+        # Check if user is already in session
+        existing_player = self.db.exec(
+            select(SessionPlayers)
+            .where(SessionPlayers.session_id == session_id)
+            .where(SessionPlayers.user_id == user.id)
+        ).first()
+
+        if existing_player:
+            # User already in session, just return current state
+            all_players = list(self.db.exec(
+                select(SessionPlayers)
+                .where(SessionPlayers.session_id == session_id)
+            ).all())
+            return session, all_players
+
+        # Check if session allows more players
+        current_players = list(self.db.exec(
+            select(SessionPlayers)
+            .where(SessionPlayers.session_id == session_id)
+        ).all())
+
+        # For solo mode, only one player allowed
+        if session.mode == GameMode.SOLO and len(current_players) >= 1:
+            raise ValueError("Solo-Spiele erlauben nur einen Spieler")
+
+        # For competitive and collaborative, limit to 2 players for now
+        if session.mode in [GameMode.COMP, GameMode.COLLAB] and len(current_players) >= 2:
+            raise ValueError("Dieses Spiel ist bereits voll")
+
+        # Add user to session
+        if user.id is None:
+            raise ValueError("User ID nicht verfügbar")
+
+        new_player = SessionPlayers(
+            session_id=session_id,
+            user_id=user.id,
+            hearts_left=3,
+            score=0,
+        )
+        self.db.add(new_player)
+        self.db.commit()
+
+        # Get all players including the new one
+        all_players = list(self.db.exec(
+            select(SessionPlayers)
+            .where(SessionPlayers.session_id == session_id)
+        ).all())
+
+        return session, all_players
 
     def get_question(
         self, session_id: int, question_index: int, user: User
@@ -325,7 +415,8 @@ class GameService:
         if session.quiz_id is not None:
             quiz = self.db.get(Quiz, session.quiz_id)
             if quiz and quiz.time_limit_minutes:
-                time_limit = quiz.time_limit_minutes * 60 // len(session.question_ids)
+                time_limit = quiz.time_limit_minutes * \
+                    60 // len(session.question_ids)
 
         return question, list(answers), time_limit
 
@@ -532,7 +623,8 @@ class GameService:
         ).all()
 
         questions_answered = len(player_answers)
-        correct_answers = sum(1 for answer in player_answers if answer.is_correct)
+        correct_answers = sum(
+            1 for answer in player_answers if answer.is_correct)
 
         # Calculate total time in seconds
         total_time_seconds = 0
