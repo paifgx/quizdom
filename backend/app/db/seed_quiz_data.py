@@ -150,8 +150,7 @@ def create_test_quiz_data(session: Session) -> None:
         # Topic
         t_data = entry["topic"]
         topic = session.exec(select(Topic).where(
-            Topic.title == t_data["title"]))
-        .first()
+            Topic.title == t_data["title"])).first()
         if not topic:
             topic = Topic(title=t_data["title"],
                           description=t_data["description"])
@@ -160,12 +159,16 @@ def create_test_quiz_data(session: Session) -> None:
             session.refresh(topic)
             print(f"✅ Created topic: {topic.title}")
 
+        # Ensure topic has an ID
+        if topic.id is None:
+            raise ValueError(
+                f"Topic {topic.title} was not properly saved to database")
+
         # Questions
         created_questions = []
         for q_data in entry["questions"]:
             existing_q = session.exec(select(Question).where(
-                Question.content == q_data["content"]))
-            .first()
+                Question.content == q_data["content"])).first()
             if existing_q:
                 created_questions.append(existing_q)
                 continue
@@ -179,6 +182,11 @@ def create_test_quiz_data(session: Session) -> None:
             session.add(question)
             session.commit()
             session.refresh(question)
+
+            # Ensure question has an ID
+            if question.id is None:
+                raise ValueError(
+                    f"Question {question.content} was not properly saved to database")
 
             for a in q_data["answers"]:
                 ans = Answer(
@@ -194,8 +202,7 @@ def create_test_quiz_data(session: Session) -> None:
         # Quiz
         qz_data = entry["quiz"]
         existing_quiz = session.exec(
-            select(Quiz).where(Quiz.title == qz_data["title"]))
-        .first()
+            select(Quiz).where(Quiz.title == qz_data["title"])).first()
         if not existing_quiz:
             quiz = Quiz(
                 title=qz_data["title"],
@@ -210,6 +217,11 @@ def create_test_quiz_data(session: Session) -> None:
             session.add(quiz)
             session.commit()
             session.refresh(quiz)
+
+            # Ensure quiz has an ID
+            if quiz.id is None:
+                raise ValueError(
+                    f"Quiz {quiz.title} was not properly saved to database")
 
             for idx, question in enumerate(created_questions):
                 qq = QuizQuestion(

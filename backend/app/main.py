@@ -38,12 +38,7 @@ app = FastAPI(
 # WHY: CORS middleware allows frontend to make requests from different origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Vite dev server
-        "http://localhost:3000",  # Alternative dev server
-        "http://127.0.0.1:5173",  # Localhost variant
-        "http://127.0.0.1:3000",  # Alternative localhost
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

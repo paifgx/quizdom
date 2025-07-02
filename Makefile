@@ -138,8 +138,65 @@ db-revision: ## Create a new database migration
 db-history: ## Show database migration history
 	cd backend && alembic history
 
-db-seed: ## Seed the database with initial data
+db-backup: ## Create a database backup
+	@echo "Creating database backup..."
+	@mkdir -p backups
+	@BACKUP_FILE="backups/quizdom_backup_$$(date +%Y%m%d_%H%M%S).sql"; \
+	echo "Backing up to: $$BACKUP_FILE"; \
+	PGPASSWORD=postgres pg_dump -h db -U postgres -d quizdom -f "$$BACKUP_FILE" && \
+	echo "✅ Database backup created: $$BACKUP_FILE"
+
+db-restore: ## Restore database from backup
+	@echo "Available backups:"
+	@ls -la backups/*.sql 2>/dev/null || echo "No backups found"
+	@echo ""
+	@read -p "Enter backup filename (e.g., backups/quizdom_backup_20240101_120000.sql): " backup_file; \
+	if [ -f "$$backup_file" ]; then \
+		echo "⚠️  This will REPLACE ALL current database content!"; \
+		read -p "Are you sure you want to restore from $$backup_file? (y/N): " confirm; \
+		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+			echo "Dropping existing database..."; \
+			PGPASSWORD=postgres dropdb -h db -U postgres quizdom --if-exists; \
+			echo "Creating new database..."; \
+			PGPASSWORD=postgres createdb -h db -U postgres quizdom; \
+			echo "Restoring from backup..."; \
+			PGPASSWORD=postgres psql -h db -U postgres -d quizdom -f "$$backup_file" && \
+			echo "✅ Database restored successfully from $$backup_file"; \
+		else \
+			echo "Restore cancelled."; \
+		fi; \
+	else \
+		echo "❌ Backup file not found: $$backup_file"; \
+	fi
+
+db-backup-list: ## List all available backups
+	@echo "Available database backups:"
+	@ls -lah backups/*.sql 2>/dev/null | awk '{print $$9 " (" $$5 ") - " $$6 " " $$7 " " $$8}' || echo "No backups found"
+
+db-backup-clean: ## Remove old backups (keeps last 5)
+	@echo "Cleaning up old backups (keeping last 5)..."
+	@ls -t backups/quizdom_backup_*.sql 2>/dev/null | tail -n +6 | xargs -r rm -v && echo "✅ Old backups cleaned" || echo "No old backups to clean"
+
+db-backup-and-seed: ## Create backup, then reset and seed database
+	@echo "Creating backup before reset and seed..."
+	$(MAKE) db-backup
+	@echo ""
+	@echo "Now proceeding with reset and seed..."
+	$(MAKE) db-seed
+
+db-seed: ## Reset database and seed with fresh data
+	@echo "Resetting database and seeding with fresh data..."
+	@echo "⚠️  This will DELETE ALL existing data!"
+	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ] || exit 1
+	@echo "Dropping all tables..."
+	cd backend && alembic downgrade base
+	@echo "Recreating database schema..."
+	cd backend && alembic upgrade head
+	@echo "Seeding database with users and roles..."
 	cd backend && python -m app.db.seed
+	@echo "Seeding database with quiz data..."
+	cd backend && python -m app.db.seed_quiz_data
+	@echo "✅ Database reset and seeding completed!"
 
 # ======================
 # BUILD

@@ -75,6 +75,11 @@ pip-delete-this-directory.txt
 *.orig
 *.rej
 
+# Database backups
+backups/
+*.sql
+*.dump
+
 # Misc
 .mypy_cache/
 .ruff_cache/
