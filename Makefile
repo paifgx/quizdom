@@ -143,7 +143,9 @@ db-backup: ## Create a database backup
 	@mkdir -p backups
 	@BACKUP_FILE="backups/quizdom_backup_$$(date +%Y%m%d_%H%M%S).sql"; \
 	echo "Backing up to: $$BACKUP_FILE"; \
-	PGPASSWORD=postgres pg_dump -h db -U postgres -d quizdom -f "$$BACKUP_FILE" && \
+	PGPASSWORD=postgres pg_dump -h db -U postgres -d quizdom \
+		--no-owner --no-privileges --clean --if-exists \
+		-f "$$BACKUP_FILE" && \
 	echo "✅ Database backup created: $$BACKUP_FILE"
 
 db-restore: ## Restore database from backup
@@ -155,12 +157,10 @@ db-restore: ## Restore database from backup
 		echo "⚠️  This will REPLACE ALL current database content!"; \
 		read -p "Are you sure you want to restore from $$backup_file? (y/N): " confirm; \
 		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
-			echo "Dropping existing database..."; \
-			PGPASSWORD=postgres dropdb -h db -U postgres quizdom --if-exists; \
-			echo "Creating new database..."; \
-			PGPASSWORD=postgres createdb -h db -U postgres quizdom; \
-			echo "Restoring from backup..."; \
-			PGPASSWORD=postgres psql -h db -U postgres -d quizdom -f "$$backup_file" && \
+			echo "Restoring from backup (this will replace all data)..."; \
+			PGPASSWORD=postgres psql -h db -U postgres -d quizdom \
+				--single-transaction --set ON_ERROR_STOP=on \
+				-f "$$backup_file" && \
 			echo "✅ Database restored successfully from $$backup_file"; \
 		else \
 			echo "Restore cancelled."; \
