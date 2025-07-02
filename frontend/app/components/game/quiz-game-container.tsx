@@ -126,7 +126,9 @@ export function QuizGameContainer({
     new Set()
   );
 
-  const currentPlayer = players[0]; // For solo mode, or current player in multiplayer
+  // In multiplayer modes, the backend determines which player is submitting based on auth token
+  // We just need to pass any valid player ID for the frontend state management
+  const currentPlayerId = players[0].id;
 
   useEffect(() => {
     if (gameState.status === 'waiting') {
@@ -181,7 +183,7 @@ export function QuizGameContainer({
     const answerIndex = parseInt(answerId);
     setSelectedAnswer(answerIndex);
     setIsAnswerDisabled(true);
-    handleAnswer(currentPlayer.id, answerIndex, Date.now());
+    handleAnswer(currentPlayerId, answerIndex, Date.now());
   };
 
   const toggleBookmark = () => {
