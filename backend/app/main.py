@@ -4,6 +4,7 @@ This module initializes the FastAPI app with proper middleware,
 routing, and lifecycle management for the Quizdom backend.
 """
 
+import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -35,10 +36,23 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# WHY: CORS middleware allows frontend to make requests from different origins
+def get_allowed_origins() -> list[str]:
+    """Get allowed origins from environment variables or use defaults for development."""
+    env_origins = os.getenv("CORS_ALLOWED_ORIGINS")
+    if env_origins:
+        return [origin.strip() for origin in env_origins.split(",")]
+    
+    # Default development origins
+    return [
+        "http://localhost:5173",  # Vite development server
+        "http://localhost:3000",  # Alternative development port
+        "http://127.0.0.1:5173",  # Alternative localhost format
+        "http://127.0.0.1:3000",  # Alternative localhost format
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
