@@ -132,8 +132,10 @@ This frontend connects to a FastAPI backend for data management. The connection 
 ### API Configuration
 
 - **Development**: Uses Vite proxy configuration to route API calls to `http://localhost:8000`
-- **Production**: Uses `VITE_API_URL` environment variable or defaults to `http://localhost:8000`
+- **Production**: Uses `VITE_API_URL` environment variable (required)
 - **Base Path**: All admin API calls use the `/v1/admin` prefix
+
+**Note**: The `VITE_API_URL` environment variable is mandatory in production builds. For Northflank deployment, this is automatically configured to connect to the backend service.
 
 ### Health Checks
 

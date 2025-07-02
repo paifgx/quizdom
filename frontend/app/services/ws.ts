@@ -3,9 +3,22 @@
  * Handles connection, auto-reconnect, and event handling.
  */
 
-// Base URL for WebSocket connection - set directly to avoid type issues
-// In a real implementation, this would use environment variables properly
-const WS_BASE_URL = 'ws://localhost:8000/ws';
+// WebSocket URL Configuration
+// In development, connect to local backend
+// In production, use environment variable to connect to backend service
+// In test environment, use mock URL
+const WS_BASE_URL = import.meta.env.PROD
+  ? (() => {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      if (!apiUrl) {
+        throw new Error('VITE_API_URL environment variable is required in production');
+      }
+      // Convert HTTP URL to WebSocket URL (http -> ws, https -> wss)
+      return apiUrl.replace(/^https?:/, apiUrl.startsWith('https:') ? 'wss:' : 'ws:') + '/ws';
+    })()
+  : import.meta.env.MODE === 'test'
+    ? 'ws://localhost:8000/ws' // Mock URL for tests
+    : 'ws://localhost:8000/ws'; // Development URL
 
 // Connection status
 export enum ConnectionStatus {

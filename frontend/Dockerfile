@@ -1,6 +1,11 @@
 # Build step
 FROM node:22-alpine AS build
 WORKDIR /app
+
+# Accept build arguments for environment variables
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && pnpm install
 COPY . .
