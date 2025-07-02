@@ -243,55 +243,27 @@ export default function QuizGamePage() {
   }, [isAuthenticated, existingSessionId, joinExistingSession, initializeNewGame]);
 
   const handleGameEnd = async (_result: GameResult) => {
-    // Complete the game session
+    // Complete the game session but don't navigate yet
     if (sessionId) {
       try {
         const gameResult = await gameService.completeSession(parseInt(sessionId));
         console.log('Game completed:', gameResult);
         
-        // Navigate to results page or back to topic/quiz
-        if (topicId) {
-          navigate(`/topics/${topicId}`, {
-            state: {
-              gameCompleted: true,
-              finalScore: gameResult.final_score,
-              correctAnswers: gameResult.correct_answers,
-              totalQuestions: gameResult.questions_answered,
-              rank: gameResult.rank,
-              percentile: gameResult.percentile,
-            },
-          });
-        } else if (quizId) {
-          navigate(`/topics`, {
-            state: {
-              gameCompleted: true,
-              finalScore: gameResult.final_score,
-              correctAnswers: gameResult.correct_answers,
-              totalQuestions: gameResult.questions_answered,
-              rank: gameResult.rank,
-              percentile: gameResult.percentile,
-            },
-          });
-        } else {
-          // For joined sessions
-          navigate('/topics');
-        }
+        // Store the game result for potential use but don't navigate
+        // Navigation will happen when user clicks the button
       } catch (err) {
         console.error('Failed to complete game session:', err);
-        // Still navigate even if completion fails
-        navigate(topicId ? `/topics/${topicId}` : '/topics');
       }
     }
   };
 
   const handleQuit = () => {
-    if (window.confirm('Bist du sicher, dass du das Spiel beenden möchtest?')) {
-      // Navigate back to topic/quiz
-      if (topicId) {
-        navigate(`/topics/${topicId}`);
-      } else {
-        navigate('/topics');
-      }
+    // Don't show confirmation if game is already finished
+    // Navigate back to topic/quiz
+    if (topicId) {
+      navigate(`/topics/${topicId}`);
+    } else {
+      navigate('/topics');
     }
   };
 

@@ -1,7 +1,7 @@
 /**
  * Game context to provide session ID and game service to all game components.
  */
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { gameService, GameService, type PlayerMeta, type SessionMeta } from '../services/game';
 import { connect, WebSocketClient } from '../services/ws';
 
@@ -48,9 +48,10 @@ export function GameProvider({
     }
   }, [sessionId, sessionMeta?.mode]);
   
-  const updatePlayers = (newPlayers: PlayerMeta[]) => {
+  // Memoize updatePlayers to prevent infinite re-renders
+  const updatePlayers = useCallback((newPlayers: PlayerMeta[]) => {
     setPlayers(newPlayers);
-  };
+  }, []);
 
   return (
     <GameContext.Provider 

@@ -234,7 +234,11 @@ export function QuizGameContainer({
           setGameResult(null);
           window.location.reload(); // Simple reset for now
         }}
-        onGoBack={onQuit}
+        onGoBack={() => {
+          // Don't show confirmation when game is already finished
+          // The navigation is handled by the parent component
+          onQuit();
+        }}
       />
     );
   }

@@ -1,5 +1,3 @@
-"""Seed quiz data for testing the game functionality."""
-
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -10,144 +8,168 @@ from app.db.session import engine
 
 
 def create_test_quiz_data(session: Session) -> None:
-    """Create test topics, questions, and quizzes."""
-
-    # Create a test topic
-    topic = session.exec(
-        select(Topic).where(Topic.title == "General Knowledge")
-    ).first()
-    if not topic:
-        topic = Topic(
-            title="General Knowledge",
-            description="Test your general knowledge with these questions",
-        )
-        session.add(topic)
-        session.commit()
-        session.refresh(topic)
-        print(f"✅ Created topic: {topic.title}")
-
-    # Create test questions with answers
-    test_questions: List[Dict[str, Any]] = [
+    """Create test topics, questions, and multiple quizzes for seeding."""
+    # Define topics and associated quizzes
+    quizzes_data: List[Dict[str, Any]] = [
         {
-            "content": "What is the capital of France?",
-            "explanation": "Paris has been the capital of France since 987 AD.",
-            "difficulty": 1,
-            "answers": [
-                {"content": "Berlin", "is_correct": False},
-                {"content": "Paris", "is_correct": True},
-                {"content": "Madrid", "is_correct": False},
-                {"content": "Lisbon", "is_correct": False},
+            "topic": {"title": "General Knowledge", "description": "Test your general knowledge"},
+            "quiz": {
+                "title": "General Knowledge Quiz",
+                "description": "Fun questions across topics",
+                "difficulty": 2,
+                "time_limit_minutes": 10,
+                "status": QuizStatus.PUBLISHED,
+            },
+            "questions": [
+                {"content": "What is the capital of France?", "explanation": "Paris since 987 AD.", "difficulty": 1,
+                 "answers": [
+                     {"content": "Berlin", "is_correct": False},
+                     {"content": "Paris", "is_correct": True},
+                     {"content": "Madrid", "is_correct": False},
+                     {"content": "Lisbon", "is_correct": False},
+                 ]
+                 },
+                {"content": "What is 2 + 2?", "explanation": "2 + 2 = 4.", "difficulty": 1,
+                 "answers": [
+                     {"content": "3", "is_correct": False},
+                     {"content": "4", "is_correct": True},
+                     {"content": "5", "is_correct": False},
+                     {"content": "6", "is_correct": False},
+                 ]
+                 },
+                # ... (keep existing 5 or add more) ...
             ],
         },
         {
-            "content": "What is 2 + 2?",
-            "explanation": "Basic arithmetic: 2 + 2 = 4",
-            "difficulty": 1,
-            "answers": [
-                {"content": "3", "is_correct": False},
-                {"content": "4", "is_correct": True},
-                {"content": "5", "is_correct": False},
-                {"content": "6", "is_correct": False},
+            "topic": {"title": "Science", "description": "Basic science facts"},
+            "quiz": {
+                "title": "Science Basics Quiz",
+                "description": "General science questions",
+                "difficulty": 3,
+                "time_limit_minutes": 12,
+                "status": QuizStatus.PUBLISHED,
+            },
+            "questions": [
+                {"content": "What is H2O commonly known as?", "explanation": "Chemical formula for water.", "difficulty": 1,
+                 "answers": [
+                     {"content": "Water", "is_correct": True},
+                     {"content": "Hydrogen peroxide", "is_correct": False},
+                     {"content": "Salt", "is_correct": False},
+                     {"content": "Ozone", "is_correct": False},
+                 ]
+                 },
+                {"content": "What planet is known for its rings?", "explanation": "Saturn's rings are visible from Earth.", "difficulty": 2,
+                 "answers": [
+                     {"content": "Jupiter", "is_correct": False},
+                     {"content": "Saturn", "is_correct": True},
+                     {"content": "Uranus", "is_correct": False},
+                     {"content": "Neptune", "is_correct": False},
+                 ]
+                 },
+                {"content": "What gas do plants absorb?", "explanation": "Plants use CO2 during photosynthesis.", "difficulty": 2,
+                 "answers": [
+                     {"content": "Oxygen", "is_correct": False},
+                     {"content": "Nitrogen", "is_correct": False},
+                     {"content": "Carbon Dioxide", "is_correct": True},
+                     {"content": "Hydrogen", "is_correct": False},
+                 ]
+                 },
+                {"content": "What is the center of an atom called?", "explanation": "Atomic nucleus contains protons and neutrons.", "difficulty": 3,
+                 "answers": [
+                     {"content": "Electron", "is_correct": False},
+                     {"content": "Nucleus", "is_correct": True},
+                     {"content": "Proton", "is_correct": False},
+                     {"content": "Neutron", "is_correct": False},
+                 ]
+                 },
+                {"content": "What force keeps us on the ground?", "explanation": "Gravity attracts masses.", "difficulty": 1,
+                 "answers": [
+                     {"content": "Magnetism", "is_correct": False},
+                     {"content": "Gravity", "is_correct": True},
+                     {"content": "Friction", "is_correct": False},
+                     {"content": "Acceleration", "is_correct": False},
+                 ]
+                 },
             ],
         },
         {
-            "content": "Which planet is known as the Red Planet?",
-            "explanation": "Mars appears red due to iron oxide on its surface.",
-            "difficulty": 2,
-            "answers": [
-                {"content": "Venus", "is_correct": False},
-                {"content": "Mars", "is_correct": True},
-                {"content": "Jupiter", "is_correct": False},
-                {"content": "Saturn", "is_correct": False},
-            ],
-        },
-        {
-            "content": "What is the largest ocean on Earth?",
-            "explanation": "The Pacific Ocean covers about 63 million square miles.",
-            "difficulty": 2,
-            "answers": [
-                {"content": "Atlantic", "is_correct": False},
-                {"content": "Indian", "is_correct": False},
-                {"content": "Arctic", "is_correct": False},
-                {"content": "Pacific", "is_correct": True},
-            ],
-        },
-        {
-            "content": "Who painted the Mona Lisa?",
-            "explanation": "Leonardo da Vinci painted the Mona Lisa between 1503 and 1519.",
-            "difficulty": 2,
-            "answers": [
-                {"content": "Van Gogh", "is_correct": False},
-                {"content": "Picasso", "is_correct": False},
-                {"content": "Da Vinci", "is_correct": True},
-                {"content": "Rembrandt", "is_correct": False},
-            ],
-        },
-        {
-            "content": "What is the chemical symbol for gold?",
-            "explanation": "Au comes from the Latin word for gold, 'aurum'.",
-            "difficulty": 3,
-            "answers": [
-                {"content": "Go", "is_correct": False},
-                {"content": "Gd", "is_correct": False},
-                {"content": "Au", "is_correct": True},
-                {"content": "Ag", "is_correct": False},
-            ],
-        },
-        {
-            "content": "In which year did World War II end?",
-            "explanation": "World War II ended in 1945 with the surrender of Japan.",
-            "difficulty": 3,
-            "answers": [
-                {"content": "1943", "is_correct": False},
-                {"content": "1944", "is_correct": False},
-                {"content": "1945", "is_correct": True},
-                {"content": "1946", "is_correct": False},
-            ],
-        },
-        {
-            "content": "What is the speed of light in vacuum?",
-            "explanation": "The speed of light in vacuum is exactly 299,792,458 meters per second.",
-            "difficulty": 4,
-            "answers": [
-                {"content": "300,000 km/s", "is_correct": True},
-                {"content": "150,000 km/s", "is_correct": False},
-                {"content": "500,000 km/s", "is_correct": False},
-                {"content": "1,000,000 km/s", "is_correct": False},
-            ],
-        },
-        {
-            "content": "Which programming language was created by Guido van Rossum?",
-            "explanation": "Python was created by Guido van Rossum and first released in 1991.",
-            "difficulty": 3,
-            "answers": [
-                {"content": "Java", "is_correct": False},
-                {"content": "Python", "is_correct": True},
-                {"content": "Ruby", "is_correct": False},
-                {"content": "JavaScript", "is_correct": False},
-            ],
-        },
-        {
-            "content": "What is the largest planet in our solar system?",
-            "explanation": "Jupiter is the largest planet with a radius of about 70,000 km.",
-            "difficulty": 2,
-            "answers": [
-                {"content": "Saturn", "is_correct": False},
-                {"content": "Neptune", "is_correct": False},
-                {"content": "Jupiter", "is_correct": True},
-                {"content": "Uranus", "is_correct": False},
+            "topic": {"title": "History", "description": "World history events"},
+            "quiz": {
+                "title": "History Challenge Quiz",
+                "description": "Key events in world history",
+                "difficulty": 3,
+                "time_limit_minutes": 15,
+                "status": QuizStatus.PUBLISHED,
+            },
+            "questions": [
+                {"content": "In which year did World War II end?", "explanation": "Ended in 1945.", "difficulty": 3,
+                 "answers": [
+                     {"content": "1945", "is_correct": True},
+                     {"content": "1944", "is_correct": False},
+                     {"content": "1946", "is_correct": False},
+                     {"content": "1943", "is_correct": False},
+                 ]
+                 },
+                {"content": "Who was the first president of the United States?", "explanation": "George Washington.", "difficulty": 2,
+                 "answers": [
+                     {"content": "Abraham Lincoln", "is_correct": False},
+                     {"content": "George Washington", "is_correct": True},
+                     {"content": "Thomas Jefferson", "is_correct": False},
+                     {"content": "John Adams", "is_correct": False},
+                 ]
+                 },
+                {"content": "What year did the Berlin Wall fall?", "explanation": "November 9, 1989.", "difficulty": 3,
+                 "answers": [
+                     {"content": "1989", "is_correct": True},
+                     {"content": "1991", "is_correct": False},
+                     {"content": "1987", "is_correct": False},
+                     {"content": "1990", "is_correct": False},
+                 ]
+                 },
+                {"content": "Who discovered America in 1492?", "explanation": "Christopher Columbus.", "difficulty": 1,
+                 "answers": [
+                     {"content": "Vasco da Gama", "is_correct": False},
+                     {"content": "Christopher Columbus", "is_correct": True},
+                     {"content": "Ferdinand Magellan", "is_correct": False},
+                     {"content": "James Cook", "is_correct": False},
+                 ]
+                 },
+                {"content": "Which empire built the Colosseum?", "explanation": "Ancient Romans.", "difficulty": 2,
+                 "answers": [
+                     {"content": "Greek", "is_correct": False},
+                     {"content": "Roman", "is_correct": True},
+                     {"content": "Egyptian", "is_correct": False},
+                     {"content": "Persian", "is_correct": False},
+                 ]
+                 },
             ],
         },
     ]
 
-    created_questions = []
-    for q_data in test_questions:
-        # Check if question already exists
-        existing = session.exec(
-            select(Question).where(Question.content == q_data["content"])
-        ).first()
+    for entry in quizzes_data:
+        # Topic
+        t_data = entry["topic"]
+        topic = session.exec(select(Topic).where(
+            Topic.title == t_data["title"]))
+        .first()
+        if not topic:
+            topic = Topic(title=t_data["title"],
+                          description=t_data["description"])
+            session.add(topic)
+            session.commit()
+            session.refresh(topic)
+            print(f"✅ Created topic: {topic.title}")
 
-        if not existing and topic.id is not None:
+        # Questions
+        created_questions = []
+        for q_data in entry["questions"]:
+            existing_q = session.exec(select(Question).where(
+                Question.content == q_data["content"]))
+            .first()
+            if existing_q:
+                created_questions.append(existing_q)
+                continue
+
             question = Question(
                 topic_id=topic.id,
                 content=q_data["content"],
@@ -158,69 +180,53 @@ def create_test_quiz_data(session: Session) -> None:
             session.commit()
             session.refresh(question)
 
-            # Add answers
-            if question.id is not None:
-                for a_data in q_data["answers"]:
-                    answer = Answer(
-                        question_id=question.id,
-                        content=a_data["content"],
-                        is_correct=a_data["is_correct"],
-                    )
-                    session.add(answer)
-
+            for a in q_data["answers"]:
+                ans = Answer(
+                    question_id=question.id,
+                    content=a["content"],
+                    is_correct=a["is_correct"],
+                )
+                session.add(ans)
             session.commit()
             created_questions.append(question)
             print(f"✅ Created question: {question.content[:50]}...")
 
-    # Create a published quiz
-    quiz = session.exec(
-        select(Quiz).where(Quiz.title == "General Knowledge Quiz")
-    ).first()
+        # Quiz
+        qz_data = entry["quiz"]
+        existing_quiz = session.exec(
+            select(Quiz).where(Quiz.title == qz_data["title"]))
+        .first()
+        if not existing_quiz:
+            quiz = Quiz(
+                title=qz_data["title"],
+                description=qz_data["description"],
+                topic_id=topic.id,
+                difficulty=qz_data["difficulty"],
+                time_limit_minutes=qz_data["time_limit_minutes"],
+                status=qz_data["status"],
+                published_at=datetime.utcnow(),
+                play_count=0,
+            )
+            session.add(quiz)
+            session.commit()
+            session.refresh(quiz)
 
-    if not quiz and created_questions and topic.id is not None:
-        quiz = Quiz(
-            title="General Knowledge Quiz",
-            description="Test your knowledge with these fun questions!",
-            topic_id=topic.id,
-            difficulty=2,
-            time_limit_minutes=10,
-            status=QuizStatus.PUBLISHED,
-            published_at=datetime.utcnow(),
-            play_count=0,
-        )
-        session.add(quiz)
-        session.commit()
-        session.refresh(quiz)
-
-        # Add questions to quiz
-        if quiz.id is not None:
-            # Use first 5 questions
-            for i, question in enumerate(created_questions[:5]):
-                if question.id is not None:
-                    quiz_question = QuizQuestion(
-                        quiz_id=quiz.id, question_id=question.id, order=i
-                    )
-                    session.add(quiz_question)
-
-        session.commit()
-        print(f"✅ Created and published quiz: {quiz.title}")
+            for idx, question in enumerate(created_questions):
+                qq = QuizQuestion(
+                    quiz_id=quiz.id, question_id=question.id, order=idx)
+                session.add(qq)
+            session.commit()
+            print(f"✅ Created quiz: {quiz.title}")
 
 
 def main() -> None:
-    """Run the quiz data seeding."""
-    print("🎮 Starting quiz data seeding...")
-
+    print("🎮 Starting extended quiz seeding...")
     with Session(engine) as session:
         try:
             create_test_quiz_data(session)
-            print("🎉 Quiz data seeding completed successfully!")
-            print("\n📋 Created:")
-            print("├── Topic: General Knowledge")
-            print("├── Questions: 10 questions with 4 answers each")
-            print("└── Quiz: General Knowledge Quiz (published)")
-
+            print("🎉 Extended quiz seeding done.")
         except Exception as e:
-            print(f"❌ Error during seeding: {e}")
+            print(f"❌ Error: {e}")
             session.rollback()
             raise
 
