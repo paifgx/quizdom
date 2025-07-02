@@ -56,49 +56,55 @@ export function useGameWithBackend({
     onHeartLoss,
   });
 
+  // Reset waiting state on new question
+  useEffect(() => {
+    setWaitingForOpponent(false);
+  }, [gameState.currentQuestionIndex]);
+
+
+
   // WebSocket event handler
   const handleWebSocketEvent = useCallback((event: GameEvent) => {
-    let _updatedPlayers;
+    console.log('WebSocket event received:', event);
     
     switch (event.type) {
       case 'question':
         // Update current question if it's different from local state
         if (gameState.currentQuestionIndex !== event.index) {
           console.log('Question update from server:', event);
-          // Force update through gameState directly in a future update
+          // Reset waiting state when new question arrives
+          setWaitingForOpponent(false);
         }
-        setWaitingForOpponent(false);
         break;
         
       case 'answer':
         // Update player scores and status
         console.log('Answer update from server:', event);
-        // Update player state based on server data
-        _updatedPlayers = gameState.players.map(player => {
-          if (player.id === event.playerId) {
-            return {
-              ...player,
-              score: event.score,
-              isCorrect: event.isCorrect,
-              hasAnswered: true
-            };
-          }
-          return player;
-        });
         
-        // We'll need to implement our own state update method in a future enhancement
+        // Track that this player has answered
+        // Check if this is competitive mode and both players might have answered
+        if (mode === 'competitive') {
+          // Both players have answered, stop waiting
+          setWaitingForOpponent(false);
+        }
+        
+        // If this is not our answer, update the other player's state
+        if (event.playerId !== players[0].id) {
+          // Update other player's score
+          handleLocalAnswer(event.playerId, 0, Date.now()); // We don't know the actual answer index
+        }
         break;
         
       case 'complete':
         // Complete the game with final scores
         console.log('Game complete from server:', event);
-        // Handle game completion in a future enhancement
+        setWaitingForOpponent(false);
         break;
         
       default:
         console.warn('Unknown WebSocket event:', event);
     }
-  }, [gameState]);
+  }, [gameState.currentQuestionIndex, mode, players, handleLocalAnswer]);
 
   // Setup WebSocket listeners for multiplayer
   useEffect(() => {
@@ -149,9 +155,62 @@ export function useGameWithBackend({
         // The local game state will now use the updated correctAnswer
         handleLocalAnswer(playerId, answerIndex, answeredAt);
 
-        // In multiplayer, set waiting state if we answered but others haven't
+        // Track that we answered (handled by polling now)
+
+        // In multiplayer, check if we need to poll for other player's answer
         if (mode === 'competitive' || mode === 'collaborative') {
-          setWaitingForOpponent(true);
+          const totalPlayers = mode === 'competitive' ? 2 : players.length;
+          
+          // Start polling for other player's answer
+          let pollCount = 0;
+          const maxPolls = 30; // Poll for max 60 seconds (30 * 2 seconds)
+          
+          const pollForOtherPlayers = setInterval(async () => {
+            try {
+              const sessionStatus = await gameService.getSessionStatus(sessionId);
+              
+              // Count how many players have answered
+              let answeredCount = 0;
+              sessionStatus.players.forEach((player: any) => {
+                // Check if player has answered by looking at score change or other indicators
+                if (player.score > 0 || sessionStatus.currentQuestion > gameState.currentQuestionIndex) {
+                  answeredCount++;
+                }
+              });
+              
+              // If all players have answered or we've moved to next question
+              if (answeredCount >= totalPlayers || sessionStatus.currentQuestion > gameState.currentQuestionIndex) {
+                clearInterval(pollForOtherPlayers);
+                setWaitingForOpponent(false);
+                
+                // Check if the game should move to next question
+                const allPlayersAnswered = answeredCount >= totalPlayers;
+                if (allPlayersAnswered && !gameState.players.every(p => p.hasAnswered)) {
+                  // Simulate all players have answered to trigger question progression
+                  setTimeout(() => {
+                    // This will trigger the question completion check in useGameState
+                    gameState.players.forEach(p => {
+                      if (!p.hasAnswered) {
+                        p.hasAnswered = true;
+                      }
+                    });
+                  }, 1000);
+                }
+              } else if (pollCount >= maxPolls) {
+                // Timeout - stop polling
+                clearInterval(pollForOtherPlayers);
+                setWaitingForOpponent(false);
+              } else {
+                // Still waiting
+                setWaitingForOpponent(true);
+              }
+              
+              pollCount++;
+            } catch (error) {
+              console.error('Failed to poll for other players:', error);
+              clearInterval(pollForOtherPlayers);
+            }
+          }, 2000);
         }
 
         setIsSubmitting(false);
@@ -161,7 +220,7 @@ export function useGameWithBackend({
         setIsSubmitting(false);
       }
     },
-    [currentQuestion, sessionId, handleLocalAnswer, mode]
+    [currentQuestion, sessionId, handleLocalAnswer, mode, players.length, gameState]
   );
 
   // Complete game session on game over

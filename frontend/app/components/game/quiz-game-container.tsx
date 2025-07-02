@@ -2,14 +2,13 @@
  * Main quiz game container component.
  * Integrates all game components and manages the overall game flow.
  */
-import React, { useState, useEffect } from 'react';
-import { QuizContainer } from '../nine-slice-quiz';
+import { useState, useEffect } from 'react';
+import { QuizContainer, type QuizData } from '../nine-slice-quiz';
 import { TimerBar } from './timer-bar';
 import { HeartsDisplay } from './hearts-display';
 import { ScoreDisplay } from './score-display';
 import { GameResultScreen } from './game-result';
 import { CharacterDisplay } from './character-display';
-import { ScreenEffects } from './screen-effects';
 import { useGameWithBackend } from '../../hooks/useGameWithBackend';
 import { useGameContext } from '../../contexts/GameContext';
 import type { GameResult, PlayerState, Question } from '../../types/game';
@@ -34,12 +33,6 @@ export function QuizGameContainer({
   // Get sessionId from context
   const { sessionId } = useGameContext();
 
-  // Enhanced state for visual effects
-  const [screenEffects, setScreenEffects] = useState({
-    showDamageFlash: false,
-    showScreenShake: false,
-  });
-
   const [playerDamageStates, setPlayerDamageStates] = useState<{
     [playerId: string]: {
       hearts: number;
@@ -62,12 +55,6 @@ export function QuizGameContainer({
   }, [players]);
 
   const handleHeartLoss = (playerId?: string) => {
-    // Trigger screen effects
-    setScreenEffects({
-      showDamageFlash: true,
-      showScreenShake: true,
-    });
-
     // Update player damage state if specific player
     if (playerId) {
       setPlayerDamageStates(prev => ({
@@ -89,13 +76,6 @@ export function QuizGameContainer({
         }));
       }, 100);
     }
-  };
-
-  const handleScreenEffectComplete = () => {
-    setScreenEffects({
-      showDamageFlash: false,
-      showScreenShake: false,
-    });
   };
 
   // Use the backend-integrated game hook
@@ -231,76 +211,77 @@ export function QuizGameContainer({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [onQuit]);
 
-  // Auto-scroll to quiz content on mount
+  // Save bookmarked questions to localStorage
   useEffect(() => {
-    // Scroll down to hide navigation and focus on quiz
-    setTimeout(() => {
-      window.scrollTo({ top: 100, behavior: 'smooth' });
-    }, 100);
-  }, []);
-
-  const isBookmarked = currentQuestion
-    ? bookmarkedQuestions.has(currentQuestion.id)
-    : false;
+    if (bookmarkedQuestions.size > 0) {
+      localStorage.setItem(
+        `bookmarked_${topicTitle}`,
+        JSON.stringify(Array.from(bookmarkedQuestions))
+      );
+    }
+  }, [bookmarkedQuestions, topicTitle]);
 
   if (showResult && gameResult) {
     return (
       <GameResultScreen
         result={gameResult}
-        onPlayAgain={() => {
-          // Reset game state and start new game
-          setShowResult(false);
-          setGameResult(null);
-          window.location.reload(); // Simple reset for now
-        }}
-        onGoBack={() => {
-          // Don't show confirmation when game is already finished
-          // The navigation is handled by the parent component
-          onQuit();
-        }}
+        onPlayAgain={() => window.location.reload()}
+        onGoBack={onQuit}
       />
     );
   }
 
-  if (!currentQuestion) {
-    return <div className="text-white text-center">Loading...</div>;
+  // Convert question to quiz format
+  const quizData: QuizData | null = currentQuestion
+    ? {
+        question: currentQuestion.text,
+        answers: currentQuestion.answers.map((answer, index) => ({
+          id: index.toString(),
+          text: answer,
+        })),
+      }
+    : null;
+
+  const isBookmarked = currentQuestion
+    ? bookmarkedQuestions.has(currentQuestion.id)
+    : false;
+
+  if (!quizData) {
+    return <div>Lade Quiz...</div>;
   }
 
-  const quizData = {
-    question: currentQuestion.text,
-    answers: currentQuestion.answers.map((answer, index) => ({
-      id: index.toString(),
-      text: answer,
-    })),
-  };
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <ScreenEffects
-        showDamageFlash={screenEffects.showDamageFlash}
-        showScreenShake={screenEffects.showScreenShake}
-        onEffectComplete={handleScreenEffectComplete}
-      />
-
-      {/* Header with Timer and Quit */}
-      <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-sm border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onQuit}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors text-white"
-            >
-              <img src="/buttons/Home.png" alt="" className="w-5 h-5" />
-              <span className="font-bold text-sm">QUIT</span>
-            </button>
-            <div className="text-center">
-              <h1 className="text-[#FCC822] font-bold text-lg md:text-xl">
+    <>
+      <div className="relative min-h-screen bg-gray-900 text-white overflow-hidden">
+        <div className="h-full flex flex-col px-4 py-8 pb-40 md:pb-8 lg:max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-6">
+              <button
+                onClick={onQuit}
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <h1 className="text-lg font-medium hidden md:block">
                 {topicTitle}
               </h1>
-              <p className="text-gray-400 text-sm">
-                Question {gameState.currentQuestionIndex + 1} von{' '}
-                {gameState.questions.length}
-              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white/60">ESC =</span>
+              <span className="text-white">Spiel beenden</span>
             </div>
             <div className="w-24" /> {/* Spacer for balance */}
           </div>
@@ -345,15 +326,7 @@ export function QuizGameContainer({
                 </>
               )}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Main Quiz Content Area with Character - Fills remaining space and centers content */}
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-7xl py-8">
-          <div className="flex items-center justify-center gap-4 lg:gap-6">
-            {/* Character Display - Left Side */}
             {mode === 'solo' && (
               <div className="flex-shrink-0">
                 <div className="text-center flex flex-col items-center gap-8">
@@ -515,6 +488,17 @@ export function QuizGameContainer({
           )}
         </div>
       </div>
-    </div>
+
+      {/* Waiting for opponent overlay */}
+      {waitingForOpponent && mode === 'competitive' && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-8 max-w-md text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold text-white mb-2">Auf Mitspieler warten</h3>
+            <p className="text-gray-400">Der andere Spieler wählt noch seine Antwort...</p>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
