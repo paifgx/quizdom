@@ -146,8 +146,8 @@ function clearUserSession(
   setUser(null);
   setActiveRole('player');
   authService.logout();
-  localStorage.removeItem('quizdom_user');
-  localStorage.removeItem('quizdom_active_role');
+  sessionStorage.removeItem('quizdom_user');
+  sessionStorage.removeItem('quizdom_active_role');
 }
 
 /**
@@ -248,12 +248,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const frontendUser = transformBackendUser(authResponse.user);
 
       setUser(frontendUser);
-      localStorage.setItem('quizdom_user', JSON.stringify(frontendUser));
+      sessionStorage.setItem('quizdom_user', JSON.stringify(frontendUser));
 
       const initialRole: ActiveRole =
         frontendUser.role === 'admin' ? 'admin' : 'player';
       setActiveRole(initialRole);
-      localStorage.setItem('quizdom_active_role', initialRole);
+      sessionStorage.setItem('quizdom_active_role', initialRole);
 
       startSessionMonitoring();
     } catch (error) {
@@ -271,12 +271,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const frontendUser = transformBackendUser(authResponse.user);
 
       setUser(frontendUser);
-      localStorage.setItem('quizdom_user', JSON.stringify(frontendUser));
+      sessionStorage.setItem('quizdom_user', JSON.stringify(frontendUser));
 
       const initialRole: ActiveRole =
         frontendUser.role === 'admin' ? 'admin' : 'player';
       setActiveRole(initialRole);
-      localStorage.setItem('quizdom_active_role', initialRole);
+      sessionStorage.setItem('quizdom_active_role', initialRole);
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;
@@ -296,7 +296,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   ) => {
     if (user?.role === 'admin') {
       setActiveRole('admin');
-      localStorage.setItem('quizdom_active_role', 'admin');
+      sessionStorage.setItem('quizdom_active_role', 'admin');
 
       if (navigate && currentPath && !currentPath.startsWith('/admin')) {
         navigate('/admin/dashboard');
@@ -310,7 +310,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   ) => {
     if (user?.role === 'admin') {
       setActiveRole('player');
-      localStorage.setItem('quizdom_active_role', 'player');
+      sessionStorage.setItem('quizdom_active_role', 'player');
 
       if (navigate && currentPath && currentPath.startsWith('/admin')) {
         navigate('/');
@@ -328,8 +328,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const frontendUser = transformBackendUser(backendUser);
           setUser(frontendUser);
 
-          // Restore active role from localStorage
-          const savedRole = localStorage.getItem(
+          // Restore active role from sessionStorage
+          const savedRole = sessionStorage.getItem(
             'quizdom_active_role'
           ) as ActiveRole;
           if (savedRole && frontendUser.role === 'admin') {
