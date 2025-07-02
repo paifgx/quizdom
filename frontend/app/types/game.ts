@@ -4,7 +4,7 @@
  */
 
 export interface GameMode {
-  id: 'solo' | 'comp' | 'collab';
+  id: 'solo' | 'competitive' | 'collaborative';
   name: string;
   description: string;
   icon: string;

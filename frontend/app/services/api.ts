@@ -39,7 +39,7 @@ export const topicsService = {
       category: 'General', // Topics don't have categories in our backend
       totalQuestions: 0, // Would need to fetch this separately
       completedQuestions: 0, // Not tracked in backend yet
-      image: '📚', // Default icon as image
+      image: '/badges/badge_book_1.png', // Use an actual image path instead of emoji
       stars: 0, // Not implemented in backend yet
       popularity: 0, // Not implemented in backend yet
       wisecoinReward: 10, // Default reward
@@ -65,7 +65,7 @@ export const topicsService = {
         category: 'General',
         totalQuestions: 0,
         completedQuestions: 0,
-        image: '📚',
+        image: '/badges/badge_book_1.png',
         stars: 0,
         popularity: 0,
         wisecoinReward: 10,

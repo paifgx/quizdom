@@ -99,12 +99,20 @@ export function QuizGameContainer({
   };
 
   // Use the backend-integrated game hook
-  const { gameState, currentQuestion, timeRemaining, startGame, handleAnswer, isSubmitting: _isSubmitting } =
+  const {
+    gameState,
+    currentQuestion,
+    timeRemaining,
+    startGame,
+    handleAnswer,
+    isSubmitting: _isSubmitting,
+    waitingForOpponent
+  } =
     useGameWithBackend({
       mode,
       questions,
       players,
-      sessionId: sessionId || 0,
+      sessionId: sessionId || "0",
       onGameOver: async (result: GameResult) => {
         // Convert to async to match the new interface
         onGameEnd(result);
@@ -407,6 +415,7 @@ export function QuizGameContainer({
                         }
                       : undefined
                   }
+                  waitingForOpponent={waitingForOpponent && (mode === 'competitive' || mode === 'collaborative')}
                 />
 
                 <div className="py-4">

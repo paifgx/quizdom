@@ -243,6 +243,7 @@ class GameApiService {
     questionCount: number;
     difficulty: number;
     playCount: number;
+    topicId: number;
   }>> {
     const params = topicId ? `?topic_id=${topicId}` : '';
     const response = await apiClient.get<Array<{
@@ -252,6 +253,7 @@ class GameApiService {
       question_count: number;
       difficulty: number;
       play_count: number;
+      topic_id: number;
     }>>(
       `/v1/admin/quizzes/published${params}`
     );
@@ -263,6 +265,7 @@ class GameApiService {
       questionCount: quiz.question_count,
       difficulty: quiz.difficulty,
       playCount: quiz.play_count,
+      topicId: quiz.topic_id,
     }));
   }
 }

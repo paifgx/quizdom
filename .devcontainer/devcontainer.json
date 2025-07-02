@@ -6,7 +6,6 @@
   "overrideCommand": false,
   "postCreateCommand": ".devcontainer/setup.sh",
   "shutdownAction": "stopCompose",
-  "forwardPorts": [5173, 8000],
   "customizations": {
     "vscode": {
       "extensions": [

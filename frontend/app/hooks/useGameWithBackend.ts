@@ -3,16 +3,18 @@
  * Extends the useGameState hook with backend API calls.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useGameState } from './useGameState';
 import { gameService } from '../services/game';
+import { useGameContext } from '../contexts/GameContext';
 import type { Question, PlayerState, GameResult, GameModeId } from '../types/game';
+import type { GameEvent } from '../services/ws';
 
 interface UseGameWithBackendProps {
   mode: GameModeId;
   questions: Question[];
   players: PlayerState[];
-  sessionId: number;
+  sessionId: string;
   onGameOver: (result: GameResult) => Promise<void>;
   onHeartLoss?: (event: { playerId?: string; heartsRemaining: number }) => void;
 }
@@ -27,6 +29,11 @@ export function useGameWithBackend({
 }: UseGameWithBackendProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const sessionCompletedRef = useRef(false);
+  
+  // Get the WebSocket client from context for multiplayer
+  const { wsClient, updatePlayers } = useGameContext();
 
   // Use the local game state
   const {
@@ -39,9 +46,72 @@ export function useGameWithBackend({
     mode,
     questions,
     players,
-    onGameOver,
+    onGameOver: async (result) => {
+      // Ensure we call the onGameOver callback with the result
+      if (onGameOver) {
+        await onGameOver(result);
+      }
+      return Promise.resolve();
+    },
     onHeartLoss,
   });
+
+  // WebSocket event handler
+  const handleWebSocketEvent = useCallback((event: GameEvent) => {
+    let _updatedPlayers;
+    
+    switch (event.type) {
+      case 'question':
+        // Update current question if it's different from local state
+        if (gameState.currentQuestionIndex !== event.index) {
+          console.log('Question update from server:', event);
+          // Force update through gameState directly in a future update
+        }
+        setWaitingForOpponent(false);
+        break;
+        
+      case 'answer':
+        // Update player scores and status
+        console.log('Answer update from server:', event);
+        // Update player state based on server data
+        _updatedPlayers = gameState.players.map(player => {
+          if (player.id === event.playerId) {
+            return {
+              ...player,
+              score: event.score,
+              isCorrect: event.isCorrect,
+              hasAnswered: true
+            };
+          }
+          return player;
+        });
+        
+        // We'll need to implement our own state update method in a future enhancement
+        break;
+        
+      case 'complete':
+        // Complete the game with final scores
+        console.log('Game complete from server:', event);
+        // Handle game completion in a future enhancement
+        break;
+        
+      default:
+        console.warn('Unknown WebSocket event:', event);
+    }
+  }, [gameState]);
+
+  // Setup WebSocket listeners for multiplayer
+  useEffect(() => {
+    if (wsClient && (mode === 'competitive' || mode === 'collaborative')) {
+      // Register event handler
+      const unsubscribe = wsClient.onMessage(handleWebSocketEvent);
+      
+      // Cleanup on unmount
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [wsClient, mode, handleWebSocketEvent]);
 
   // Submit answer to backend
   const handleAnswer = useCallback(
@@ -59,16 +129,24 @@ export function useGameWithBackend({
         const backendAnswerId = currentQuestion.answerIds[answerIndex];
         
         // Submit to backend
-        const _response = await gameService.submitAnswer(
-          sessionId,
+        const response = await gameService.submitAnswer(
+          parseInt(sessionId),
           parseInt(currentQuestion.id),
           backendAnswerId
         );
 
-        // Update local game state with the backend's answer information
+        // We could use this information to update UI based on the backend response
+        const _isCorrect = response.is_correct;
+        
+        // Just pass the basic information to handle local answer
+        // The local game state will be updated based on the current question's correct answer
         handleLocalAnswer(playerId, answerIndex, answeredAt);
 
-        // Show correct answer after submission
+        // In multiplayer, set waiting state if we answered but others haven't
+        if (mode === 'competitive' || mode === 'collaborative') {
+          setWaitingForOpponent(true);
+        }
+
         setIsSubmitting(false);
       } catch (error) {
         console.error('Failed to submit answer:', error);
@@ -76,16 +154,30 @@ export function useGameWithBackend({
         setIsSubmitting(false);
       }
     },
-    [currentQuestion, sessionId, handleLocalAnswer]
+    [currentQuestion, sessionId, handleLocalAnswer, mode]
   );
 
   // Complete game session on game over
   useEffect(() => {
-    if (gameState.status === 'finished' && sessionId) {
-      gameService.completeSession(sessionId)
+    if (gameState.status === 'finished' && sessionId && !sessionCompletedRef.current) {
+      sessionCompletedRef.current = true;
+      gameService.completeSession(parseInt(sessionId))
         .catch(error => console.error('Failed to complete session:', error));
     }
   }, [gameState.status, sessionId]);
+
+  // Update players in context when they change in state
+  useEffect(() => {
+    if (gameState.players.length && updatePlayers) {
+      updatePlayers(gameState.players.map(player => ({
+        id: player.id,
+        name: player.name,
+        score: player.score,
+        hearts: player.hearts,
+        isHost: player.id === 'player1', // Simplified assumption
+      })));
+    }
+  }, [gameState.players, updatePlayers]);
 
   return {
     gameState,
@@ -95,5 +187,6 @@ export function useGameWithBackend({
     handleAnswer,
     isSubmitting,
     submitError,
+    waitingForOpponent,
   };
 } 
