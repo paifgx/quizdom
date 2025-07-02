@@ -40,7 +40,8 @@ def create_test_users(session: Session) -> None:
 
     # Create admin user
     admin_email = "admin@quizdom.de"
-    existing_admin = session.exec(select(User).where(User.email == admin_email)).first()
+    existing_admin = session.exec(
+        select(User).where(User.email == admin_email)).first()
     if not existing_admin:
         admin_user = User(
             email=admin_email,
@@ -65,14 +66,43 @@ def create_test_users(session: Session) -> None:
 
         print(f"✅ Created admin user: {admin_email} / admin123")
 
-    # Create normal user
-    user_email = "user@quizdom.de"
-    existing_user = session.exec(select(User).where(User.email == user_email)).first()
+    # Create first normal user
+    user_email = "user1@quizdom.de"
+    existing_user = session.exec(
+        select(User).where(User.email == user_email)).first()
     if not existing_user:
         normal_user = User(
             email=user_email,
             password_hash=get_password_hash("user123"),
-            nickname="Test User",
+            nickname="user1",
+            is_verified=True,
+            created_at=datetime.now(timezone.utc),
+        )
+        session.add(normal_user)
+        session.commit()
+        session.refresh(normal_user)
+
+        # Assign user role
+        if normal_user.id and user_role.id:
+            normal_user_role = UserRoles(
+                user_id=normal_user.id,
+                role_id=user_role.id,
+                granted_at=datetime.now(timezone.utc),
+            )
+            session.add(normal_user_role)
+            session.commit()
+
+        print(f"✅ Created normal user: {user_email} / user123")
+
+    # Create normal user
+    user_email = "user2@quizdom.de"
+    existing_user = session.exec(
+        select(User).where(User.email == user_email)).first()
+    if not existing_user:
+        normal_user = User(
+            email=user_email,
+            password_hash=get_password_hash("user123"),
+            nickname="user2",
             is_verified=True,
             created_at=datetime.now(timezone.utc),
         )
@@ -111,8 +141,11 @@ def seed_database() -> None:
             print("│   ├── Email: admin@quizdom.de")
             print("│   └── Password: admin123")
             print("└── Normal User:")
-            print("    ├── Email: user@quizdom.de")
+            print("    ├── Email: user1@quizdom.de")
             print("    └── Password: user123")
+            print("├── Normal User:")
+            print("│   ├── Email: user2@quizdom.de")
+            print("│   └── Password: user123")
 
         except Exception as e:
             print(f"❌ Error during seeding: {e}")

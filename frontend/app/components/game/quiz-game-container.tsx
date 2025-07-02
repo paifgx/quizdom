@@ -114,7 +114,7 @@ export function QuizGameContainer({
       players,
       sessionId: sessionId || "0",
       onGameOver: async (result: GameResult) => {
-        // Convert to async to match the new interface
+        setGameResult(result);
         onGameEnd(result);
         return Promise.resolve();
       },
@@ -155,25 +155,12 @@ export function QuizGameContainer({
     }
   }, [gameState.status, startGame]);
 
-  // Handle game over
+  // Handle game over - result is already passed through onGameOver callback
   useEffect(() => {
-    if (gameState.status === 'finished') {
-      const result: GameResult = {
-        mode,
-        result: 'win', // This will be determined by the game logic
-        score:
-          mode === 'collaborative'
-            ? gameState.teamScore || 0
-            : gameState.players[0].score,
-        heartsRemaining:
-          mode === 'collaborative'
-            ? gameState.teamHearts || 0
-            : gameState.players[0].hearts,
-      };
-      setGameResult(result);
+    if (gameState.status === 'finished' && gameResult) {
       setShowResult(true);
     }
-  }, [gameState.status, gameState, mode]);
+  }, [gameState.status, gameResult]);
 
   // Load bookmarked questions from localStorage
   useEffect(() => {

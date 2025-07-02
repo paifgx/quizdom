@@ -135,11 +135,18 @@ export function useGameWithBackend({
           backendAnswerId
         );
 
-        // We could use this information to update UI based on the backend response
-        const _isCorrect = response.is_correct;
+        // Use the backend's response to update the correct answer
+        const correctAnswerIndex = currentQuestion.answerIds.findIndex(
+          id => id === response.correct_answer_id
+        );
+        
+        // Update the current question's correct answer so the UI shows it correctly
+        if (correctAnswerIndex >= 0 && currentQuestion.correctAnswer === -1) {
+          currentQuestion.correctAnswer = correctAnswerIndex;
+        }
         
         // Just pass the basic information to handle local answer
-        // The local game state will be updated based on the current question's correct answer
+        // The local game state will now use the updated correctAnswer
         handleLocalAnswer(playerId, answerIndex, answeredAt);
 
         // In multiplayer, set waiting state if we answered but others haven't
