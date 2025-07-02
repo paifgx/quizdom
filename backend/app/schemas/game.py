@@ -239,3 +239,20 @@ class GameResultResponse(BaseModel):
                     "Anzahl der korrekten Antworten kann nicht größer sein als die Anzahl der beantworteten Fragen"
                 )
         return v
+
+
+class SessionJoinResponse(BaseModel):
+    """Response model for joining an existing game session."""
+
+    session_id: str
+    mode: str
+    players: List[Dict[str, Any]
+                  ] = Field(..., description="List of players in the session")
+    current_question: int = Field(..., ge=0,
+                                  description="Current question index")
+    total_questions: int = Field(..., ge=1,
+                                 description="Total number of questions in the session")
+    quiz_id: Optional[int] = Field(
+        None, description="Quiz ID if this is a quiz-based session")
+    topic_id: Optional[int] = Field(
+        None, description="Topic ID if this is a topic-based session")

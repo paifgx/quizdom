@@ -34,10 +34,21 @@ export default function JoinSessionPage() {
 
       try {
         // Try to join the session
-        await gameService.joinSession(sessionId);
+        const sessionInfo = await gameService.joinSession(sessionId);
         
         // Redirect to quiz game with sessionId
-        navigate(`/quiz-game?sessionId=${sessionId}`);
+        // Use the quiz_id or topic_id from the response to determine the correct route
+        
+        if (sessionInfo.quizId) {
+          // This is a quiz-based game
+          navigate(`/quiz/${sessionInfo.quizId}/quiz-game?sessionId=${sessionId}`);
+        } else if (sessionInfo.topicId) {
+          // This is a topic-based game
+          navigate(`/topics/${sessionInfo.topicId}/quiz-game?sessionId=${sessionId}`);
+        } else {
+          // Fallback if neither is present (shouldn't happen)
+          throw new Error('Session hat keine gültige Quiz- oder Themen-ID');
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Sitzung konnte nicht beigetreten werden.');
         setLoading(false);

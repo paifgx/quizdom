@@ -39,6 +39,8 @@ export interface SessionMeta {
   players: PlayerMeta[];
   currentQuestion: number;
   totalQuestions: number;
+  quizId?: number;
+  topicId?: number;
 }
 
 // Backend response types
@@ -102,6 +104,8 @@ interface SessionJoinResponse {
   }>;
   current_question: number;
   total_questions: number;
+  quiz_id?: number;
+  topic_id?: number;
 }
 
 class GameService {
@@ -172,8 +176,13 @@ class GameService {
    */
   async joinSession(sessionId: string): Promise<SessionMeta> {
     try {
+      const sessionIdInt = parseInt(sessionId);
+      if (isNaN(sessionIdInt)) {
+        throw new Error('Invalid session ID');
+      }
+      
       const response = await apiClient.post<SessionJoinResponse>(
-        `/v1/game/session/${sessionId}/join`,
+        `/v1/game/session/${sessionIdInt}/join`,
         {},
         {
           headers: this.getAuthHeaders(),
@@ -192,11 +201,75 @@ class GameService {
           isHost: player.is_host
         })),
         currentQuestion: response.current_question,
-        totalQuestions: response.total_questions
+        totalQuestions: response.total_questions,
+        quizId: response.quiz_id,
+        topicId: response.topic_id
       };
     } catch (error) {
       console.error('Failed to join session:', error);
       throw new Error('Failed to join game session. It may be full or no longer available.');
+    }
+  }
+
+  /**
+   * Get the status of a game session.
+   */
+  async getSessionStatus(sessionId: string): Promise<{
+    sessionId: number;
+    status: string;
+    mode: string;
+    players: PlayerMeta[];
+    currentQuestion: number;
+    totalQuestions: number;
+    playerCount: number;
+  }> {
+    try {
+      // Ensure sessionId is parsed as integer for backend
+      const sessionIdInt = parseInt(sessionId);
+      if (isNaN(sessionIdInt)) {
+        throw new Error('Invalid session ID');
+      }
+      
+      const response = await apiClient.get<{
+        session_id: number;
+        status: string;
+        mode: string;
+        players: Array<{
+          id: string;
+          name: string;
+          score: number;
+          hearts: number;
+          is_host: boolean;
+        }>;
+        current_question: number;
+        total_questions: number;
+        player_count: number;
+      }>(
+        `/v1/game/session/${sessionIdInt}/status`,
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+
+      // Convert snake_case to camelCase
+      return {
+        sessionId: response.session_id,
+        status: response.status,
+        mode: response.mode,
+        players: response.players.map(player => ({
+          id: player.id,
+          name: player.name,
+          score: player.score,
+          hearts: player.hearts,
+          isHost: player.is_host
+        })),
+        currentQuestion: response.current_question,
+        totalQuestions: response.total_questions,
+        playerCount: response.player_count,
+      };
+    } catch (error) {
+      console.error('Failed to get session status:', error);
+      throw new Error('Failed to get session status.');
     }
   }
 

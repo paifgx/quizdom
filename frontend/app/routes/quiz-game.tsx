@@ -38,6 +38,7 @@ export default function QuizGamePage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionMeta, setSessionMeta] = useState<SessionMeta | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [waitingForPlayers, setWaitingForPlayers] = useState(false);
   
   // Function to convert backend player data to frontend player state
   const convertPlayersData = useCallback((playersMeta: PlayerMeta[]): PlayerState[] => {
@@ -92,6 +93,7 @@ export default function QuizGamePage() {
       // If this is a competitive game, show invite modal
       if (mode === 'competitive') {
         setShowInviteModal(true);
+        setWaitingForPlayers(true);
       }
       
       // Initialize players based on the game mode
@@ -242,6 +244,41 @@ export default function QuizGamePage() {
     }
   }, [isAuthenticated, existingSessionId, joinExistingSession, initializeNewGame]);
 
+  // Poll for players in competitive mode
+  useEffect(() => {
+    if (!waitingForPlayers || !sessionId || mode !== 'competitive') {
+      return;
+    }
+
+    const checkPlayers = async () => {
+      try {
+        const status = await gameService.getSessionStatus(sessionId);
+        console.log('Session status:', status);
+        
+        // Check if we have enough players (2 for competitive)
+        if (status.playerCount >= 2) {
+          console.log('All players joined, closing invite modal');
+          setShowInviteModal(false);
+          setWaitingForPlayers(false);
+          
+          // Update players with the joined players
+          const playerStates = convertPlayersData(status.players);
+          setPlayers(playerStates);
+        }
+      } catch (error) {
+        console.error('Failed to check session status:', error);
+      }
+    };
+
+    // Check immediately
+    checkPlayers();
+
+    // Then check every 2 seconds
+    const interval = setInterval(checkPlayers, 2000);
+    
+    return () => clearInterval(interval);
+  }, [waitingForPlayers, sessionId, mode, convertPlayersData]);
+
   const handleGameEnd = async (_result: GameResult) => {
     // Complete the game session but don't navigate yet
     if (sessionId) {
@@ -360,12 +397,15 @@ export default function QuizGamePage() {
               </div>
             </div>
             
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <button
-                onClick={() => setShowInviteModal(false)}
+                onClick={() => {
+                  setShowInviteModal(false);
+                  setWaitingForPlayers(false);
+                }}
                 className="px-5 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
               >
-                Schließen
+                Spiel starten
               </button>
               
               <div className="text-gray-400 text-sm flex items-center">

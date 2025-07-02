@@ -148,12 +148,31 @@ export function QuizGameContainer({
 
   const currentPlayer = players[0]; // For solo mode, or current player in multiplayer
 
-  // Handle game start
   useEffect(() => {
     if (gameState.status === 'waiting') {
+      if (mode === 'competitive') {
+        return;
+      }
       startGame();
     }
-  }, [gameState.status, startGame]);
+  }, [gameState.status, startGame, mode]);
+
+  useEffect(() => {
+    if (mode === 'competitive' && gameState.status === 'waiting') {
+      const checkPlayers = () => {
+        if (gameState.players && gameState.players.length >= 2) {
+          startGame();
+        }
+      };
+
+      // Check immediately
+      checkPlayers();
+
+      // Then check periodically
+      const interval = setInterval(checkPlayers, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [mode, gameState.status, gameState.players, startGame]);
 
   // Handle game over - result is already passed through onGameOver callback
   useEffect(() => {
