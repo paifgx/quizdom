@@ -7,6 +7,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useGameState } from './useGameState';
 import { gameService } from '../services/game';
 import { useGameContext } from '../contexts/GameContext';
+import { authService } from '../services/auth';
 import type {
   Question,
   PlayerState,
@@ -39,7 +40,15 @@ export function useGameWithBackend({
   const lastKnownStateRef = useRef<
     Map<string, { score: number; hearts: number }>
   >(new Map());
-  const playerMappingRef = useRef<Map<string, string>>(new Map()); // Maps frontend player IDs to backend user IDs
+  const playerMappingRef = useRef<Map<string, string>>(new Map()); // Maps backend user IDs to frontend player IDs
+  // Debug logger to track state changes
+  const debugRef = useRef<{
+    backendToFrontendMap: Record<string, string>;
+    lastUpdate: string;
+  }>({
+    backendToFrontendMap: {},
+    lastUpdate: '',
+  });
 
   // Get the WebSocket client from context for multiplayer
   const { wsClient, updatePlayers } = useGameContext();
@@ -294,7 +303,7 @@ export function useGameWithBackend({
   useEffect(() => {
     if (!sessionId || mode === 'solo') return;
 
-    console.log('Starting player polling for session:', sessionId);
+    console.log('Setting up player polling for session:', sessionId);
 
     // Initialize player mapping on first run
     let isFirstRun = playerMappingRef.current.size === 0;
@@ -310,49 +319,122 @@ export function useGameWithBackend({
             'Setting up player mapping, players:',
             sessionStatus.players
           );
-          // In competitive mode, we need to determine which backend player we are
-          // The host (first player to create the game) is always displayed on the left (player1)
-          // The joining player is displayed on the right (player2)
 
-          const hostPlayer = sessionStatus.players.find(p => p.isHost);
-          const nonHostPlayer = sessionStatus.players.find(p => !p.isHost);
+          // Get the current user ID to determine which player is "us"
+          const currentUser = authService.getUser();
+          const currentUserId = currentUser?.id?.toString();
 
-          if (hostPlayer && nonHostPlayer) {
-            // Map backend user IDs to frontend player IDs
-            playerMappingRef.current.set(hostPlayer.id, 'player1');
-            playerMappingRef.current.set(nonHostPlayer.id, 'player2');
+          if (!currentUserId) {
+            console.error(
+              'Could not determine current user ID for player mapping'
+            );
+            // Fallback to host-based mapping
+            const hostPlayer = sessionStatus.players.find(p => p.isHost);
+            const nonHostPlayer = sessionStatus.players.find(p => !p.isHost);
 
-            // Initialize last known states
-            lastKnownStateRef.current.set('player1', {
-              score: hostPlayer.score,
-              hearts: hostPlayer.hearts,
-            });
-            lastKnownStateRef.current.set('player2', {
-              score: nonHostPlayer.score,
-              hearts: nonHostPlayer.hearts,
-            });
+            if (hostPlayer && nonHostPlayer) {
+              playerMappingRef.current.set(hostPlayer.id, 'player1');
+              playerMappingRef.current.set(nonHostPlayer.id, 'player2');
 
-            console.log('Player mapping established:', {
-              [hostPlayer.id]: 'player1 (host)',
-              [nonHostPlayer.id]: 'player2',
-            });
+              debugRef.current.backendToFrontendMap = {
+                [hostPlayer.id]: 'player1 (host/left)',
+                [nonHostPlayer.id]: 'player2 (guest/right)',
+              };
+
+              console.log(
+                'Player mapping established (fallback):',
+                debugRef.current.backendToFrontendMap
+              );
+
+              lastKnownStateRef.current.set('player1', {
+                score: hostPlayer.score,
+                hearts: hostPlayer.hearts,
+              });
+              lastKnownStateRef.current.set('player2', {
+                score: nonHostPlayer.score,
+                hearts: nonHostPlayer.hearts,
+              });
+            }
+          } else {
+            // Map based on current user perspective
+            // Current user is always player1 (left side), opponent is player2 (right side)
+            const currentUserBackendPlayer = sessionStatus.players.find(
+              p => p.id === currentUserId
+            );
+            const opponentBackendPlayer = sessionStatus.players.find(
+              p => p.id !== currentUserId
+            );
+
+            if (currentUserBackendPlayer && opponentBackendPlayer) {
+              // Map backend user IDs to frontend player IDs based on current user perspective
+              playerMappingRef.current.set(
+                currentUserBackendPlayer.id,
+                'player1'
+              ); // Current user -> left
+              playerMappingRef.current.set(opponentBackendPlayer.id, 'player2'); // Opponent -> right
+
+              // Store the mapping for debugging purposes
+              debugRef.current.backendToFrontendMap = {
+                [currentUserBackendPlayer.id]: 'player1 (me/left)',
+                [opponentBackendPlayer.id]: 'player2 (opponent/right)',
+              };
+
+              console.log('Player mapping established (user perspective):', {
+                currentUserId,
+                mapping: debugRef.current.backendToFrontendMap,
+              });
+
+              // Initialize last known states
+              lastKnownStateRef.current.set('player1', {
+                score: currentUserBackendPlayer.score,
+                hearts: currentUserBackendPlayer.hearts,
+              });
+              lastKnownStateRef.current.set('player2', {
+                score: opponentBackendPlayer.score,
+                hearts: opponentBackendPlayer.hearts,
+              });
+            } else {
+              console.error('Could not establish player mapping', {
+                currentUserId,
+                players: sessionStatus.players,
+                currentUserBackendPlayer,
+                opponentBackendPlayer,
+              });
+            }
           }
 
           isFirstRun = false;
         }
 
+        // Track if any player state has changed
+        let hasAnyPlayerChanged = false;
+        const updatedGameStatePlayers: PlayerState[] = [...gameState.players];
+
         // Update each backend player's data to the corresponding frontend player
         sessionStatus.players.forEach(backendPlayer => {
+          // Get the correct frontend player ID from our mapping
           const frontendPlayerId = playerMappingRef.current.get(
             backendPlayer.id
           );
-          if (!frontendPlayerId) return;
+          if (!frontendPlayerId) {
+            console.warn(
+              `No mapping found for backend player ID ${backendPlayer.id}`
+            );
+            return;
+          }
 
-          const localPlayer = gameState.players.find(
+          // Find the index of the player in the game state
+          const localPlayerIndex = gameState.players.findIndex(
             p => p.id === frontendPlayerId
           );
-          if (!localPlayer) return;
+          if (localPlayerIndex === -1) {
+            console.warn(
+              `No local player found for frontend ID ${frontendPlayerId}`
+            );
+            return;
+          }
 
+          const localPlayer = gameState.players[localPlayerIndex];
           const lastState = lastKnownStateRef.current.get(frontendPlayerId) || {
             score: 0,
             hearts: 3,
@@ -363,9 +445,14 @@ export function useGameWithBackend({
           const hasChanged = hasScoreChanged || hasHeartsChanged;
 
           if (hasChanged) {
+            hasAnyPlayerChanged = true;
+
+            // Log detailed information to help debug player mapping issues
             console.log(
-              `Player ${frontendPlayerId} (backend user ${backendPlayer.id}) state changed: score ${lastState.score} -> ${backendPlayer.score}, hearts ${lastState.hearts} -> ${backendPlayer.hearts}`
+              `Player update: Backend ID ${backendPlayer.id} -> Frontend ID ${frontendPlayerId} (${backendPlayer.is_host ? 'host' : 'guest'}): score ${lastState.score} -> ${backendPlayer.score}, hearts ${lastState.hearts} -> ${backendPlayer.hearts}`
             );
+
+            debugRef.current.lastUpdate = `Updated ${frontendPlayerId} (${backendPlayer.is_host ? 'host' : 'guest'}) from backend ID ${backendPlayer.id}: score ${lastState.score} -> ${backendPlayer.score}, hearts ${lastState.hearts} -> ${backendPlayer.hearts}`;
 
             // Update last known state
             lastKnownStateRef.current.set(frontendPlayerId, {
@@ -373,35 +460,52 @@ export function useGameWithBackend({
               hearts: backendPlayer.hearts,
             });
 
-            // If this player hasn't answered yet and their state changed, update the local state
-            if (!localPlayer.hasAnswered) {
-              // Calculate if they answered correctly based on score change
-              const scoreIncreased = backendPlayer.score > lastState.score;
-              const heartsDecreased = backendPlayer.hearts < lastState.hearts;
+            // Create an updated player object with the new values
+            updatedGameStatePlayers[localPlayerIndex] = {
+              ...localPlayer,
+              score: backendPlayer.score,
+              hearts: backendPlayer.hearts,
+              hasAnswered: true, // Mark as answered since state changed
+            };
 
-              // If hearts decreased, trigger heart loss event
-              if (heartsDecreased && onHeartLoss) {
-                onHeartLoss({
-                  playerId: frontendPlayerId,
-                  heartsRemaining: backendPlayer.hearts,
-                });
-              }
-
-              // Update the local state to reflect the backend state
-              // We simulate an answer to trigger proper state updates
-              if (scoreIncreased || heartsDecreased) {
-                handleLocalAnswer(
-                  frontendPlayerId,
-                  scoreIncreased ? 0 : 1,
-                  Date.now()
-                );
-              }
+            // Trigger heart loss callback if hearts decreased
+            if (
+              hasHeartsChanged &&
+              backendPlayer.hearts < lastState.hearts &&
+              onHeartLoss
+            ) {
+              onHeartLoss({
+                playerId: frontendPlayerId,
+                heartsRemaining: backendPlayer.hearts,
+              });
             }
           }
         });
 
-        // Update players in context (for display purposes)
-        if (updatePlayers) {
+        // If any player state changed, trigger a single state update with all changes
+        if (hasAnyPlayerChanged) {
+          // Since handleLocalAnswer updates one player at a time, we need a different approach
+          // Let's directly update the context with the correct player states
+          if (updatePlayers) {
+            const contextPlayers = updatedGameStatePlayers.map(player => ({
+              id: player.id,
+              name: player.name,
+              score: player.score,
+              hearts: player.hearts,
+              isHost: player.id === 'player1',
+            }));
+
+            // Ensure correct order
+            const sortedPlayers = contextPlayers.sort((a, b) =>
+              a.id === 'player1' ? -1 : b.id === 'player1' ? 1 : 0
+            );
+
+            updatePlayers(sortedPlayers);
+          }
+        }
+
+        // Always update players in context with latest backend data to ensure consistency
+        if (updatePlayers && sessionStatus.players.length > 0) {
           // Create a properly typed list of players to update
           const updatedPlayersList = sessionStatus.players
             .map(backendPlayer => {
@@ -430,12 +534,27 @@ export function useGameWithBackend({
               } => p !== null
             );
 
-          // Make sure we have all players in the correct order
-          const sortedPlayers = updatedPlayersList.sort((a, _b) =>
-            a.id === 'player1' ? -1 : 1
-          );
+          if (updatedPlayersList.length === 2) {
+            // Ensure players are ordered correctly: player1 (host) on the left, player2 (guest) on the right
+            const sortedPlayers = updatedPlayersList.sort((a, b) =>
+              a.id === 'player1' ? -1 : b.id === 'player1' ? 1 : 0
+            );
 
-          updatePlayers(sortedPlayers);
+            // Double-check the sorting to ensure player1 is always first
+            if (
+              sortedPlayers.length >= 2 &&
+              sortedPlayers[0].id !== 'player1'
+            ) {
+              console.error(
+                'Player order is incorrect after sorting!',
+                sortedPlayers
+              );
+              // Force correct order if sorting fails
+              sortedPlayers.reverse();
+            }
+
+            updatePlayers(sortedPlayers);
+          }
         }
       } catch (error) {
         console.error('Failed to poll player updates:', error);

@@ -9,6 +9,7 @@ import { LoadingSpinner } from '../components/home/loading-spinner';
 import { gameService } from '../services/game';
 import { GameProvider } from '../contexts/GameContext';
 import { useAuthenticatedGame } from '../hooks/useAuthenticatedGame';
+import { authService } from '../services/auth';
 import type {
   Question,
   PlayerState,
@@ -48,15 +49,83 @@ export default function QuizGamePage() {
   // Function to convert backend player data to frontend player state
   const convertPlayersData = useCallback(
     (playersMeta: PlayerMeta[]): PlayerState[] => {
-      return playersMeta.map(player => ({
-        id: player.id,
+      // For competitive mode, ensure proper ordering based on current user perspective
+      if (mode === 'competitive' && playersMeta.length >= 2) {
+        // Get the current user ID to determine which player is "us"
+        const currentUser = authService.getUser();
+        const currentUserId = currentUser?.id?.toString();
+
+        if (!currentUserId) {
+          console.warn('Could not determine current user ID');
+          // Fallback to host-based ordering
+          const sortedPlayers = [...playersMeta].sort((a, b) => {
+            if (a.isHost && !b.isHost) return -1;
+            if (!a.isHost && b.isHost) return 1;
+            return 0;
+          });
+
+          return sortedPlayers.map((player, index) => ({
+            id: index === 0 ? 'player1' : 'player2',
+            name: player.name,
+            score: player.score,
+            hearts: player.hearts,
+            hasAnswered: false,
+          }));
+        }
+
+        // Find which player is the current user
+        const currentUserPlayer = playersMeta.find(p => p.id === currentUserId);
+        const opponentPlayer = playersMeta.find(p => p.id !== currentUserId);
+
+        if (!currentUserPlayer || !opponentPlayer) {
+          console.error(
+            'Could not properly identify current user and opponent',
+            {
+              currentUserId,
+              playersMeta,
+              currentUserPlayer,
+              opponentPlayer,
+            }
+          );
+          // Fallback to original ordering
+          return playersMeta.map((player, index) => ({
+            id: `player${index + 1}`,
+            name: player.name,
+            score: player.score,
+            hearts: player.hearts,
+            hasAnswered: false,
+          }));
+        }
+
+        // Always put current user as player1 (left side) and opponent as player2 (right side)
+        return [
+          {
+            id: 'player1', // Left side - always current user
+            name: currentUserPlayer.name,
+            score: currentUserPlayer.score,
+            hearts: currentUserPlayer.hearts,
+            hasAnswered: false,
+          },
+          {
+            id: 'player2', // Right side - always opponent
+            name: opponentPlayer.name,
+            score: opponentPlayer.score,
+            hearts: opponentPlayer.hearts,
+            hasAnswered: false,
+          },
+        ];
+      }
+
+      // For single player or other modes, just map directly
+      return playersMeta.map((player, index) => ({
+        id: `player${index + 1}`,
         name: player.name,
         score: player.score,
         hearts: player.hearts,
         hasAnswered: false,
       }));
     },
-    []
+    [mode]
   );
 
   // Initialize a new game
