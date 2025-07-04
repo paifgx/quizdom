@@ -314,13 +314,21 @@ export const translations = {
 
     howToPlay: 'Wo bzw. wie kann ich QUIZDOM spielen?',
     howToPlayDesc:
-      'Aktuell können Sie QUIZDOM online in der Web-App über Ihren Internet-Browser spielen.',
+      'Aktuell kann man QUIZDOM online in der Web-App über einen Internet-Browser spielen.',
+
+    structureQuizdom: 'Wie ist QUIZDOM aufgebaut?',
+    structureQuizdomDesc: 'QUIZDOM besteht aus verschiedenen Seiten, die du über die Navigationsleiste erreichen kannst:',
+    structureQuizdomPage1: 'Start: Hier findest du deine als Favorit markierten Themenbereiche.',
+    structureQuizdomPage2: 'Themen: Such dir aus, in welchem Themenbereich du dein Wissen erweitern willst.',
+    structureQuizdomPage3: 'Spielmodi: Wähle zwischen Solo Mission und Team Battle und starte das Quizzen.',
+    structureQuizdomPage4: 'Benutzerhandbuch: Hier findest du Antworten auf all deine Fragen rund um QUIZDOM selbst.',
+    structureQuizdomPage5: 'Profil: Klick auf dein Profilbild, um deine Einstellungen zu verwalten, deinen Fortschritt zu tracken oder wenn du dich abmelden willst.',
 
     compatibility: 'Kompatibilität',
     browserCompatibility:
       'Mit welchen Internet-Browsern ist QUIZDOM kompatibel?',
     browserCompatibilityDesc:
-      'QUIZDOM sollte fehlerfrei funktionieren, wenn Sie eine aktuell unterstützte Version von Google Chrome, Mozilla Firefox, Safari (macOS, iOS) oder Microsoft Edge benutzen.',
+      'QUIZDOM sollte fehlerfrei funktionieren, wenn du eine aktuell unterstützte Version von Google Chrome, Mozilla Firefox oder Microsoft Edge benutzt.',
 
     deviceCompatibility: 'Mit welchen Geräten ist QUIZDOM kompatibel?',
     deviceCompatibilityDesc:

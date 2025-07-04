@@ -141,6 +141,30 @@ export default function UserManual() {
                   </div>
 
                   <div>
+                    <h3 className="text-xl font-semibold text-white mb-3">
+                      {translate('userManual.structureQuizdom')}
+                    </h3>
+                    <p className="text-gray-300 leading-relaxed">
+                      {translate('userManual.structureQuizdomDesc')}
+                    </p>
+                    <p className="text-gray-300 leading-relaxed">
+                      {translate('userManual.structureQuizdomPage1')}
+                    </p>
+                    <p className="text-gray-300 leading-relaxed">
+                      {translate('userManual.structureQuizdomPage2')}
+                    </p>
+                    <p className="text-gray-300 leading-relaxed">
+                      {translate('userManual.structureQuizdomPage3')}
+                    </p>
+                    <p className="text-gray-300 leading-relaxed">
+                      {translate('userManual.structureQuizdomPage4')}
+                    </p>
+                    <p className="text-gray-300 leading-relaxed">
+                      {translate('userManual.structureQuizdomPage5')}
+                    </p>
+                  </div>
+
+                  <div>
                     <h3 className="text-xl font-semibold text-white mb-4">
                       {translate('userManual.compatibility')}
                     </h3>
@@ -152,8 +176,8 @@ export default function UserManual() {
                       <p className="text-gray-300 mb-4">
                         {translate('userManual.browserCompatibilityDesc')}
                       </p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {['Chrome', 'Firefox', 'Safari', 'Edge'].map(
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {['Chrome', 'Firefox', 'Edge'].map(
                           browser => (
                             <div
                               key={browser}
@@ -611,8 +635,8 @@ export default function UserManual() {
                     </summary>
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
-                        Melden Sie sich an, gehen Sie zu "Themen", wählen Sie
-                        ein Thema aus und klicken Sie auf "SPIELEN".
+                      Melde dich an, gehe zu "Themen", wähle ein Thema aus und klicke auf "SPIELEN". Dann geht es direkt los!
+                      Oder gehe zu "Spielmodi", wähle zwischen Solo Mission und Team Battle, wähle ein Thema aus und klicke dann auf "SPIELEN".
                       </p>
                     </div>
                   </details>
@@ -623,8 +647,8 @@ export default function UserManual() {
                     </summary>
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
-                        Sie verlieren ein Herz und erhalten eine Erklärung der
-                        richtigen Antwort vom AI Wizard.
+                        Du verlierst ein Herz und bekommst keine Punkte für eine Frage.
+                        Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass nie entmutigen und bleibe dran.
                       </p>
                     </div>
                   </details>
@@ -635,9 +659,7 @@ export default function UserManual() {
                     </summary>
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
-                        In der aktuellen Version ist das Pausieren von Quiz
-                        nicht möglich. Planen Sie ausreichend Zeit für Ihr Quiz
-                        ein.
+                        In der aktuellen Version ist das Pausieren von Quizzen nicht möglich. Plane dir ausreichend Zeit für dein Quiz ein.
                       </p>
                     </div>
                   </details>
@@ -648,8 +670,7 @@ export default function UserManual() {
                     </summary>
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
-                        Ihre Statistiken finden Sie auf der "Fortschritt"-Seite
-                        und in Ihrem Profil.
+                       Deine Statistiken findest du auf der "Fortschritt"-Seite und in deinem Profil.
                       </p>
                     </div>
                   </details>
