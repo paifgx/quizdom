@@ -648,7 +648,7 @@ export default function UserManual() {
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
                         Du verlierst ein Herz und bekommst keine Punkte für eine Frage.
-                        Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass nie entmutigen und bleibe dran.
+                        Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass dich nie entmutigen und bleibe dran.
                       </p>
                     </div>
                   </details>

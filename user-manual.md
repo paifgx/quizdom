@@ -335,7 +335,7 @@ Melde dich an, gehe zu "Themen", wähle ein Thema aus und klicke auf "SPIELEN". 
 ### Was passiert, wenn ich eine Frage falsch beantworte?
 
 Du verlierst ein Herz und bekommst keine Punkte für eine Frage.
-Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass nie entmutigen und bleibe dran.
+Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass dich nie entmutigen und bleibe dran.
 
 ---
 
