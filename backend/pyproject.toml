@@ -49,7 +49,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "httpx", "faker"]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx[http2]",
+    "websockets",
+    "factory-boy",
+    "freezegun",
+    "coverage",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+    "faker"
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
@@ -59,3 +71,29 @@ filterwarnings = [
     "ignore::DeprecationWarning:passlib.*",
     "ignore:'crypt' is deprecated:DeprecationWarning",
 ]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.pytest]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests with database",
+    "e2e: End-to-end tests",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["*/test*", "*/migrations/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]
+fail_under = 90

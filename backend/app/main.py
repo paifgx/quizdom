@@ -16,6 +16,7 @@ from app.routers.admin_router import router as admin_router
 from app.routers.auth_router import router as auth_router
 from app.routers.game_router import router as game_router
 from app.routers.user_router import router as user_router
+from app.routers.ws_router import router as ws_router
 
 
 @asynccontextmanager
@@ -36,12 +37,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 def get_allowed_origins() -> list[str]:
     """Get allowed origins from environment variables or use defaults for development."""
     env_origins = os.getenv("CORS_ALLOWED_ORIGINS")
     if env_origins:
         return [origin.strip() for origin in env_origins.split(",")]
-    
+
     # Default development origins
     return [
         "http://localhost:5173",  # Vite development server
@@ -49,6 +51,7 @@ def get_allowed_origins() -> list[str]:
         "http://127.0.0.1:5173",  # Alternative localhost format
         "http://127.0.0.1:3000",  # Alternative localhost format
     ]
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -62,6 +65,7 @@ app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(admin_router)
 app.include_router(game_router)
+app.include_router(ws_router)
 
 
 @app.get("/", tags=["health"])
