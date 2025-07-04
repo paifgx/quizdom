@@ -52,22 +52,22 @@ Complete all code quality improvements and establish testing framework to achiev
 #### Tuesday, July 1 - Error Handling 🎯
 - [x] check deployment-status
   - [ ] ~if deployable -> deploy~
-- [ ] Create ErrorBoundary component
-- [ ] Design error fallback UI
+- [x] Create ErrorBoundary component
+- [ ] Design error fallback UI (Toast)
 - [ ] ~Add error logging utility~
-- [ ] Wrap game components with error boundaries
-- [ ] Test error scenarios (rudimentär)
+- [x] Wrap game components with error boundaries
+- [x] Test error scenarios (rudimentär)
 - [ ] ~Document error handling patterns~
 
 
 #### Wednesday, July 2 - TypeScript Migration 🎯
-- [ ] Fix `any` types in game-api.ts (6 instances)
-- [ ] Fix `any` types in api.ts (2 instances)
-- [ ] Fix `any` types in test-game.tsx (4 instances)
-- [ ] Add missing `endGame` dependency in useCallback
+- [x] Fix `any` types in game-api.ts (6 instances)
+- [x] Fix `any` types in api.ts (2 instances)
+- [x] Fix `any` types in test-game.tsx (4 instances)
+- [x] Add missing `endGame` dependency in useCallback
 - [ ] Run full TypeScript check
 - [ ] Ensure zero warnings
-- [ ] Deployment
+- [x] Deployment
 
 #### Thursday, July 3 - E2E Testing Day 1 🎯
 - [ ] ~Set up E2E testing framework (Playwright)~
