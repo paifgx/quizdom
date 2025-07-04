@@ -35,22 +35,30 @@ export default function JoinSessionPage() {
       try {
         // Try to join the session
         const sessionInfo = await gameService.joinSession(sessionId);
-        
+
         // Redirect to quiz game with sessionId
         // Use the quiz_id or topic_id from the response to determine the correct route
-        
+
         if (sessionInfo.quizId) {
           // This is a quiz-based game
-          navigate(`/quiz/${sessionInfo.quizId}/quiz-game?sessionId=${sessionId}`);
+          navigate(
+            `/quiz/${sessionInfo.quizId}/quiz-game?sessionId=${sessionId}`
+          );
         } else if (sessionInfo.topicId) {
           // This is a topic-based game
-          navigate(`/topics/${sessionInfo.topicId}/quiz-game?sessionId=${sessionId}`);
+          navigate(
+            `/topics/${sessionInfo.topicId}/quiz-game?sessionId=${sessionId}`
+          );
         } else {
           // Fallback if neither is present (shouldn't happen)
           throw new Error('Session hat keine gültige Quiz- oder Themen-ID');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Sitzung konnte nicht beigetreten werden.');
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Sitzung konnte nicht beigetreten werden.'
+        );
         setLoading(false);
       }
     };
@@ -71,7 +79,7 @@ export default function JoinSessionPage() {
           return prev - 1;
         });
       }, 1000);
-      
+
       return () => clearInterval(timer);
     }
   }, [error, navigate]);
@@ -82,12 +90,16 @@ export default function JoinSessionPage() {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="bg-gray-800/80 rounded-xl p-6 max-w-md w-full text-center">
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-white mb-4">Sitzung nicht verfügbar</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">
+            Sitzung nicht verfügbar
+          </h1>
           <p className="text-gray-300 mb-6">
-            {error || 'Die Quizsitzung ist nicht mehr verfügbar oder bereits voll.'}
+            {error ||
+              'Die Quizsitzung ist nicht mehr verfügbar oder bereits voll.'}
           </p>
           <p className="text-gray-400 mb-8">
-            Du wirst in <span className="text-[#FCC822]">{countdown}</span> Sekunden zur Spielauswahl weitergeleitet.
+            Du wirst in <span className="text-[#FCC822]">{countdown}</span>{' '}
+            Sekunden zur Spielauswahl weitergeleitet.
           </p>
           <button
             onClick={() => navigate('/game-modes')}
@@ -114,4 +126,4 @@ export default function JoinSessionPage() {
       </div>
     </div>
   );
-} 
+}

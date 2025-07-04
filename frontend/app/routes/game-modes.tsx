@@ -150,7 +150,12 @@ export default function GameModesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <PageHeader
           currentStep={currentStep}
-          selectedModeData={selectedModeData || (hookSelectedMode ? (gameModes.find(m => m.id === hookSelectedMode) ?? null) : null)}
+          selectedModeData={
+            selectedModeData ||
+            (hookSelectedMode
+              ? (gameModes.find(m => m.id === hookSelectedMode) ?? null)
+              : null)
+          }
           preSelectedTopic={preSelectedTopic}
         />
 
@@ -165,7 +170,9 @@ export default function GameModesPage() {
           <GameModeSelection
             gameModes={gameModes}
             selectedMode={hookSelectedMode}
-            onModeSelect={preSelectedTopic ? originalHandleModeSelect : handleModeSelect}
+            onModeSelect={
+              preSelectedTopic ? originalHandleModeSelect : handleModeSelect
+            }
           />
         )}
 
@@ -173,7 +180,12 @@ export default function GameModesPage() {
           <TopicSelection
             topics={topics}
             selectedTopicId={selectedTopicId}
-            selectedModeData={selectedModeData || (hookSelectedMode ? (gameModes.find(m => m.id === hookSelectedMode) ?? null) : null)}
+            selectedModeData={
+              selectedModeData ||
+              (hookSelectedMode
+                ? (gameModes.find(m => m.id === hookSelectedMode) ?? null)
+                : null)
+            }
             onTopicSelect={handleTopicSelect}
           />
         )}
@@ -193,5 +205,3 @@ export default function GameModesPage() {
     </ProtectedRoute>
   );
 }
-
-

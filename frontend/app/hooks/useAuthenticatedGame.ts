@@ -16,7 +16,7 @@ export function useAuthenticatedGame() {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
-        
+
         if (authService.isAuthenticated()) {
           // We have a token, but let's verify it's still valid
           try {
@@ -26,21 +26,21 @@ export function useAuthenticatedGame() {
             // Token is invalid, redirect to login
             authService.logout();
             setIsAuthenticated(false);
-            navigate('/login', { 
-              state: { 
+            navigate('/login', {
+              state: {
                 message: 'Bitte melde dich an, um Spiele zu spielen.',
-                returnTo: window.location.pathname
-              }
+                returnTo: window.location.pathname,
+              },
             });
           }
         } else {
           // No token, redirect to login
           setIsAuthenticated(false);
-          navigate('/login', { 
-            state: { 
+          navigate('/login', {
+            state: {
               message: 'Bitte melde dich an, um Spiele zu spielen.',
-              returnTo: window.location.pathname
-            }
+              returnTo: window.location.pathname,
+            },
           });
         }
       } catch (error) {
@@ -58,4 +58,4 @@ export function useAuthenticatedGame() {
     isAuthenticated,
     isLoading,
   };
-} 
+}

@@ -177,19 +177,17 @@ export default function UserManual() {
                         {translate('userManual.browserCompatibilityDesc')}
                       </p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {['Chrome', 'Firefox', 'Edge'].map(
-                          browser => (
-                            <div
-                              key={browser}
-                              className="text-center p-3 bg-[#0F1B2D] rounded-lg"
-                            >
-                              <div className="text-2xl mb-2">🌐</div>
-                              <div className="text-sm text-gray-300">
-                                {browser}
-                              </div>
+                        {['Chrome', 'Firefox', 'Edge'].map(browser => (
+                          <div
+                            key={browser}
+                            className="text-center p-3 bg-[#0F1B2D] rounded-lg"
+                          >
+                            <div className="text-2xl mb-2">🌐</div>
+                            <div className="text-sm text-gray-300">
+                              {browser}
                             </div>
-                          )
-                        )}
+                          </div>
+                        ))}
                       </div>
                     </div>
 
@@ -635,8 +633,11 @@ export default function UserManual() {
                     </summary>
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
-                      Melde dich an, gehe zu "Themen", wähle ein Thema aus und klicke auf "SPIELEN". Dann geht es direkt los!
-                      Oder gehe zu "Spielmodi", wähle zwischen Solo Mission und Team Battle, wähle ein Thema aus und klicke dann auf "SPIELEN".
+                        Melde dich an, gehe zu "Themen", wähle ein Thema aus und
+                        klicke auf "SPIELEN". Dann geht es direkt los! Oder gehe
+                        zu "Spielmodi", wähle zwischen Solo Mission und Team
+                        Battle, wähle ein Thema aus und klicke dann auf
+                        "SPIELEN".
                       </p>
                     </div>
                   </details>
@@ -647,8 +648,9 @@ export default function UserManual() {
                     </summary>
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
-                        Du verlierst ein Herz und bekommst keine Punkte für eine Frage.
-                        Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass dich nie entmutigen und bleibe dran.
+                        Du verlierst ein Herz und bekommst keine Punkte für eine
+                        Frage. Doch keine Sorge: Aus Fehlern lernt man am
+                        meisten, also lass dich nie entmutigen und bleibe dran.
                       </p>
                     </div>
                   </details>
@@ -659,7 +661,9 @@ export default function UserManual() {
                     </summary>
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
-                        In der aktuellen Version ist das Pausieren von Quizzen nicht möglich. Plane dir ausreichend Zeit für dein Quiz ein.
+                        In der aktuellen Version ist das Pausieren von Quizzen
+                        nicht möglich. Plane dir ausreichend Zeit für dein Quiz
+                        ein.
                       </p>
                     </div>
                   </details>
@@ -670,7 +674,8 @@ export default function UserManual() {
                     </summary>
                     <div className="px-4 pb-4 text-gray-300">
                       <p>
-                       Deine Statistiken findest du auf der "Fortschritt"-Seite und in deinem Profil.
+                        Deine Statistiken findest du auf der "Fortschritt"-Seite
+                        und in deinem Profil.
                       </p>
                     </div>
                   </details>

@@ -9,7 +9,12 @@ import { LoadingSpinner } from '../components/home/loading-spinner';
 import { gameService } from '../services/game';
 import { GameProvider } from '../contexts/GameContext';
 import { useAuthenticatedGame } from '../hooks/useAuthenticatedGame';
-import type { Question, PlayerState, GameResult, GameModeId } from '../types/game';
+import type {
+  Question,
+  PlayerState,
+  GameResult,
+  GameModeId,
+} from '../types/game';
 import type { SessionMeta, PlayerMeta } from '../services/game';
 
 export function meta() {
@@ -39,17 +44,20 @@ export default function QuizGamePage() {
   const [sessionMeta, setSessionMeta] = useState<SessionMeta | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [waitingForPlayers, setWaitingForPlayers] = useState(false);
-  
+
   // Function to convert backend player data to frontend player state
-  const convertPlayersData = useCallback((playersMeta: PlayerMeta[]): PlayerState[] => {
-    return playersMeta.map(player => ({
-      id: player.id,
-      name: player.name,
-      score: player.score,
-      hearts: player.hearts,
-      hasAnswered: false,
-    }));
-  }, []);
+  const convertPlayersData = useCallback(
+    (playersMeta: PlayerMeta[]): PlayerState[] => {
+      return playersMeta.map(player => ({
+        id: player.id,
+        name: player.name,
+        score: player.score,
+        hearts: player.hearts,
+        hasAnswered: false,
+      }));
+    },
+    []
+  );
 
   // Initialize a new game
   const initializeNewGame = useCallback(async () => {
@@ -76,10 +84,7 @@ export default function QuizGamePage() {
         setTitle(sessionResponse.topic_title || 'Topic Quiz');
       } else if (quizId) {
         console.log('Starting quiz game with quizId:', quizId);
-        sessionResponse = await gameService.startQuizGame(
-          quizId,
-          mode
-        );
+        sessionResponse = await gameService.startQuizGame(quizId, mode);
         console.log('Session response:', sessionResponse);
         setTitle(sessionResponse.quiz_title || 'Quiz Game');
       } else {
@@ -95,13 +100,15 @@ export default function QuizGamePage() {
         setShowInviteModal(true);
         setWaitingForPlayers(true);
       }
-      
+
       // Initialize players based on the game mode
       setPlayers(initializePlayers(mode));
 
       try {
         // Load all questions for the session
-        console.log(`Loading questions for session ${sessionResponse.session_id}`);
+        console.log(
+          `Loading questions for session ${sessionResponse.session_id}`
+        );
         const questionsData = await gameService.getAllQuestionsForSession(
           sessionResponse.session_id,
           sessionResponse.total_questions
@@ -109,7 +116,7 @@ export default function QuizGamePage() {
         console.log(`Successfully loaded ${questionsData.length} questions`);
 
         // Convert backend questions to frontend format
-        const convertedQuestions: Question[] = questionsData.map((q) => ({
+        const convertedQuestions: Question[] = questionsData.map(q => ({
           id: q.question_id.toString(),
           text: q.content,
           answers: q.answers.map(a => a.content),
@@ -122,17 +129,21 @@ export default function QuizGamePage() {
         setQuestions(convertedQuestions);
       } catch (questionError) {
         console.error('Failed to load questions:', questionError);
-        setError(`Failed to load questions: ${questionError instanceof Error ? questionError.message : 'Unknown error'}`);
+        setError(
+          `Failed to load questions: ${questionError instanceof Error ? questionError.message : 'Unknown error'}`
+        );
         setLoading(false);
         return;
       }
-      
+
       setLoading(false);
     } catch (err) {
       console.error('Failed to initialize game:', err);
-      setError(err instanceof Error ? 
-        `Failed to start game: ${err.message}` : 
-        'Failed to load game data');
+      setError(
+        err instanceof Error
+          ? `Failed to start game: ${err.message}`
+          : 'Failed to load game data'
+      );
       setLoading(false);
     }
   }, [topicId, quizId, mode, navigate]);
@@ -151,7 +162,7 @@ export default function QuizGamePage() {
       const session = await gameService.joinSession(existingSessionId);
       setSessionId(session.sessionId);
       setSessionMeta(session);
-      
+
       // Set title based on session data (to be improved when API includes this info)
       setTitle('Multiplayer Quiz');
 
@@ -165,7 +176,7 @@ export default function QuizGamePage() {
       );
 
       // Convert backend questions to frontend format
-      const convertedQuestions: Question[] = questionsData.map((q) => ({
+      const convertedQuestions: Question[] = questionsData.map(q => ({
         id: q.question_id.toString(),
         text: q.content,
         answers: q.answers.map(a => a.content),
@@ -179,7 +190,9 @@ export default function QuizGamePage() {
       setLoading(false);
     } catch (err) {
       console.error('Failed to join session:', err);
-      setError(err instanceof Error ? err.message : 'Failed to join game session');
+      setError(
+        err instanceof Error ? err.message : 'Failed to join game session'
+      );
       setLoading(false);
     }
   }, [existingSessionId, convertPlayersData]);
@@ -242,7 +255,12 @@ export default function QuizGamePage() {
     } else {
       initializeNewGame();
     }
-  }, [isAuthenticated, existingSessionId, joinExistingSession, initializeNewGame]);
+  }, [
+    isAuthenticated,
+    existingSessionId,
+    joinExistingSession,
+    initializeNewGame,
+  ]);
 
   // Poll for players in competitive mode
   useEffect(() => {
@@ -254,13 +272,13 @@ export default function QuizGamePage() {
       try {
         const status = await gameService.getSessionStatus(sessionId);
         console.log('Session status:', status);
-        
+
         // Check if we have enough players (2 for competitive)
         if (status.playerCount >= 2) {
           console.log('All players joined, closing invite modal');
           setShowInviteModal(false);
           setWaitingForPlayers(false);
-          
+
           // Update players with the joined players
           const playerStates = convertPlayersData(status.players);
           setPlayers(playerStates);
@@ -275,7 +293,7 @@ export default function QuizGamePage() {
 
     // Then check every 2 seconds
     const interval = setInterval(checkPlayers, 2000);
-    
+
     return () => clearInterval(interval);
   }, [waitingForPlayers, sessionId, mode, convertPlayersData]);
 
@@ -283,9 +301,11 @@ export default function QuizGamePage() {
     // Complete the game session but don't navigate yet
     if (sessionId) {
       try {
-        const gameResult = await gameService.completeSession(parseInt(sessionId));
+        const gameResult = await gameService.completeSession(
+          parseInt(sessionId)
+        );
         console.log('Game completed:', gameResult);
-        
+
         // Store the game result for potential use but don't navigate
         // Navigation will happen when user clicks the button
       } catch (err) {
@@ -331,11 +351,13 @@ export default function QuizGamePage() {
     );
   }
 
-  if (!mode && !existingSessionId || !questions.length || !sessionId) {
+  if ((!mode && !existingSessionId) || !questions.length || !sessionId) {
     return (
       <div className="text-center text-white py-8">
         <h1 className="text-2xl font-bold mb-4">Fehler</h1>
-        <p className="text-gray-300 mb-4">Die Spielinformationen konnten nicht geladen werden.</p>
+        <p className="text-gray-300 mb-4">
+          Die Spielinformationen konnten nicht geladen werden.
+        </p>
         <button
           onClick={() => navigate('/game-modes')}
           className="text-[#FCC822] hover:underline"
@@ -348,14 +370,20 @@ export default function QuizGamePage() {
 
   return (
     <>
-      <GameProvider 
+      <GameProvider
         sessionId={sessionId}
         initialPlayers={sessionMeta?.players || []}
         initialSessionMeta={sessionMeta}
       >
         <QuizGameContainer
-          mode={mode || (sessionMeta?.mode === 'comp' ? 'competitive' : 
-                          sessionMeta?.mode === 'collab' ? 'collaborative' : 'solo')}
+          mode={
+            mode ||
+            (sessionMeta?.mode === 'comp'
+              ? 'competitive'
+              : sessionMeta?.mode === 'collab'
+                ? 'collaborative'
+                : 'solo')
+          }
           topicTitle={title}
           questions={questions}
           players={players}
@@ -376,9 +404,11 @@ export default function QuizGamePage() {
                 Teile diesen Link mit deinem Gegner, um das Spiel zu starten.
               </p>
             </div>
-            
+
             <div className="mb-6">
-              <label className="block text-gray-400 text-sm mb-2">Einladungslink</label>
+              <label className="block text-gray-400 text-sm mb-2">
+                Einladungslink
+              </label>
               <div className="flex">
                 <input
                   type="text"
@@ -388,7 +418,9 @@ export default function QuizGamePage() {
                 />
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/join/${sessionId}`);
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/join/${sessionId}`
+                    );
                   }}
                   className="px-4 py-2 rounded-r-lg font-medium bg-[#FCC822] hover:bg-[#e0b01d] text-gray-900"
                 >
@@ -396,7 +428,7 @@ export default function QuizGamePage() {
                 </button>
               </div>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <button
                 onClick={() => {
@@ -407,7 +439,7 @@ export default function QuizGamePage() {
               >
                 Spiel starten
               </button>
-              
+
               <div className="text-gray-400 text-sm flex items-center">
                 <span>Warte auf Mitspieler...</span>
                 <div className="ml-2 w-4 h-4 rounded-full border-2 border-t-transparent border-[#FCC822] animate-spin"></div>

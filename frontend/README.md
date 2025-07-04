@@ -164,6 +164,65 @@ The frontend connects to the following backend endpoints:
 - `PUT /v1/admin/quizzes/{id}` - Update quiz
 - `DELETE /v1/admin/quizzes/{id}` - Delete quiz
 
+### Quiz Gameplay Flow
+
+The frontend provides a complete quiz gameplay experience through the following integration steps:
+
+1. **List Published Quizzes**
+
+   - HTTP GET `/v1/admin/quizzes/published[?topic_id={id}]`
+   - Frontend: `gameService.getPublishedQuizzes()`
+   - Returns: `{id, title, description, questionCount, difficulty, playCount, topicId}`
+   - UI: `QuizSelection` and `AllQuizzesSelection` components
+
+2. **Game Mode Selection**
+
+   - Allowed values: 'solo', 'competitive', 'collaborative'
+   - Internally mapped to backend enum ('solo' | 'comp' | 'collab')
+   - Conversion handled by `toBackendGameMode()` in `services/game.ts`
+
+3. **Start Game Session**
+
+   - HTTP POST `/v1/game/quiz/{quizId}/start`
+   - Body: `{ "mode": "solo|comp|collab" }`
+   - Frontend: `gameService.startQuizGame(quizId, mode)`
+   - Handles snake_case → camelCase conversion and auth headers
+
+4. **Poll for Players (Competitive/Collaborative)**
+
+   - HTTP GET `/v1/game/session/{sessionId}/status`
+   - Frontend: `gameService.getSessionStatus()` (polling every 2 seconds)
+   - Used for multiplayer modes to wait for other players
+
+5. **Fetch Questions**
+
+   - HTTP GET `/v1/game/session/{sessionId}/question/{index}`
+   - Frontend strategies:
+     - Eager: `gameService.getAllQuestionsForSession()` (used in `QuizGamePage`)
+     - Lazy: `gameService.getQuestion(sessionId, index)` (used by `useHybridGameFlow`)
+
+6. **Submit Answers**
+
+   - HTTP POST `/v1/game/session/{sessionId}/answer`
+   - Body: `{question_id, answer_id, answered_at}` (ms since epoch)
+   - Frontend: `gameService.submitAnswer()` or `gameService.submitAnswerWithRequest()`
+
+7. **Track Score and Hearts**
+
+   - Answer response includes `points_earned`, `player_score`, `player_hearts`
+   - UI components update based on these values
+
+8. **Complete Session**
+
+   - HTTP POST `/v1/game/session/{sessionId}/complete`
+   - Frontend: `gameService.completeSession()` → displays result screen
+
+9. **Join from Invite Link**
+   - HTTP POST `/v1/game/session/{sessionId}/join`
+   - Frontend: `gameService.joinSession()` (called in route `join.$sessionId.tsx`)
+
+All game-related API calls are centralized in the `gameService` (`services/game.ts`) which handles authentication, proper request formatting, and error handling with localized German messages.
+
 ### Authentication
 
 The frontend uses token-based authentication. Ensure you're logged in as an admin user to access the admin features.

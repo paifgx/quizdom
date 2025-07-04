@@ -10,20 +10,6 @@ import type { GameModeId } from '../types/game';
 // Backend GameMode enum values
 export type BackendGameMode = 'solo' | 'comp' | 'collab';
 
-// Convert frontend game mode to backend format
-function toBackendGameMode(mode: GameModeId): BackendGameMode {
-  switch (mode) {
-    case 'solo':
-      return 'solo';
-    case 'competitive':
-      return 'comp';
-    case 'collaborative':
-      return 'collab';
-    default:
-      throw new Error(`Unknown game mode: ${mode}`);
-  }
-}
-
 // Session metadata for joining an existing session
 export interface PlayerMeta {
   id: string;
@@ -31,6 +17,7 @@ export interface PlayerMeta {
   score: number;
   hearts: number;
   isHost: boolean;
+  is_host?: boolean; // For compatibility with backend responses
 }
 
 export interface SessionMeta {
@@ -79,6 +66,12 @@ interface SubmitAnswerResponse {
   explanation?: string;
 }
 
+export interface SubmitAnswerRequest {
+  questionId: number;
+  answerId: number;
+  answeredAt: number;
+}
+
 interface GameResultResponse {
   session_id: number;
   mode: string;
@@ -110,12 +103,28 @@ interface SessionJoinResponse {
 
 class GameService {
   /**
+   * Convert frontend game mode to backend format
+   */
+  private toBackendGameMode(mode: GameModeId): BackendGameMode {
+    switch (mode) {
+      case 'solo':
+        return 'solo';
+      case 'competitive':
+        return 'comp';
+      case 'collaborative':
+        return 'collab';
+      default:
+        throw new Error(`Unknown game mode: ${mode}`);
+    }
+  }
+
+  /**
    * Get authorization headers for requests.
    */
   private getAuthHeaders(): Record<string, string> {
     const token = authService.getToken();
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error('Kein Authentifizierungstoken gefunden');
     }
     return { Authorization: `Bearer ${token}` };
   }
@@ -134,7 +143,7 @@ class GameService {
       const response = await apiClient.post<GameSessionResponse>(
         `/v1/game/topic/${topicId}/random`,
         {
-          mode: toBackendGameMode(mode),
+          mode: this.toBackendGameMode(mode),
           question_count: questionCount,
           difficulty_min: difficultyMin,
           difficulty_max: difficultyMax,
@@ -147,18 +156,23 @@ class GameService {
       return response;
     } catch (error) {
       console.error('Failed to start topic game:', error);
-      throw new Error('Failed to start game. Please try again.');
+      throw new Error(
+        'Fehler beim Starten des Spiels. Bitte versuchen Sie es erneut.'
+      );
     }
   }
 
   /**
    * Start a new game session with a curated quiz.
    */
-  async startQuizGame(quizId: string, mode: GameModeId): Promise<GameSessionResponse> {
+  async startQuizGame(
+    quizId: string,
+    mode: GameModeId
+  ): Promise<GameSessionResponse> {
     try {
       const response = await apiClient.post<GameSessionResponse>(
         `/v1/game/quiz/${quizId}/start`,
-        { mode: toBackendGameMode(mode) },
+        { mode: this.toBackendGameMode(mode) },
         {
           headers: this.getAuthHeaders(),
         }
@@ -167,7 +181,9 @@ class GameService {
       return response;
     } catch (error) {
       console.error('Failed to start quiz game:', error);
-      throw new Error('Failed to start game. Please try again.');
+      throw new Error(
+        'Fehler beim Starten des Spiels. Bitte versuchen Sie es erneut.'
+      );
     }
   }
 
@@ -178,9 +194,9 @@ class GameService {
     try {
       const sessionIdInt = parseInt(sessionId);
       if (isNaN(sessionIdInt)) {
-        throw new Error('Invalid session ID');
+        throw new Error('Ungültige Sitzungs-ID');
       }
-      
+
       const response = await apiClient.post<SessionJoinResponse>(
         `/v1/game/session/${sessionIdInt}/join`,
         {},
@@ -198,16 +214,18 @@ class GameService {
           name: player.name,
           score: player.score,
           hearts: player.hearts,
-          isHost: player.is_host
+          isHost: player.is_host,
         })),
         currentQuestion: response.current_question,
         totalQuestions: response.total_questions,
         quizId: response.quiz_id,
-        topicId: response.topic_id
+        topicId: response.topic_id,
       };
     } catch (error) {
       console.error('Failed to join session:', error);
-      throw new Error('Failed to join game session. It may be full or no longer available.');
+      throw new Error(
+        'Fehler beim Beitreten zur Spielsitzung. Sie könnte voll oder nicht mehr verfügbar sein.'
+      );
     }
   }
 
@@ -227,9 +245,9 @@ class GameService {
       // Ensure sessionId is parsed as integer for backend
       const sessionIdInt = parseInt(sessionId);
       if (isNaN(sessionIdInt)) {
-        throw new Error('Invalid session ID');
+        throw new Error('Ungültige Sitzungs-ID');
       }
-      
+
       const response = await apiClient.get<{
         session_id: number;
         status: string;
@@ -244,12 +262,9 @@ class GameService {
         current_question: number;
         total_questions: number;
         player_count: number;
-      }>(
-        `/v1/game/session/${sessionIdInt}/status`,
-        {
-          headers: this.getAuthHeaders(),
-        }
-      );
+      }>(`/v1/game/session/${sessionIdInt}/status`, {
+        headers: this.getAuthHeaders(),
+      });
 
       // Convert snake_case to camelCase
       return {
@@ -261,7 +276,7 @@ class GameService {
           name: player.name,
           score: player.score,
           hearts: player.hearts,
-          isHost: player.is_host
+          isHost: player.is_host,
         })),
         currentQuestion: response.current_question,
         totalQuestions: response.total_questions,
@@ -269,7 +284,7 @@ class GameService {
       };
     } catch (error) {
       console.error('Failed to get session status:', error);
-      throw new Error('Failed to get session status.');
+      throw new Error('Fehler beim Abrufen des Sitzungsstatus.');
     }
   }
 
@@ -291,7 +306,9 @@ class GameService {
       return response;
     } catch (error) {
       console.error('Failed to get question:', error);
-      throw new Error('Failed to load question. Please try again.');
+      throw new Error(
+        'Fehler beim Laden der Frage. Bitte versuchen Sie es erneut.'
+      );
     }
   }
 
@@ -319,7 +336,38 @@ class GameService {
       return response;
     } catch (error) {
       console.error('Failed to submit answer:', error);
-      throw new Error('Failed to submit answer. Please try again.');
+      throw new Error(
+        'Fehler beim Übermitteln der Antwort. Bitte versuchen Sie es erneut.'
+      );
+    }
+  }
+
+  /**
+   * Submit an answer for a question using the gameApiService interface.
+   */
+  async submitAnswerWithRequest(
+    sessionId: number,
+    answer: SubmitAnswerRequest
+  ): Promise<SubmitAnswerResponse> {
+    try {
+      const response = await apiClient.post<SubmitAnswerResponse>(
+        `/v1/game/session/${sessionId}/answer`,
+        {
+          question_id: answer.questionId,
+          answer_id: answer.answerId,
+          answered_at: answer.answeredAt,
+        },
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Failed to submit answer:', error);
+      throw new Error(
+        'Fehler beim Übermitteln der Antwort. Bitte versuchen Sie es erneut.'
+      );
     }
   }
 
@@ -339,7 +387,9 @@ class GameService {
       return response;
     } catch (error) {
       console.error('Failed to complete session:', error);
-      throw new Error('Failed to complete game. Please try again.');
+      throw new Error(
+        'Fehler beim Abschließen des Spiels. Bitte versuchen Sie es erneut.'
+      );
     }
   }
 
@@ -352,37 +402,88 @@ class GameService {
     totalQuestions: number
   ): Promise<QuestionResponse[]> {
     try {
-      console.log(`Fetching all ${totalQuestions} questions for session ${sessionId}`);
-      const questions: QuestionResponse[] = [];
-      
+      console.log(
+        `Fetching all ${totalQuestions} questions for session ${sessionId}`
+      );
+
       if (!sessionId) {
         console.error('Invalid sessionId provided:', sessionId);
-        throw new Error('Invalid session ID');
+        throw new Error('Ungültige Sitzungs-ID');
       }
-      
+
       if (!totalQuestions || totalQuestions <= 0) {
         console.error('Invalid totalQuestions:', totalQuestions);
-        throw new Error('Invalid total questions count');
+        throw new Error('Ungültige Anzahl von Fragen');
       }
-      
-      // Load questions sequentially if there are issues with parallel loading
-      for (let i = 0; i < totalQuestions; i++) {
-        try {
-          console.log(`Fetching question ${i} for session ${sessionId}`);
-          const question = await this.getQuestion(sessionId, i);
-          questions.push(question);
-          console.log(`Successfully loaded question ${i}:`, question.content.substring(0, 20) + '...');
-        } catch (questionError) {
-          console.error(`Failed to load question ${i}:`, questionError);
-          throw new Error(`Failed to load question ${i}`);
+
+      // Create an array of promises for parallel loading
+      const questionPromises = Array.from(
+        { length: totalQuestions },
+        (_, i) => {
+          return this.getQuestion(sessionId, i).catch(error => {
+            console.error(`Failed to load question ${i}:`, error);
+            throw new Error(`Fehler beim Laden der Frage ${i}`);
+          });
         }
-      }
-      
+      );
+
+      // Wait for all questions to load in parallel
+      const questions = await Promise.all(questionPromises);
+
       console.log(`Successfully loaded all ${questions.length} questions`);
       return questions;
     } catch (error) {
       console.error('Failed to load questions:', error);
-      throw new Error('Failed to load game questions. Please try again.');
+      throw new Error(
+        'Fehler beim Laden der Spielfragen. Bitte versuchen Sie es erneut.'
+      );
+    }
+  }
+
+  /**
+   * Get published quizzes for a topic.
+   */
+  async getPublishedQuizzes(topicId?: number): Promise<
+    Array<{
+      id: number;
+      title: string;
+      description?: string;
+      questionCount: number;
+      difficulty: number;
+      playCount: number;
+      topicId: number;
+    }>
+  > {
+    try {
+      const params = topicId ? `?topic_id=${topicId}` : '';
+      const response = await apiClient.get<
+        Array<{
+          id: number;
+          title: string;
+          description?: string;
+          question_count: number;
+          difficulty: number;
+          play_count: number;
+          topic_id: number;
+        }>
+      >(`/v1/admin/quizzes/published${params}`, {
+        headers: this.getAuthHeaders(),
+      });
+
+      return response.map(quiz => ({
+        id: quiz.id,
+        title: quiz.title,
+        description: quiz.description,
+        questionCount: quiz.question_count,
+        difficulty: quiz.difficulty,
+        playCount: quiz.play_count,
+        topicId: quiz.topic_id,
+      }));
+    } catch (error) {
+      console.error('Failed to get published quizzes:', error);
+      throw new Error(
+        'Fehler beim Laden der veröffentlichten Quizze. Bitte versuchen Sie es erneut.'
+      );
     }
   }
 }

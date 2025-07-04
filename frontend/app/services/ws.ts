@@ -11,10 +11,17 @@ const WS_BASE_URL = import.meta.env.PROD
   ? (() => {
       const apiUrl = import.meta.env.VITE_API_URL;
       if (!apiUrl) {
-        throw new Error('VITE_API_URL environment variable is required in production');
+        throw new Error(
+          'VITE_API_URL environment variable is required in production'
+        );
       }
       // Convert HTTP URL to WebSocket URL (http -> ws, https -> wss)
-      return apiUrl.replace(/^https?:/, apiUrl.startsWith('https:') ? 'wss:' : 'ws:') + '/ws';
+      return (
+        apiUrl.replace(
+          /^https?:/,
+          apiUrl.startsWith('https:') ? 'wss:' : 'ws:'
+        ) + '/ws'
+      );
     })()
   : import.meta.env.MODE === 'test'
     ? 'ws://localhost:8000/ws' // Mock URL for tests
@@ -81,7 +88,8 @@ export class WebSocketClient {
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Event callbacks
-  private onStatusChangeCallbacks: Array<(status: ConnectionStatus) => void> = [];
+  private onStatusChangeCallbacks: Array<(status: ConnectionStatus) => void> =
+    [];
   private onMessageCallbacks: Array<(event: GameEvent) => void> = [];
   private onErrorCallbacks: Array<(error: Event) => void> = [];
 
@@ -94,7 +102,11 @@ export class WebSocketClient {
    * Connect to WebSocket server with authentication token.
    */
   connect(): void {
-    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING)
+    ) {
       return;
     }
 
@@ -111,7 +123,7 @@ export class WebSocketClient {
         this.reconnectAttempts = 0;
       };
 
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = event => {
         try {
           const data = JSON.parse(event.data) as GameEvent;
           this.onMessageCallbacks.forEach(callback => callback(data));
@@ -120,18 +132,21 @@ export class WebSocketClient {
         }
       };
 
-      this.ws.onclose = (event) => {
+      this.ws.onclose = event => {
         this.setStatus(ConnectionStatus.DISCONNECTED);
 
         // If not a normal closure (1000), attempt to reconnect
-        if (event.code !== 1000 && this.reconnectAttempts < (this.options.maxReconnectAttempts || 5)) {
+        if (
+          event.code !== 1000 &&
+          this.reconnectAttempts < (this.options.maxReconnectAttempts || 5)
+        ) {
           this.reconnect();
         } else if (event.code !== 1000) {
           this.setStatus(ConnectionStatus.FAILED);
         }
       };
 
-      this.ws.onerror = (error) => {
+      this.ws.onerror = error => {
         this.onErrorCallbacks.forEach(callback => callback(error));
       };
     } catch (error) {
@@ -154,7 +169,8 @@ export class WebSocketClient {
     // Calculate backoff interval with jitter
     const backoff = Math.min(
       this.options.maxReconnectInterval || 30000,
-      (this.options.reconnectInterval || 1000) * Math.pow(2, this.reconnectAttempts - 1)
+      (this.options.reconnectInterval || 1000) *
+        Math.pow(2, this.reconnectAttempts - 1)
     );
     const jitter = Math.random() * 0.5 * backoff;
     const interval = Math.floor(backoff + jitter);
@@ -201,7 +217,9 @@ export class WebSocketClient {
   onStatusChange(callback: (status: ConnectionStatus) => void): () => void {
     this.onStatusChangeCallbacks.push(callback);
     return () => {
-      this.onStatusChangeCallbacks = this.onStatusChangeCallbacks.filter(cb => cb !== callback);
+      this.onStatusChangeCallbacks = this.onStatusChangeCallbacks.filter(
+        cb => cb !== callback
+      );
     };
   }
 
@@ -211,7 +229,9 @@ export class WebSocketClient {
   onMessage(callback: (event: GameEvent) => void): () => void {
     this.onMessageCallbacks.push(callback);
     return () => {
-      this.onMessageCallbacks = this.onMessageCallbacks.filter(cb => cb !== callback);
+      this.onMessageCallbacks = this.onMessageCallbacks.filter(
+        cb => cb !== callback
+      );
     };
   }
 
@@ -221,7 +241,9 @@ export class WebSocketClient {
   onError(callback: (error: Event) => void): () => void {
     this.onErrorCallbacks.push(callback);
     return () => {
-      this.onErrorCallbacks = this.onErrorCallbacks.filter(cb => cb !== callback);
+      this.onErrorCallbacks = this.onErrorCallbacks.filter(
+        cb => cb !== callback
+      );
     };
   }
 }
@@ -229,11 +251,14 @@ export class WebSocketClient {
 /**
  * Create a new WebSocket connection for the given session.
  */
-export function connect(sessionId: string, options?: WebSocketOptions): WebSocketClient {
+export function connect(
+  sessionId: string,
+  options?: WebSocketOptions
+): WebSocketClient {
   const client = new WebSocketClient(sessionId, options);
   client.connect();
   return client;
 }
 
 // Export singleton factory
-export default connect; 
+export default connect;

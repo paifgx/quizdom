@@ -86,35 +86,34 @@ export function QuizGameContainer({
     startGame,
     handleAnswer,
     isSubmitting: _isSubmitting,
-    waitingForOpponent
-  } =
-    useGameWithBackend({
-      mode,
-      questions,
-      players,
-      sessionId: sessionId || "0",
-      onGameOver: async (result: GameResult) => {
-        setGameResult(result);
-        onGameEnd(result);
-        return Promise.resolve();
-      },
-      onHeartLoss: event => {
-        handleHeartLoss(event.playerId);
+    waitingForOpponent,
+  } = useGameWithBackend({
+    mode,
+    questions,
+    players,
+    sessionId: sessionId || '0',
+    onGameOver: async (result: GameResult) => {
+      setGameResult(result);
+      onGameEnd(result);
+      return Promise.resolve();
+    },
+    onHeartLoss: event => {
+      handleHeartLoss(event.playerId);
 
-        // Update player damage tracking
-        if (event.playerId) {
-          setPlayerDamageStates(prev => ({
-            ...prev,
-            [event.playerId!]: {
-              hearts: event.heartsRemaining,
-              previousHearts:
-                prev[event.playerId!]?.hearts || event.heartsRemaining + 1,
-              onDamage: false,
-            },
-          }));
-        }
-      },
-    });
+      // Update player damage tracking
+      if (event.playerId) {
+        setPlayerDamageStates(prev => ({
+          ...prev,
+          [event.playerId!]: {
+            hearts: event.heartsRemaining,
+            previousHearts:
+              prev[event.playerId!]?.hearts || event.heartsRemaining + 1,
+            onDamage: false,
+          },
+        }));
+      }
+    },
+  });
 
   const [showResult, setShowResult] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
@@ -400,7 +399,10 @@ export function QuizGameContainer({
                         }
                       : undefined
                   }
-                  waitingForOpponent={waitingForOpponent && (mode === 'competitive' || mode === 'collaborative')}
+                  waitingForOpponent={
+                    waitingForOpponent &&
+                    (mode === 'competitive' || mode === 'collaborative')
+                  }
                 />
 
                 <div className="py-4">
@@ -496,8 +498,12 @@ export function QuizGameContainer({
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-8 max-w-md text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FCC822] mx-auto mb-4"></div>
-            <h3 className="text-xl font-semibold text-white mb-2">Auf Mitspieler warten</h3>
-            <p className="text-gray-400">Der andere Spieler wählt noch seine Antwort...</p>
+            <h3 className="text-xl font-semibold text-white mb-2">
+              Auf Mitspieler warten
+            </h3>
+            <p className="text-gray-400">
+              Der andere Spieler wählt noch seine Antwort...
+            </p>
           </div>
         </div>
       )}

@@ -1,8 +1,19 @@
 /**
  * Game context to provide session ID and game service to all game components.
  */
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { gameService, GameService, type PlayerMeta, type SessionMeta } from '../services/game';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
+import {
+  gameService,
+  GameService,
+  type PlayerMeta,
+  type SessionMeta,
+} from '../services/game';
 import { connect, WebSocketClient } from '../services/ws';
 
 interface GameContextValue {
@@ -30,39 +41,44 @@ export function GameProvider({
 }) {
   const [players, setPlayers] = useState<PlayerMeta[]>(initialPlayers);
   const [wsClient, setWsClient] = useState<WebSocketClient | null>(null);
-  const [sessionMeta, _setSessionMeta] = useState<SessionMeta | null>(initialSessionMeta);
-  
+  const [sessionMeta, _setSessionMeta] = useState<SessionMeta | null>(
+    initialSessionMeta
+  );
+
   // Determine if current user is the host
   const isHost = sessionMeta?.players?.some(player => player.isHost) || false;
-  
+
   // Initialize WebSocket for multiplayer games
   useEffect(() => {
     // Only establish WebSocket for valid sessions
-    if (sessionId && (sessionMeta?.mode === 'comp' || sessionMeta?.mode === 'collab')) {
+    if (
+      sessionId &&
+      (sessionMeta?.mode === 'comp' || sessionMeta?.mode === 'collab')
+    ) {
       const client = connect(sessionId);
       setWsClient(client);
-      
+
       return () => {
         client.close();
       };
     }
   }, [sessionId, sessionMeta?.mode]);
-  
+
   // Memoize updatePlayers to prevent infinite re-renders
   const updatePlayers = useCallback((newPlayers: PlayerMeta[]) => {
     setPlayers(newPlayers);
   }, []);
 
   return (
-    <GameContext.Provider 
-      value={{ 
-        sessionId, 
-        gameService, 
-        players, 
-        isHost, 
-        wsClient, 
+    <GameContext.Provider
+      value={{
+        sessionId,
+        gameService,
+        players,
+        isHost,
+        wsClient,
         sessionMeta,
-        updatePlayers 
+        updatePlayers,
       }}
     >
       {children}
@@ -76,4 +92,4 @@ export function useGameContext() {
     throw new Error('useGameContext must be used within a GameProvider');
   }
   return context;
-} 
+}

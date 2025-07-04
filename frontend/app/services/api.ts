@@ -4,8 +4,9 @@
  */
 
 import { apiClient } from '../api/client';
+import { gameService } from '../services/game';
 import type { GameTopic } from '../types/topics';
-import type { GameMode } from '../types/game';
+import type { GameModeId } from '../types/game';
 
 /**
  * Health check service.
@@ -27,11 +28,13 @@ export const topicsService = {
    * Fetch all topics.
    */
   async getAll(): Promise<GameTopic[]> {
-    const response = await apiClient.get<Array<{
-      id: number;
-      title: string;
-      description?: string;
-    }>>('/v1/admin/topics');
+    const response = await apiClient.get<
+      Array<{
+        id: number;
+        title: string;
+        description?: string;
+      }>
+    >('/v1/admin/topics');
     return response.map(topic => ({
       id: topic.id.toString(),
       title: topic.title,
@@ -105,53 +108,76 @@ export const categoriesService = {
 
 /**
  * Quiz service - handles quiz game API calls.
+ * Now using gameService implementation.
  */
 export const quizService = {
   /**
    * Start a new quiz session.
-   * TODO: Replace with real backend endpoint when available.
    */
   async startSession(
-    _topicId: string,
-    _mode: GameMode
+    topicId: string,
+    mode: GameModeId
   ): Promise<{ sessionId: string }> {
-    // For now, throw error to indicate backend endpoint needed
-    throw new Error('Backend endpoint POST /quiz/sessions not implemented yet');
+    const response = await gameService.startTopicGame(topicId, mode);
+    return {
+      sessionId: response.session_id.toString(),
+    };
   },
 
   /**
    * Get next question for a quiz session.
-   * TODO: Replace with real backend endpoint when available.
    */
-  async getNextQuestion(_sessionId: string): Promise<{
+  async getNextQuestion(sessionId: string): Promise<{
     id: string;
     text: string;
     answers: string[];
     timeLimit: number;
   }> {
-    // For now, throw error to indicate backend endpoint needed
-    throw new Error(
-      `Backend endpoint GET /quiz/sessions/${_sessionId}/next-question not implemented yet`
-    );
+    const sessionIdInt = parseInt(sessionId);
+    if (isNaN(sessionIdInt)) {
+      throw new Error('Ungültige Sitzungs-ID');
+    }
+
+    const question = await gameService.getQuestion(sessionIdInt, 0);
+    return {
+      id: question.question_id.toString(),
+      text: question.content,
+      answers: question.answers.map(a => a.content),
+      timeLimit: question.time_limit,
+    };
   },
 
   /**
    * Submit answer for a question.
-   * TODO: Replace with real backend endpoint when available.
    */
   async submitAnswer(
-    _sessionId: string,
-    _questionId: string,
-    _answerIndex: number
+    sessionId: string,
+    questionId: string,
+    answerIndex: number
   ): Promise<{
     correct: boolean;
     points: number;
     correctAnswer: number;
   }> {
-    // For now, throw error to indicate backend endpoint needed
-    throw new Error(
-      `Backend endpoint POST /quiz/sessions/${_sessionId}/answers not implemented yet`
+    const sessionIdInt = parseInt(sessionId);
+    const questionIdInt = parseInt(questionId);
+    const answerIdInt = answerIndex + 1; // Assuming answer IDs start at 1
+
+    if (isNaN(sessionIdInt) || isNaN(questionIdInt)) {
+      throw new Error('Ungültige Parameter');
+    }
+
+    const response = await gameService.submitAnswer(
+      sessionIdInt,
+      questionIdInt,
+      answerIdInt
     );
+
+    return {
+      correct: response.is_correct,
+      points: response.points_earned,
+      correctAnswer: response.correct_answer_id,
+    };
   },
 };
 

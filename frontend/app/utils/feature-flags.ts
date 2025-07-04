@@ -40,14 +40,24 @@ export function getFeatureFlags(): FeatureFlags {
       enableAchievements: true,
     };
   }
-  
+
   // In production, use environment variables or defaults
   return {
-    enableQuizMode: import.meta.env.VITE_ENABLE_QUIZ_MODE === 'true' || defaultFlags.enableQuizMode,
-    enableTopicMode: import.meta.env.VITE_ENABLE_TOPIC_MODE === 'true' || defaultFlags.enableTopicMode,
-    enableQuizPublishing: import.meta.env.VITE_ENABLE_QUIZ_PUBLISHING === 'true' || defaultFlags.enableQuizPublishing,
-    enableMultiplayer: import.meta.env.VITE_ENABLE_MULTIPLAYER === 'true' || defaultFlags.enableMultiplayer,
-    enableAchievements: import.meta.env.VITE_ENABLE_ACHIEVEMENTS === 'true' || defaultFlags.enableAchievements,
+    enableQuizMode:
+      import.meta.env.VITE_ENABLE_QUIZ_MODE === 'true' ||
+      defaultFlags.enableQuizMode,
+    enableTopicMode:
+      import.meta.env.VITE_ENABLE_TOPIC_MODE === 'true' ||
+      defaultFlags.enableTopicMode,
+    enableQuizPublishing:
+      import.meta.env.VITE_ENABLE_QUIZ_PUBLISHING === 'true' ||
+      defaultFlags.enableQuizPublishing,
+    enableMultiplayer:
+      import.meta.env.VITE_ENABLE_MULTIPLAYER === 'true' ||
+      defaultFlags.enableMultiplayer,
+    enableAchievements:
+      import.meta.env.VITE_ENABLE_ACHIEVEMENTS === 'true' ||
+      defaultFlags.enableAchievements,
   };
 }
 
@@ -57,4 +67,4 @@ export function getFeatureFlags(): FeatureFlags {
 export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
   const flags = getFeatureFlags();
   return flags[feature];
-} 
+}

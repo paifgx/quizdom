@@ -13,4 +13,4 @@ export { TopicCard } from './topic-card';
 export { QuizSelection } from './quiz-selection';
 export { AllQuizzesSelection } from './all-quizzes-selection';
 export { ActionButtons } from './action-buttons';
-export { HelpText } from './help-text'; 
+export { HelpText } from './help-text';

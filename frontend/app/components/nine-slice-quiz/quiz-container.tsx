@@ -82,7 +82,7 @@ export function QuizContainer({
           );
         })}
       </div>
-      
+
       {/* Waiting for opponent overlay */}
       {waitingForOpponent && (
         <div className="mt-6 bg-gray-800/80 rounded-lg p-4 text-center">

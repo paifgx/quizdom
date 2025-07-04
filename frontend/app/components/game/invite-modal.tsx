@@ -2,7 +2,7 @@
  * Modal for sharing multiplayer game invites.
  * Includes copy-to-clipboard functionality.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface InviteModalProps {
   sessionId: string;
@@ -17,8 +17,9 @@ export function InviteModal({ sessionId, onClose }: InviteModalProps) {
   const inviteUrl = `${window.location.origin}/join/${sessionId}`;
 
   // Copy link to clipboard
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(inviteUrl)
+  const copyToClipboard = useCallback(() => {
+    navigator.clipboard
+      .writeText(inviteUrl)
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -26,7 +27,13 @@ export function InviteModal({ sessionId, onClose }: InviteModalProps) {
       .catch(err => {
         console.error('Failed to copy:', err);
       });
-  };
+  }, [inviteUrl]);
+
+  // Add fade-out animation before closing
+  const handleClose = useCallback(() => {
+    setFadeOut(true);
+    setTimeout(() => onClose(), 300);
+  }, [onClose]);
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -38,23 +45,17 @@ export function InviteModal({ sessionId, onClose }: InviteModalProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // Add fade-out animation before closing
-  const handleClose = () => {
-    setFadeOut(true);
-    setTimeout(() => onClose(), 300);
-  };
+  }, [handleClose]);
 
   return (
-    <div 
+    <div
       className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 ${
         fadeOut ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <div 
+      <div
         className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700 shadow-2xl transform transition-all"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className="text-center mb-6">
           <div className="text-[#FCC822] text-4xl mb-2">🎮</div>
@@ -67,7 +68,9 @@ export function InviteModal({ sessionId, onClose }: InviteModalProps) {
         </div>
 
         <div className="mb-6">
-          <label className="block text-gray-400 text-sm mb-2">Einladungslink</label>
+          <label className="block text-gray-400 text-sm mb-2">
+            Einladungslink
+          </label>
           <div className="flex">
             <input
               type="text"
@@ -78,8 +81,8 @@ export function InviteModal({ sessionId, onClose }: InviteModalProps) {
             <button
               onClick={copyToClipboard}
               className={`px-4 py-2 rounded-r-lg font-medium transition-colors ${
-                copied 
-                  ? 'bg-green-600 text-white' 
+                copied
+                  ? 'bg-green-600 text-white'
                   : 'bg-[#FCC822] hover:bg-[#e0b01d] text-gray-900'
               }`}
             >
@@ -95,7 +98,7 @@ export function InviteModal({ sessionId, onClose }: InviteModalProps) {
           >
             Schließen
           </button>
-          
+
           <div className="text-gray-400 text-sm flex items-center">
             <span>Warte auf Mitspieler...</span>
             <div className="ml-2 w-4 h-4 rounded-full border-2 border-t-transparent border-[#FCC822] animate-spin"></div>
@@ -104,4 +107,4 @@ export function InviteModal({ sessionId, onClose }: InviteModalProps) {
       </div>
     </div>
   );
-} 
+}

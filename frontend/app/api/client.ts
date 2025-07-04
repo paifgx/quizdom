@@ -8,8 +8,11 @@
 // In production, use the full API URL from environment variable
 // In test environment, use a mock URL to prevent fetch errors
 const API_BASE_URL = import.meta.env.PROD
-  ? import.meta.env.VITE_API_URL || (() => {
-      throw new Error('VITE_API_URL environment variable is required in production');
+  ? import.meta.env.VITE_API_URL ||
+    (() => {
+      throw new Error(
+        'VITE_API_URL environment variable is required in production'
+      );
     })()
   : import.meta.env.MODE === 'test'
     ? 'http://localhost:8000' // Mock URL for tests

@@ -83,7 +83,7 @@ function handleAuthError(error: unknown): never {
  *
  * Provides centralized authentication management with tab-isolated storage.
  * Handles token lifecycle and user session state.
- * 
+ *
  * Uses sessionStorage for tokens to ensure proper isolation in multi-user scenarios.
  * Uses localStorage for user data to maintain profile across tabs.
  */
@@ -224,7 +224,7 @@ class AuthService {
    *
    * Retrieves JWT token from sessionStorage.
    * Returns null if no token is stored.
-   * 
+   *
    * Uses sessionStorage to ensure proper tab isolation for multi-user scenarios.
    */
   getToken(): string | null {
@@ -236,7 +236,7 @@ class AuthService {
    *
    * Stores JWT token in sessionStorage for tab-isolated persistence.
    * Used internally after successful authentication.
-   * 
+   *
    * Uses sessionStorage to prevent token sharing between browser tabs.
    */
   private setToken(token: string): void {
@@ -248,7 +248,7 @@ class AuthService {
    *
    * Retrieves and parses user data from localStorage.
    * Cleans up invalid JSON and returns null if not found.
-   * 
+   *
    * Note: User data remains in localStorage for profile consistency,
    * but authentication is validated through the tab-isolated token.
    */

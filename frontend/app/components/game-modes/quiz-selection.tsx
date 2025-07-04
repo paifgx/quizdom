@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { gameApiService } from '../../services/game-api';
+import { gameService } from '../../services/game';
 import type { GameModeId } from '../../types/game';
 
 interface QuizSelectionProps {
@@ -39,7 +39,8 @@ export function QuizSelection({
         setError(null);
         // Get published quizzes for this topic
         const topicIdNum = parseInt(topicId);
-        const publishedQuizzes = await gameApiService.getPublishedQuizzes(topicIdNum);
+        const publishedQuizzes =
+          await gameService.getPublishedQuizzes(topicIdNum);
         setQuizzes(publishedQuizzes);
       } catch (err) {
         console.error('Failed to load quizzes:', err);
@@ -102,7 +103,7 @@ export function QuizSelection({
         onClick={onSelectRandom}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onSelectRandom();
@@ -135,14 +136,14 @@ export function QuizSelection({
           <h3 className="text-lg font-semibold text-gray-300">
             Verfügbare Quizze
           </h3>
-          {quizzes.map((quiz) => (
+          {quizzes.map(quiz => (
             <div
               key={quiz.id}
               className="bg-gray-800/70 rounded-xl p-6 border-2 border-gray-600 hover:border-[#FCC822]/50 cursor-pointer transition-all duration-300 group"
               onClick={() => onSelectQuiz(quiz.id)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   onSelectQuiz(quiz.id);
@@ -196,4 +197,4 @@ export function QuizSelection({
       </div>
     </div>
   );
-} 
+}

@@ -25,8 +25,12 @@ export default [
     ]),
 
     // Other main routes (without dashboard sidebar)
-    route('/topics/:topicId/quiz-game', 'routes/quiz-game.tsx', { id: 'topic-quiz-game' }),
-    route('/quiz/:quizId/quiz-game', 'routes/quiz-game.tsx', { id: 'quiz-quiz-game' }),
+    route('/topics/:topicId/quiz-game', 'routes/quiz-game.tsx', {
+      id: 'topic-quiz-game',
+    }),
+    route('/quiz/:quizId/quiz-game', 'routes/quiz-game.tsx', {
+      id: 'quiz-quiz-game',
+    }),
     route('/join/:sessionId', 'routes/join.$sessionId.tsx'),
     route('/topics', 'routes/topics.tsx'),
     route('/game-modes', 'routes/game-modes.tsx'),

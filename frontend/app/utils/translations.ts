@@ -317,12 +317,18 @@ export const translations = {
       'Aktuell kann man QUIZDOM online in der Web-App über einen Internet-Browser spielen.',
 
     structureQuizdom: 'Wie ist QUIZDOM aufgebaut?',
-    structureQuizdomDesc: 'QUIZDOM besteht aus verschiedenen Seiten, die du über die Navigationsleiste erreichen kannst:',
-    structureQuizdomPage1: 'Start: Hier findest du deine als Favorit markierten Themenbereiche.',
-    structureQuizdomPage2: 'Themen: Such dir aus, in welchem Themenbereich du dein Wissen erweitern willst.',
-    structureQuizdomPage3: 'Spielmodi: Wähle zwischen Solo Mission und Team Battle und starte das Quizzen.',
-    structureQuizdomPage4: 'Benutzerhandbuch: Hier findest du Antworten auf all deine Fragen rund um QUIZDOM selbst.',
-    structureQuizdomPage5: 'Profil: Klick auf dein Profilbild, um deine Einstellungen zu verwalten, deinen Fortschritt zu tracken oder wenn du dich abmelden willst.',
+    structureQuizdomDesc:
+      'QUIZDOM besteht aus verschiedenen Seiten, die du über die Navigationsleiste erreichen kannst:',
+    structureQuizdomPage1:
+      'Start: Hier findest du deine als Favorit markierten Themenbereiche.',
+    structureQuizdomPage2:
+      'Themen: Such dir aus, in welchem Themenbereich du dein Wissen erweitern willst.',
+    structureQuizdomPage3:
+      'Spielmodi: Wähle zwischen Solo Mission und Team Battle und starte das Quizzen.',
+    structureQuizdomPage4:
+      'Benutzerhandbuch: Hier findest du Antworten auf all deine Fragen rund um QUIZDOM selbst.',
+    structureQuizdomPage5:
+      'Profil: Klick auf dein Profilbild, um deine Einstellungen zu verwalten, deinen Fortschritt zu tracken oder wenn du dich abmelden willst.',
 
     compatibility: 'Kompatibilität',
     browserCompatibility:

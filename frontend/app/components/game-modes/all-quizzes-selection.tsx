@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { gameApiService } from '../../services/game-api';
+import { gameService } from '../../services/game';
 import { gameModes } from '../../api/data';
 import type { GameModeId, Topic } from '../../types/game';
 
@@ -33,7 +33,9 @@ export function AllQuizzesSelection({
   onSelectRandomFromTopic,
   onBack,
 }: AllQuizzesSelectionProps) {
-  const [topicsWithQuizzes, setTopicsWithQuizzes] = useState<TopicWithQuizzes[]>([]);
+  const [topicsWithQuizzes, setTopicsWithQuizzes] = useState<
+    TopicWithQuizzes[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,33 +44,37 @@ export function AllQuizzesSelection({
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch all published quizzes
-        const allQuizzes = await gameApiService.getPublishedQuizzes();
-        
+        const allQuizzes = await gameService.getPublishedQuizzes();
+
         // Group quizzes by topic
         const topicsMap = new Map<string, TopicWithQuizzes>();
-        
+
         // Initialize with all topics
         topics.forEach(topic => {
           topicsMap.set(topic.id, {
             topic,
-            quizzes: []
+            quizzes: [],
           });
         });
-        
+
         // Add quizzes to their respective topics
         allQuizzes.forEach(quiz => {
           // Convert numeric topic ID to string for comparison with frontend topic IDs
           const topicIdStr = quiz.topicId.toString();
           const topicEntry = topicsMap.get(topicIdStr);
-          
+
           if (topicEntry) {
             topicEntry.quizzes.push(quiz);
           }
         });
-        
-        setTopicsWithQuizzes(Array.from(topicsMap.values()).filter(t => t.quizzes.length > 0 || t.topic.totalQuestions > 0));
+
+        setTopicsWithQuizzes(
+          Array.from(topicsMap.values()).filter(
+            t => t.quizzes.length > 0 || t.topic.totalQuestions > 0
+          )
+        );
       } catch (err) {
         console.error('Failed to load quizzes:', err);
         setError('Fehler beim Laden der Quizze');
@@ -90,7 +96,8 @@ export function AllQuizzesSelection({
     return 'text-red-400';
   };
 
-  const modeName = gameModes.find(m => m.id === selectedMode)?.name || selectedMode;
+  const modeName =
+    gameModes.find(m => m.id === selectedMode)?.name || selectedMode;
 
   if (loading) {
     return (
@@ -129,8 +136,10 @@ export function AllQuizzesSelection({
       {/* Show topics with quizzes */}
       {topicsWithQuizzes.map(({ topic, quizzes }) => (
         <div key={topic.id} className="space-y-4">
-          <h2 className="text-xl font-semibold text-[#FCC822]">{topic.title}</h2>
-          
+          <h2 className="text-xl font-semibold text-[#FCC822]">
+            {topic.title}
+          </h2>
+
           {/* Random Questions Option for this topic */}
           {topic.totalQuestions > 0 && (
             <div
@@ -138,7 +147,7 @@ export function AllQuizzesSelection({
               onClick={() => onSelectRandomFromTopic(topic.id)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   onSelectRandomFromTopic(topic.id);
@@ -160,16 +169,16 @@ export function AllQuizzesSelection({
               </div>
             </div>
           )}
-          
+
           {/* Published Quizzes for this topic */}
-          {quizzes.map((quiz) => (
+          {quizzes.map(quiz => (
             <div
               key={quiz.id}
               className="bg-gray-800/70 rounded-xl p-4 border-2 border-gray-600 hover:border-[#FCC822]/50 cursor-pointer transition-all duration-300 group"
               onClick={() => onSelectQuiz(quiz.id)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   onSelectQuiz(quiz.id);
@@ -225,4 +234,4 @@ export function AllQuizzesSelection({
       </div>
     </div>
   );
-} 
+}

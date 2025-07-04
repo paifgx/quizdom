@@ -420,9 +420,10 @@ export default function AdminQuizEditPage() {
         // Handle different scenarios for new quiz creation
         if (createdQuestions.length > 0 && selectedQuestions.length > 0) {
           // Both new and existing questions - create new questions first, then create quiz with all
-          const newQuestions = await quizAdminService.createQuestions(createdQuestions);
+          const newQuestions =
+            await quizAdminService.createQuestions(createdQuestions);
           const newQuestionIds = newQuestions.map(q => q.id);
-          
+
           const payload: CreateQuizPayload = {
             title: formData.title.trim(),
             description: formData.description.trim(),
