@@ -42,7 +42,7 @@ Mit QUIZDOM kannst dich auf spielerische Art und Weise in einer Fantasy-Mittelal
 
 `relates to SCRUM-140`
 
-Aktuell kannst QUIZDOM online in der Web-App über deinen Internet-Browser spielen.
+Aktuell kann man QUIZDOM online in der Web-App über einen Internet-Browser spielen.
 
 ---
 
@@ -50,10 +50,13 @@ Aktuell kannst QUIZDOM online in der Web-App über deinen Internet-Browser spiel
 
 `relates to SCRUM-147`
 
-Nach der Registrierung bzw. dem Log In landest du auf deinem Dashboard. Hier findest du deine als Favorit markierten Themenbereiche, deine Badges und siehst, welche Spieler gerade online sind.
-Über die Navigationsleiste kannst du durch QUIZDOM navigieren:
+QUIZDOM besteht aus verschiedenen Seiten, die du über die Navigationsleiste erreichen kannst:
 
-- ...
+- Start: Hier findest du deine als Favorit markierten Themenbereiche.
+- Themen: Such dir aus, in welchem Themenbereich du dein Wissen erweitern willst.
+- Spielmodi: Wähle zwischen Solo Mission und Team Battle und starte das Quizzen.
+- Benutzerhandbuch: Hier findest du Antworten auf all deine Fragen rund um QUIZDOM selbst.
+- Profil: Klick auf dein Profilbild, um deine Einstellungen zu verwalten, deinen Fortschritt zu tracken oder wenn du dich abmelden willst.
 
 ---
 
@@ -61,11 +64,10 @@ Nach der Registrierung bzw. dem Log In landest du auf deinem Dashboard. Hier fin
 
 `relates to SCRUM-156`
 
-QUIZDOM sollte fehlerfrei funktionieren, wenn du eine aktuell unterstützt Version von...
+QUIZDOM sollte fehlerfrei funktionieren, wenn du eine aktuell unterstützte Version von...
 
 - Google Chrome
 - Mozilla Firefox
-- Safari (macOS, iOS)
 - Microsoft Edge
 
 ...benutzt.
@@ -326,14 +328,14 @@ Die Kontolöschung erfolgt über die Profileinstellungen. (...)
 
 ### Wie starte ich mein erstes Quiz?
 
-Melde dich an, gehe zu "Themen", wähle ein Thema aus und klicke auf "SPIELEN". Dann geht es direkt los!
+Melde dich an, gehe zu "Themen", wähle ein Thema aus und klicke auf "SPIELEN". Dann geht es direkt los! Oder gehe zu "Spielmdodi", wähle zwischen Solo Mission und Team Battle, wähle ein Thema aus und klicke dann auf "SPIELEN".
 
 ---
 
 ### Was passiert, wenn ich eine Frage falsch beantworte?
 
 Du verlierst ein Herz und bekommst keine Punkte für eine Frage.
-Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass nie entmutigen und bleibe dran.
+Doch keine Sorge: Aus Fehlern lernt man am meisten, also lass dich nie entmutigen und bleibe dran.
 
 ---
 

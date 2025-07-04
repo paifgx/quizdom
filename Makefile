@@ -270,4 +270,4 @@ status: ## Show project status
 	@cd backend && pip list 2>/dev/null | head -10 || echo "  No dependencies found"
 	@echo ""
 	@echo "Git status:"
-	@git status --short || echo "  Not a git repository" 
+	@git status --short || echo "  Not a git repository"
