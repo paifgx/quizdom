@@ -187,6 +187,10 @@ export default function AdminQuizEditPage() {
 
     // Create preview URL
     const preview = URL.createObjectURL(file);
+    if (!preview.startsWith('blob:')) {
+      setError('Ungültige Datei-URL.');
+      return;
+    }
     setUploadedImage({
       file,
       preview,
@@ -703,6 +707,8 @@ export default function AdminQuizEditPage() {
                       <img
                         src={uploadedImage.preview}
                         alt="Hochgeladenes Bild"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
                         className="h-20 w-20 object-cover rounded-lg border border-gray-600"
                       />
                       <div className="flex-1">
