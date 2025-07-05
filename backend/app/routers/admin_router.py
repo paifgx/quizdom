@@ -14,12 +14,19 @@ from fastapi import (
     UploadFile,
     status,
 )
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlmodel import Session, col, select
 from starlette.responses import StreamingResponse
 
+from app.core.dependencies import require_admin
 from app.core.logging import app_logger, log_operation
 from app.core.security import get_password_hash
+from app.db.helpers import (
+    build_user_list_response,
+    check_email_available,
+    get_user_with_role_name,
+    validate_role_exists,
+)
 from app.db.models import Role, SessionPlayers, Topic, User, UserRoles
 from app.db.session import get_session
 from app.routers.auth_router import get_current_user
@@ -50,49 +57,6 @@ from app.services.quiz_admin_service import QuizAdminService
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
 logger = logging.getLogger(__name__)
-
-
-def require_admin(
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session),
-) -> User:
-    """Require admin role for accessing endpoints.
-
-    Verifies that the current user has admin privileges.
-    Used as a dependency for admin-only endpoints.
-
-    Args:
-        current_user: The authenticated user from token
-        session: Database session dependency
-
-    Returns:
-        User: The authenticated admin user
-
-    Raises:
-        HTTPException: When user doesn't have admin role
-    """
-    # Check if user has admin role through UserRoles
-    admin_role = session.exec(
-        select(Role)
-        .join(UserRoles)
-        .where(UserRoles.role_id == Role.id)
-        .where(UserRoles.user_id == current_user.id)
-        .where(Role.name == "admin")
-    ).first()
-
-    if not admin_role:
-        log_operation(app_logger, "admin_access_denied",
-                      user_id=current_user.id)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Administrator-Zugriff erforderlich",
-            headers={
-                "X-Error-Code": "admin_required",
-                "X-Error-Hint": "Sie benötigen Administrator-Rechte für diese Operation",
-            },
-        )
-
-    return current_user
 
 
 # Topic endpoints
@@ -560,46 +524,9 @@ async def list_users(
         if role_filter and role_name != role_filter:
             continue
 
-        # Get user statistics (quizzes completed, scores)
-        user_id = cast(int, user.id)  # Cast to avoid type error
-
-        quizzes_completed_query = (
-            select(func.count())
-            .select_from(SessionPlayers)
-            .where(SessionPlayers.user_id == user_id)
-        )
-        quizzes_completed = session.exec(quizzes_completed_query).one() or 0
-
-        # Get average score and total score
-        avg_score_query = (
-            select(func.avg(SessionPlayers.score))
-            .select_from(SessionPlayers)
-            .where(SessionPlayers.user_id == user_id)
-        )
-        average_score = session.exec(avg_score_query).one() or 0.0
-
-        total_score_query = (
-            select(func.sum(SessionPlayers.score))
-            .select_from(SessionPlayers)
-            .where(SessionPlayers.user_id == user_id)
-        )
-        total_score = session.exec(total_score_query).one() or 0
-
-        # Create response object
-        result_users.append(
-            UserListItemResponse(
-                id=user_id,
-                email=user.email,
-                is_verified=user.is_verified,
-                created_at=user.created_at,
-                deleted_at=user.deleted_at,
-                role_name=role_name,
-                last_login=None,  # Add this field if available in your model
-                quizzes_completed=quizzes_completed,
-                average_score=average_score,
-                total_score=total_score,
-            )
-        )
+        # Use helper function to build response
+        user_response = build_user_list_response(session, user, role_name)
+        result_users.append(user_response)
 
     return UserListResponse(
         total=total,
@@ -679,58 +606,14 @@ async def get_user(
     Returns:
         UserListItemResponse: User details
     """
-    user = session.get(User, user_id)
-    if not user:
+    user_result = get_user_with_role_name(session, user_id)
+    if not user_result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Benutzer nicht gefunden"
         )
 
-    # Cast to avoid type errors
-    user_id_cast = cast(int, user.id)
-
-    # Get role information
-    role_query = (
-        select(Role.name)
-        .join(UserRoles)
-        .where(UserRoles.role_id == Role.id)
-        .where(UserRoles.user_id == user_id_cast)
-    )
-    role_name = session.exec(role_query).first()
-
-    # Get user statistics
-    quizzes_completed_query = (
-        select(func.count())
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    quizzes_completed = session.exec(quizzes_completed_query).one() or 0
-
-    avg_score_query = (
-        select(func.avg(SessionPlayers.score))
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    average_score = session.exec(avg_score_query).one() or 0.0
-
-    total_score_query = (
-        select(func.sum(SessionPlayers.score))
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    total_score = session.exec(total_score_query).one() or 0
-
-    return UserListItemResponse(
-        id=user_id_cast,
-        email=user.email,
-        is_verified=user.is_verified,
-        created_at=user.created_at,
-        deleted_at=user.deleted_at,
-        role_name=role_name,
-        last_login=None,  # Add this field if available in your model
-        quizzes_completed=quizzes_completed,
-        average_score=average_score,
-        total_score=total_score,
-    )
+    user, role_name = user_result
+    return build_user_list_response(session, user, role_name)
 
 
 @router.post(
@@ -752,10 +635,7 @@ async def create_user(
         UserListItemResponse: Created user details
     """
     # Check if email already exists
-    existing_user = session.exec(
-        select(User).where(User.email == user_data.email)
-    ).first()
-    if existing_user:
+    if not check_email_available(session, user_data.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="E-Mail-Adresse wird bereits verwendet",
@@ -779,9 +659,9 @@ async def create_user(
     new_user_id = cast(int, new_user.id)
 
     # Assign role if provided
+    role_name = None
     if user_data.role_id:
-        role = session.get(Role, user_data.role_id)
-        if not role:
+        if not validate_role_exists(session, user_data.role_id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Ungültige Rolle"
             )
@@ -792,25 +672,12 @@ async def create_user(
         session.add(user_role)
         session.commit()
 
-    # Get role name for response
-    role_name = None
-    if user_data.role_id:
+        # Get role name for response
         role = session.get(Role, user_data.role_id)
         if role:
             role_name = role.name
 
-    return UserListItemResponse(
-        id=new_user_id,
-        email=new_user.email,
-        is_verified=new_user.is_verified,
-        created_at=new_user.created_at,
-        deleted_at=new_user.deleted_at,
-        role_name=role_name,
-        last_login=None,
-        quizzes_completed=0,
-        average_score=0.0,
-        total_score=0,
-    )
+    return build_user_list_response(session, new_user, role_name)
 
 
 @router.put("/users/{user_id}", response_model=UserListItemResponse)
@@ -842,12 +709,7 @@ async def update_user(
 
     # Update email if provided and different
     if user_data.email and user_data.email != user.email:
-        # Check if email is already used
-        existing_user = session.exec(
-            select(User).where(User.email == user_data.email).where(
-                User.id != user_id)
-        ).first()
-        if existing_user:
+        if not check_email_available(session, user_data.email, user_id_cast):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="E-Mail-Adresse wird bereits verwendet",
@@ -859,11 +721,8 @@ async def update_user(
         user.is_verified = user_data.is_verified
 
     # Update role if provided
-    current_role_id = None
     if user_data.role_id is not None:
-        # First, check if the role exists
-        role = session.get(Role, user_data.role_id)
-        if not role:
+        if not validate_role_exists(session, user_data.role_id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Ungültige Rolle"
             )
@@ -878,7 +737,6 @@ async def update_user(
             if current_role.role_id != user_data.role_id:
                 current_role.role_id = user_data.role_id
                 session.add(current_role)
-                current_role_id = user_data.role_id
         else:
             # Create new role assignment
             user_role = UserRoles(
@@ -887,7 +745,6 @@ async def update_user(
                 granted_at=datetime.now(),
             )
             session.add(user_role)
-            current_role_id = user_data.role_id
 
     # Commit changes
     session.add(user)
@@ -903,40 +760,7 @@ async def update_user(
     )
     role_name = session.exec(role_query).first()
 
-    # Get user statistics
-    quizzes_completed_query = (
-        select(func.count())
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    quizzes_completed = session.exec(quizzes_completed_query).one() or 0
-
-    avg_score_query = (
-        select(func.avg(SessionPlayers.score))
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    average_score = session.exec(avg_score_query).one() or 0.0
-
-    total_score_query = (
-        select(func.sum(SessionPlayers.score))
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    total_score = session.exec(total_score_query).one() or 0
-
-    return UserListItemResponse(
-        id=user_id_cast,
-        email=user.email,
-        is_verified=user.is_verified,
-        created_at=user.created_at,
-        deleted_at=user.deleted_at,
-        role_name=role_name,
-        last_login=None,
-        quizzes_completed=quizzes_completed,
-        average_score=average_score,
-        total_score=total_score,
-    )
+    return build_user_list_response(session, user, role_name)
 
 
 @router.put("/users/{user_id}/status", response_model=UserListItemResponse)
@@ -963,9 +787,6 @@ async def update_user_status(
             status_code=status.HTTP_404_NOT_FOUND, detail="Benutzer nicht gefunden"
         )
 
-    # Cast to avoid type errors
-    user_id_cast = cast(int, user.id)
-
     # Update deleted_at field
     user.deleted_at = status_data.deleted_at
 
@@ -979,44 +800,11 @@ async def update_user_status(
         select(Role.name)
         .join(UserRoles)
         .where(UserRoles.role_id == Role.id)
-        .where(UserRoles.user_id == user_id_cast)
+        .where(UserRoles.user_id == user_id)
     )
     role_name = session.exec(role_query).first()
 
-    # Get user statistics
-    quizzes_completed_query = (
-        select(func.count())
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    quizzes_completed = session.exec(quizzes_completed_query).one() or 0
-
-    avg_score_query = (
-        select(func.avg(SessionPlayers.score))
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    average_score = session.exec(avg_score_query).one() or 0.0
-
-    total_score_query = (
-        select(func.sum(SessionPlayers.score))
-        .select_from(SessionPlayers)
-        .where(SessionPlayers.user_id == user_id_cast)
-    )
-    total_score = session.exec(total_score_query).one() or 0
-
-    return UserListItemResponse(
-        id=user_id_cast,
-        email=user.email,
-        is_verified=user.is_verified,
-        created_at=user.created_at,
-        deleted_at=user.deleted_at,
-        role_name=role_name,
-        last_login=None,
-        quizzes_completed=quizzes_completed,
-        average_score=average_score,
-        total_score=total_score,
-    )
+    return build_user_list_response(session, user, role_name)
 
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
