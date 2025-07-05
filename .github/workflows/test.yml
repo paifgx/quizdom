@@ -61,12 +61,16 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: "pnpm"
+          cache-dependency-path: "./frontend/pnpm-lock.yaml"
       - name: Install pnpm deps
+        working-directory: ./frontend
         run: pnpm install
       - name: Unit tests
-        run: cd frontend && pnpm test:unit --coverage
+        working-directory: ./frontend
+        run: pnpm test:unit --coverage
       - name: Integration tests
-        run: cd frontend && pnpm test:integration
+        working-directory: ./frontend
+        run: pnpm test:integration
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v3
         with:

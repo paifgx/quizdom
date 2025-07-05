@@ -24,10 +24,13 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
+          cache-dependency-path: "./frontend/pnpm-lock.yaml"
       - name: Install pnpm deps
+        working-directory: ./frontend
         run: pnpm install --frozen-lockfile
       - name: Build frontend
-        run: cd frontend && pnpm run build
+        working-directory: ./frontend
+        run: pnpm run build
 
       # Backend Start Check
       - name: Setup Python

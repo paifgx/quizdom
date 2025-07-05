@@ -38,9 +38,13 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
+          cache-dependency-path: "./frontend/pnpm-lock.yaml"
       - name: Install pnpm deps
+        working-directory: ./frontend
         run: pnpm install --frozen-lockfile
       - name: ESLint
-        run: pnpm exec eslint frontend/ --max-warnings=0
+        working-directory: ./frontend
+        run: pnpm exec eslint . --max-warnings=0
       - name: Prettier
-        run: pnpm exec prettier --check frontend/
+        working-directory: ./frontend
+        run: pnpm exec prettier --check .
