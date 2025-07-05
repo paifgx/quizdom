@@ -1,6 +1,6 @@
 import type { MetaFunction } from 'react-router';
 import { Link } from 'react-router';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { translate } from '../utils/translations';
 
 export const meta: MetaFunction = () => {
@@ -18,6 +18,15 @@ export const meta: MetaFunction = () => {
  */
 export default function UserManual() {
   const [activeSection, setActiveSection] = useState<string>('getting-started');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<Array<{
+    id: string;
+    text: string;
+    section: string;
+    element: HTMLElement;
+  }>>([]);
+  const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const sections = [
     {
@@ -31,6 +40,131 @@ export default function UserManual() {
     { id: 'faq', title: translate('userManual.faq'), icon: '❓' },
     { id: 'support', title: translate('userManual.support'), icon: '💬' },
   ];
+
+  // Search functionality
+  const performSearch = (query: string) => {
+    if (!query.trim() || !contentRef.current) {
+      setSearchResults([]);
+      setCurrentResultIndex(-1);
+      return;
+    }
+
+    const results: Array<{
+      id: string;
+      text: string;
+      section: string;
+      element: HTMLElement;
+    }> = [];
+
+    const walkTextNodes = (node: Node, section: string) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || '';
+        const lowerText = text.toLowerCase();
+        const lowerQuery = query.toLowerCase();
+
+        if (lowerText.includes(lowerQuery)) {
+          const parentElement = node.parentElement;
+          if (parentElement && !parentElement.closest('button, input, textarea')) {
+            results.push({
+              id: `${section}-${results.length}`,
+              text: text.trim(),
+              section,
+              element: parentElement,
+            });
+          }
+        }
+      } else {
+        for (const child of Array.from(node.childNodes)) {
+          walkTextNodes(child, section);
+        }
+      }
+    };
+
+    // Search through each section
+    sections.forEach(section => {
+      const sectionElement = document.getElementById(section.id);
+      if (sectionElement) {
+        walkTextNodes(sectionElement, section.title);
+      }
+    });
+
+    setSearchResults(results);
+    setCurrentResultIndex(results.length > 0 ? 0 : -1);
+  };
+
+  // Handle search input changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Highlight current search result
+  useEffect(() => {
+    // Remove previous highlights
+    document.querySelectorAll('.search-highlight').forEach(el => {
+      el.classList.remove('search-highlight', 'search-highlight-current');
+    });
+
+    if (currentResultIndex >= 0 && searchResults[currentResultIndex]) {
+      const result = searchResults[currentResultIndex];
+      const element = result.element;
+
+      // Highlight the element
+      element.classList.add('search-highlight');
+      element.classList.add('search-highlight-current');
+
+      // Scroll to the element
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [currentResultIndex, searchResults]);
+
+  // Navigate through search results
+  const navigateResults = (direction: 'next' | 'prev') => {
+    if (searchResults.length === 0) return;
+
+    if (direction === 'next') {
+      setCurrentResultIndex((prev) =>
+        prev < searchResults.length - 1 ? prev + 1 : 0
+      );
+    } else {
+      setCurrentResultIndex((prev) =>
+        prev > 0 ? prev - 1 : searchResults.length - 1
+      );
+    }
+  };
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'f') {
+          e.preventDefault();
+          const searchInput = document.getElementById('search-input') as HTMLInputElement;
+          searchInput?.focus();
+        }
+      }
+
+      if (searchResults.length > 0) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          navigateResults('next');
+        } else if (e.key === 'Escape') {
+          setSearchQuery('');
+          setSearchResults([]);
+          setCurrentResultIndex(-1);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchResults]);
 
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -82,6 +216,9 @@ export default function UserManual() {
               <h2 className="text-xl font-bold text-[#FCC822] mb-4 flex items-center">
                 📖 {translate('userManual.tableOfContents')}
               </h2>
+
+
+
               <nav className="space-y-2">
                 {sections.map(section => (
                   <button
@@ -102,7 +239,7 @@ export default function UserManual() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:w-3/4">
+          <div className="lg:w-3/4" ref={contentRef}>
             {/* Welcome Section */}
             <div className="bg-[#0F1B2D] rounded-xl p-8 border border-gray-700 mb-8">
               <div className="flex items-center space-x-4 mb-6">
@@ -113,6 +250,68 @@ export default function UserManual() {
                 </div>
               </div>
             </div>
+
+              {/* Search Bar */}
+              <div className="mb-6">
+                <div className="relative">
+                  <input
+                    id="search-input"
+                    type="text"
+                    placeholder="Inhalte durchsuchen..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-[#16213E] border border-gray-600 rounded-lg px-4 py-2 text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#FCC822] focus:ring-1 focus:ring-[#FCC822] transition-all duration-200"
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                    {searchResults.length > 0 && (
+                      <span className="text-xs text-gray-400 bg-[#0F1B2D] px-2 py-1 rounded">
+                        {currentResultIndex + 1}/{searchResults.length}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => navigateResults('prev')}
+                      disabled={searchResults.length === 0}
+                      className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
+                      title="Vorheriger Treffer"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={() => navigateResults('next')}
+                      disabled={searchResults.length === 0}
+                      className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
+                      title="Nächster Treffer"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                </div>
+
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+                  <div className="mt-3 max-h-48 overflow-y-auto search-results">
+                    <div className="text-xs text-gray-400 mb-2">
+                      {searchResults.length} Treffer gefunden
+                    </div>
+                    {searchResults.map((result, index) => (
+                      <button
+                        key={result.id}
+                        onClick={() => setCurrentResultIndex(index)}
+                        className={`w-full text-left p-2 rounded text-xs transition-all duration-200 ${
+                          index === currentResultIndex
+                            ? 'bg-[#FCC822] text-[#061421]'
+                            : 'bg-[#16213E] text-gray-300 hover:bg-[#1a2a4a]'
+                        }`}
+                      >
+                        <div className="font-medium">{result.section}</div>
+                        <div className="truncate text-gray-500">
+                          {result.text.substring(0, 50)}...
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
             {/* Getting Started Section */}
             <section id="getting-started" className="mb-12">
