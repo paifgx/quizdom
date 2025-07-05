@@ -7,7 +7,7 @@ import {
   TopicsGrid,
 } from '../components';
 import { useTopicsPage } from '../hooks/useTopicsPage';
-import { fetchTopics } from '../api';
+import { topicsService } from '../services/api';
 import type { GameTopic } from '../types/topics';
 
 /**
@@ -49,7 +49,7 @@ export default function TopicsPage() {
     const loadTopics = async () => {
       try {
         setError(null);
-        const topicsData = await fetchTopics();
+        const topicsData = await topicsService.getAll();
         setTopics(topicsData);
       } catch {
         setError('Fehler beim Laden der Themen');

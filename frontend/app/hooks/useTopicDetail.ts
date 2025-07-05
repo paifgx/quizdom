@@ -6,7 +6,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import type { TopicDetailData } from '../types/topic-detail';
-import { fetchTopicDetailData } from '../api';
+import { topicsService } from '../services/api';
 
 interface UseTopicDetailOptions {
   /** Topic ID from URL parameters */
@@ -55,9 +55,26 @@ export function useTopicDetail({
   useEffect(() => {
     const loadTopicData = async () => {
       try {
-        const targetTopicId = topicId || 'it-project-management';
-        const topicData = await fetchTopicDetailData(targetTopicId);
-        setTopic(topicData);
+        if (!topicId) return;
+
+        const topicData = await topicsService.getById(topicId);
+        if (topicData) {
+          // Convert GameTopic to TopicDetailData format
+          const topicDetailData: TopicDetailData = {
+            id: topicData.id,
+            title: topicData.title,
+            description: topicData.description,
+            image: topicData.image,
+            totalQuestions: topicData.totalQuestions,
+            completedQuestions: topicData.completedQuestions,
+            bookmarkedQuestions: 0, // Not available in backend yet
+            stars: topicData.stars,
+            questions: [], // Not available in backend yet
+            isFavorite: topicData.isFavorite,
+            wisecoinReward: topicData.wisecoinReward,
+          };
+          setTopic(topicDetailData);
+        }
       } catch {
         // Error intentionally ignored
       }

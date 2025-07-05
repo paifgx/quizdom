@@ -146,7 +146,8 @@ function shouldShowStartButton(
 ): boolean {
   return (
     (currentStep === 'mode' && Boolean(preSelectedTopic && selectedMode)) ||
-    (currentStep === 'topic' && canStart)
+    (currentStep === 'topic' && canStart) ||
+    (currentStep === 'mode' && canStart) // Show start button when mode is selected and topic is pre-selected
   );
 }
 

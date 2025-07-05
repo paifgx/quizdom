@@ -7,7 +7,6 @@ interface AllQuizzesSelectionProps {
   selectedMode: GameModeId;
   topics: Topic[];
   onSelectQuiz: (quizId: number) => void;
-  onSelectRandomFromTopic: (topicId: string) => void;
   onBack: () => void;
 }
 
@@ -30,7 +29,6 @@ export function AllQuizzesSelection({
   selectedMode,
   topics,
   onSelectQuiz,
-  onSelectRandomFromTopic,
   onBack,
 }: AllQuizzesSelectionProps) {
   const [topicsWithQuizzes, setTopicsWithQuizzes] = useState<
@@ -139,36 +137,6 @@ export function AllQuizzesSelection({
           <h2 className="text-xl font-semibold text-[#FCC822]">
             {topic.title}
           </h2>
-
-          {/* Random Questions Option for this topic */}
-          {topic.totalQuestions > 0 && (
-            <div
-              className="bg-gray-800/70 rounded-xl p-4 border-2 border-gray-600 hover:border-[#FCC822]/50 cursor-pointer transition-all duration-300 group"
-              onClick={() => onSelectRandomFromTopic(topic.id)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSelectRandomFromTopic(topic.id);
-                }
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-white mb-1 group-hover:text-[#FCC822]">
-                    Zufällige Fragen aus {topic.title}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    10 zufällig ausgewählte Fragen • Gemischte Schwierigkeit
-                  </p>
-                </div>
-                <div className="text-2xl text-gray-500 group-hover:text-[#FCC822]">
-                  🎲
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Published Quizzes for this topic */}
           {quizzes.map(quiz => (

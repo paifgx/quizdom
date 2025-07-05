@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router';
 import type { GameModeId, GameStep, Topic } from '../types/game';
 
@@ -62,12 +62,23 @@ export function useGameModeSelection({
   );
   const [liveRegionText, setLiveRegionText] = useState('');
 
+  // Ensure selectedTopicId is set when preSelectedTopic is available
+  useEffect(() => {
+    if (preSelectedTopicId && !selectedTopicId) {
+      setSelectedTopicId(preSelectedTopicId);
+    }
+  }, [preSelectedTopicId, selectedTopicId]);
+
   // Derived state
   const selectedTopic = selectedTopicId
     ? (topics.find(t => t.id === selectedTopicId) ?? null)
     : null;
+
   const canStart = Boolean(
-    selectedMode && selectedTopic && selectedTopic.totalQuestions > 0
+    selectedMode &&
+      (selectedTopic || preSelectedTopic) &&
+      (selectedTopic?.totalQuestions ?? preSelectedTopic?.totalQuestions ?? 0) >
+        0
   );
 
   // Event handlers
@@ -100,15 +111,25 @@ export function useGameModeSelection({
     if (!selectedMode) {
       throw new Error('No game mode selected');
     }
-    if (!selectedTopic) {
+
+    const effectiveTopic = selectedTopic || preSelectedTopic;
+    if (!effectiveTopic) {
       throw new Error('No topic selected');
     }
-    if (selectedTopic.totalQuestions === 0) {
+    if (effectiveTopic.totalQuestions === 0) {
       throw new Error('Selected topic has no questions available');
     }
 
-    navigate(`/topics/${selectedTopicId}/quiz-game?mode=${selectedMode}`);
-  }, [selectedMode, selectedTopic, selectedTopicId, navigate]);
+    const topicIdToUse = selectedTopicId || preSelectedTopicId;
+    navigate(`/topics/${topicIdToUse}/quiz-game?mode=${selectedMode}`);
+  }, [
+    selectedMode,
+    selectedTopic,
+    preSelectedTopic,
+    selectedTopicId,
+    preSelectedTopicId,
+    navigate,
+  ]);
 
   const handleBack = useCallback(() => {
     if (currentStep === 'topic' && !preSelectedTopic) {
