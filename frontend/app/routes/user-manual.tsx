@@ -1,6 +1,6 @@
 import type { MetaFunction } from 'react-router';
 import { Link } from 'react-router';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { translate } from '../utils/translations';
 
 export const meta: MetaFunction = () => {
@@ -28,7 +28,7 @@ export default function UserManual() {
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const sections = [
+  const sections = useMemo(() => [
     {
       id: 'getting-started',
       title: translate('userManual.gettingStarted'),
@@ -39,10 +39,10 @@ export default function UserManual() {
     { id: 'account', title: translate('userManual.account'), icon: '👤' },
     { id: 'faq', title: translate('userManual.faq'), icon: '❓' },
     { id: 'support', title: translate('userManual.support'), icon: '💬' },
-  ];
+  ], []);
 
   // Search functionality
-  const performSearch = (query: string) => {
+  const performSearch = useCallback((query: string) => {
     if (!query.trim() || !contentRef.current) {
       setSearchResults([]);
       setCurrentResultIndex(-1);
@@ -90,7 +90,7 @@ export default function UserManual() {
 
     setSearchResults(results);
     setCurrentResultIndex(results.length > 0 ? 0 : -1);
-  };
+  }, [sections]);
 
   // Handle search input changes
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function UserManual() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, performSearch]);
 
   // Highlight current search result
   useEffect(() => {
@@ -277,7 +277,7 @@ export default function UserManual() {
                     placeholder="Inhalte durchsuchen..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => handleSearchKeyDown(e as any)}
+                    onKeyDown={(e) => handleSearchKeyDown(e.nativeEvent)}
                     className="w-full bg-[#16213E] border border-gray-600 rounded-lg px-4 py-2 text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#FCC822] focus:ring-1 focus:ring-[#FCC822] transition-all duration-200"
                   />
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
