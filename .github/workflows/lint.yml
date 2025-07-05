@@ -1,0 +1,44 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Backend Lint
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install lint tools
+        run: |
+          pip install ruff black isort
+      - name: Ruff autofix
+        run: ruff check backend/ --fix
+      - name: Check imports
+        run: isort backend/ --check
+      - name: Check formatting
+        run: black backend/ --check
+
+      # Frontend Lint
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install pnpm deps
+        run: pnpm install --frozen-lockfile
+      - name: ESLint
+        run: pnpm exec eslint frontend/ --max-warnings=0
+      - name: Prettier
+        run: pnpm exec prettier --check frontend/
