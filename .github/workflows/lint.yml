@@ -29,13 +29,15 @@ jobs:
         run: black backend/ --check
 
       # Frontend Lint
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: "pnpm"
-      - name: Enable Corepack
-        run: corepack enable
       - name: Install pnpm deps
         run: pnpm install --frozen-lockfile
       - name: ESLint
