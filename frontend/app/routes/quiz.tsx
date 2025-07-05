@@ -23,16 +23,20 @@ export function meta() {
 
 /**
  * Header component for the quiz page.
- * Displays a back button, the question title, and an AI assistant button.
+ * Displays a back button, the question title, bookmark button, and an AI assistant button.
  */
 function QuizHeader({
   title,
   onBack,
   onAIAssist,
+  isBookmarked,
+  onToggleBookmark,
 }: {
   title: string;
   onBack: () => void;
   onAIAssist: () => void;
+  isBookmarked: boolean;
+  onToggleBookmark: () => void;
 }) {
   return (
     <div className="relative bg-gray-800/80 rounded-xl border border-gray-600 backdrop-blur-sm p-3 flex justify-between items-center mb-8">
@@ -43,20 +47,37 @@ function QuizHeader({
         <img src="/buttons/Left.png" alt="Zurück" className="h-6 w-6 mr-2" />
         <span>{translations.common.back}</span>
       </button>
-      <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white text-center">
+      <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white text-center max-w-md truncate">
         {title}
       </h1>
-      <button
-        onClick={onAIAssist}
-        className="h-10 w-10 rounded-full flex items-center justify-center bg-blue-500/50 hover:bg-blue-500/80 transition-colors cursor-pointer"
-        title="KI-Assistent um Hilfe bitten"
-      >
-        <img
-          src="/avatars/ai_assistant_wizard_gif.gif"
-          alt="KI Assistent"
-          className="h-8 w-8 object-cover transform -scale-x-100"
-        />
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onToggleBookmark}
+          className={`h-10 w-10 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+            isBookmarked
+              ? 'bg-[#FCC822]/20 border-2 border-[#FCC822]'
+              : 'bg-gray-700/50 border-2 border-gray-600 hover:border-gray-500'
+          }`}
+          title={isBookmarked ? 'Markierung entfernen' : 'Frage markieren'}
+        >
+          <span
+            className={`text-lg font-bold ${isBookmarked ? 'text-[#FCC822]' : 'text-gray-400'}`}
+          >
+            {isBookmarked ? '★' : '☆'}
+          </span>
+        </button>
+        <button
+          onClick={onAIAssist}
+          className="h-10 w-10 rounded-full flex items-center justify-center bg-blue-500/50 hover:bg-blue-500/80 transition-colors cursor-pointer"
+          title="KI-Assistent um Hilfe bitten"
+        >
+          <img
+            src="/avatars/ai_assistant_wizard_gif.gif"
+            alt="KI Assistent"
+            className="h-8 w-8 object-cover transform -scale-x-100"
+          />
+        </button>
+      </div>
     </div>
   );
 }
@@ -104,6 +125,100 @@ function QuizNavigation({
   );
 }
 
+interface BookmarkedQuestionData {
+  id: string;
+  text: string;
+  answers: string[];
+  topicTitle: string;
+  bookmarkedAt: string;
+}
+
+/**
+ * Creates TopicQuestion objects from bookmarked question data
+ */
+function createTopicQuestionsFromBookmarks(
+  bookmarkedQuestionIds: string[],
+  bookmarkedQuestionsData: Record<string, BookmarkedQuestionData>,
+  topicTitle: string
+): TopicQuestion[] {
+  return bookmarkedQuestionIds.map((questionId, index) => {
+    const questionData = bookmarkedQuestionsData[questionId];
+
+    if (questionData) {
+      // Use the actual question data
+      return {
+        id: questionData.id,
+        number: index + 1,
+        title: questionData.text,
+        questionText: questionData.text,
+        answers: questionData.answers.map(
+          (answer: string, answerIndex: number) => ({
+            id: (answerIndex + 1).toString(),
+            text: answer,
+          })
+        ),
+        correctAnswerId: '1', // We don't store the correct answer, so default to first
+        isBookmarked: true,
+        isCompleted: false,
+        difficulty: 2, // Default difficulty
+      };
+    } else {
+      // Fallback for missing data
+      return {
+        id: questionId,
+        number: index + 1,
+        title: `Markierte Frage ${index + 1}`,
+        questionText: `Diese markierte Frage aus "${topicTitle}" konnte nicht geladen werden.`,
+        answers: [
+          { id: '1', text: 'Antwort A' },
+          { id: '2', text: 'Antwort B' },
+          { id: '3', text: 'Antwort C' },
+          { id: '4', text: 'Antwort D' },
+        ],
+        correctAnswerId: '1',
+        isBookmarked: true,
+        isCompleted: false,
+        difficulty: 2,
+      };
+    }
+  });
+}
+
+/**
+ * Finds bookmarked questions data by checking all possible topic titles
+ */
+function findBookmarkedQuestionsData(_topicId: string): {
+  questionIds: string[];
+  questionData: Record<string, BookmarkedQuestionData>;
+  topicTitle: string;
+} {
+  const localStorageKeys = Object.keys(localStorage);
+  const bookmarkedKeys = localStorageKeys.filter(
+    key => key.startsWith('bookmarked_') && !key.includes('questions_data')
+  );
+
+  // Try to find matching data
+  for (const key of bookmarkedKeys) {
+    const topicTitle = key.replace('bookmarked_', '');
+    const dataKey = `bookmarked_questions_data_${topicTitle}`;
+
+    if (localStorageKeys.includes(dataKey)) {
+      try {
+        const questionIds = JSON.parse(localStorage.getItem(key) || '[]');
+        const questionData = JSON.parse(localStorage.getItem(dataKey) || '{}');
+
+        if (questionIds.length > 0) {
+          return { questionIds, questionData, topicTitle };
+        }
+      } catch (error) {
+        console.error('Error parsing localStorage data:', error);
+      }
+    }
+  }
+
+  return { questionIds: [], questionData: {}, topicTitle: 'General Knowledge' };
+}
+
 /**
  * Main component for the quiz page.
  * Fetches question data, handles state, and renders the quiz UI.
@@ -122,6 +237,73 @@ export default function QuizPage() {
     undefined
   );
 
+  const toggleBookmark = () => {
+    if (!question) return;
+
+    // Find the topic title from localStorage
+    const { topicTitle } = findBookmarkedQuestionsData(topicId!);
+
+    // Get current bookmarked questions
+    const bookmarkedKey = `bookmarked_${topicTitle}`;
+    const bookmarkedDataKey = `bookmarked_questions_data_${topicTitle}`;
+
+    const currentBookmarked = JSON.parse(
+      localStorage.getItem(bookmarkedKey) || '[]'
+    );
+    const currentBookmarkedData = JSON.parse(
+      localStorage.getItem(bookmarkedDataKey) || '{}'
+    );
+
+    if (question.isBookmarked) {
+      // Remove bookmark
+      const newBookmarked = currentBookmarked.filter(
+        (id: string) => id !== question.id
+      );
+      delete currentBookmarkedData[question.id];
+
+      localStorage.setItem(bookmarkedKey, JSON.stringify(newBookmarked));
+      localStorage.setItem(
+        bookmarkedDataKey,
+        JSON.stringify(currentBookmarkedData)
+      );
+
+      // Navigate to next bookmarked question or back to topic
+      const currentIndex = bookmarkedQuestions.findIndex(
+        q => q.id === question.id
+      );
+      const nextQuestion =
+        bookmarkedQuestions[currentIndex + 1] ||
+        bookmarkedQuestions[currentIndex - 1];
+
+      if (nextQuestion) {
+        // Navigate to next/previous bookmarked question
+        navigate(`/topics/${topicId}/questions/${nextQuestion.id}`);
+      } else {
+        // No more bookmarked questions, go back to topic
+        navigate(`/topics/${topicId}`);
+      }
+    } else {
+      // Add bookmark
+      const newBookmarked = [...currentBookmarked, question.id];
+      currentBookmarkedData[question.id] = {
+        id: question.id,
+        text: question.questionText,
+        answers: question.answers.map(a => a.text),
+        topicTitle: topicTitle,
+        bookmarkedAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem(bookmarkedKey, JSON.stringify(newBookmarked));
+      localStorage.setItem(
+        bookmarkedDataKey,
+        JSON.stringify(currentBookmarkedData)
+      );
+
+      // Refresh the page to reflect changes
+      window.location.reload();
+    }
+  };
+
   useEffect(() => {
     setSelectedAnswer(undefined);
 
@@ -130,20 +312,69 @@ export default function QuizPage() {
     const loadQuestions = async () => {
       try {
         setLoading(true);
-        const topicData = await fetchTopicDetailData(topicId);
-        const currentQ = topicData.questions.find(q => q.id === questionId);
 
-        if (!currentQ) {
-          throw new Error('Question not found in topic data');
+        // Load topic data from backend (might be empty)
+        let topicData;
+        try {
+          topicData = await fetchTopicDetailData(topicId);
+        } catch {
+          // If backend fails, create minimal topic data
+          topicData = {
+            id: topicId,
+            title: 'General Knowledge', // Default title
+            description: '',
+            image: '',
+            totalQuestions: 0,
+            completedQuestions: 0,
+            bookmarkedQuestions: 0,
+            stars: 1,
+            questions: [],
+            isFavorite: false,
+            wisecoinReward: 0,
+          };
         }
 
-        const bookmarked = topicData.questions.filter(q => q.isBookmarked);
-        const currentIndex = bookmarked.findIndex(q => q.id === questionId);
+        // Load bookmarked questions from localStorage (try to find any available data)
+        const {
+          questionIds: bookmarkedQuestionIds,
+          questionData: bookmarkedQuestionsData,
+          topicTitle: actualTopicTitle,
+        } = findBookmarkedQuestionsData(topicId);
+        const bookmarkedQuestions = createTopicQuestionsFromBookmarks(
+          bookmarkedQuestionIds,
+          bookmarkedQuestionsData,
+          actualTopicTitle
+        );
 
-        setQuestion(currentQ);
-        setBookmarkedQuestions(bookmarked);
-        setCurrentQuestionIndex(currentIndex);
-      } catch {
+        // For bookmarked questions, prioritize localStorage data
+        const currentQ = bookmarkedQuestions.find(q => q.id === questionId);
+
+        if (!currentQ) {
+          // If not found in bookmarked questions, try backend questions
+          const backendQ = topicData.questions.find(q => q.id === questionId);
+          if (!backendQ) {
+            throw new Error('Question not found in topic data');
+          }
+          // Check if this backend question is bookmarked
+          const isBackendQuestionBookmarked =
+            bookmarkedQuestionIds.includes(questionId);
+          const backendQuestionWithBookmark = {
+            ...backendQ,
+            isBookmarked: isBackendQuestionBookmarked,
+          };
+          setQuestion(backendQuestionWithBookmark);
+          setBookmarkedQuestions(bookmarkedQuestions);
+          setCurrentQuestionIndex(-1); // Not in bookmarked questions
+        } else {
+          setQuestion(currentQ);
+          setBookmarkedQuestions(bookmarkedQuestions);
+          const currentIndex = bookmarkedQuestions.findIndex(
+            q => q.id === questionId
+          );
+          setCurrentQuestionIndex(currentIndex);
+        }
+      } catch (error) {
+        console.error('Error loading question:', error);
         setQuestion(null);
       } finally {
         setLoading(false);
@@ -195,13 +426,15 @@ export default function QuizPage() {
         title={question.title}
         onBack={() => navigate(`/topics/${topicId}`)}
         onAIAssist={() => window.alert('AI Assistant coming soon!')}
+        isBookmarked={question.isBookmarked}
+        onToggleBookmark={toggleBookmark}
       />
       <QuizContainer
         quizData={quizData}
         selectedAnswer={selectedAnswer}
         onAnswerSelect={setSelectedAnswer}
       />
-      {currentQuestionIndex !== -1 && (
+      {bookmarkedQuestions.length > 0 && (
         <QuizNavigation
           prevId={prevQuestionId}
           nextId={nextQuestionId}

@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import type { TopicDetailData } from '../types/topic-detail';
+import type { TopicDetailData, TopicQuestion } from '../types/topic-detail';
 import { topicsService } from '../services/api';
 
 interface UseTopicDetailOptions {
@@ -22,6 +22,105 @@ interface UseTopicDetailReturn {
   handleBack: () => void;
   /** Function to navigate to game modes */
   navigateToGameModes: () => void;
+}
+
+interface BookmarkedQuestionData {
+  id: string;
+  text: string;
+  answers: string[];
+  topicTitle: string;
+  bookmarkedAt: string;
+}
+
+/**
+ * Loads bookmarked questions from localStorage for a specific topic
+ */
+function loadBookmarkedQuestionsFromStorage(topicTitle: string): string[] {
+  try {
+    const stored = localStorage.getItem(`bookmarked_${topicTitle}`);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error(
+      'Error loading bookmarked questions from localStorage:',
+      error
+    );
+  }
+  return [];
+}
+
+/**
+ * Loads complete bookmarked question data from localStorage
+ */
+function loadBookmarkedQuestionsDataFromStorage(
+  topicTitle: string
+): Record<string, BookmarkedQuestionData> {
+  try {
+    const stored = localStorage.getItem(
+      `bookmarked_questions_data_${topicTitle}`
+    );
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error(
+      'Error loading bookmarked questions data from localStorage:',
+      error
+    );
+  }
+  return {};
+}
+
+/**
+ * Creates TopicQuestion objects from bookmarked question data
+ */
+function createTopicQuestionsFromBookmarks(
+  bookmarkedQuestionIds: string[],
+  bookmarkedQuestionsData: Record<string, BookmarkedQuestionData>,
+  topicTitle: string
+): TopicQuestion[] {
+  return bookmarkedQuestionIds.map((questionId, index) => {
+    const questionData = bookmarkedQuestionsData[questionId];
+
+    if (questionData) {
+      // Use the actual question data
+      return {
+        id: questionData.id,
+        number: index + 1,
+        title: questionData.text,
+        questionText: questionData.text,
+        answers: questionData.answers.map(
+          (answer: string, answerIndex: number) => ({
+            id: (answerIndex + 1).toString(),
+            text: answer,
+          })
+        ),
+        correctAnswerId: '1', // We don't store the correct answer, so default to first
+        isBookmarked: true,
+        isCompleted: false,
+        difficulty: 2, // Default difficulty
+      };
+    } else {
+      // Fallback for missing data
+      return {
+        id: questionId,
+        number: index + 1,
+        title: `Markierte Frage ${index + 1}`,
+        questionText: `Diese markierte Frage aus "${topicTitle}" konnte nicht geladen werden.`,
+        answers: [
+          { id: '1', text: 'Antwort A' },
+          { id: '2', text: 'Antwort B' },
+          { id: '3', text: 'Antwort C' },
+          { id: '4', text: 'Antwort D' },
+        ],
+        correctAnswerId: '1',
+        isBookmarked: true,
+        isCompleted: false,
+        difficulty: 2,
+      };
+    }
+  });
 }
 
 /**
@@ -59,6 +158,18 @@ export function useTopicDetail({
 
         const topicData = await topicsService.getById(topicId);
         if (topicData) {
+          // Load bookmarked questions from localStorage
+          const bookmarkedQuestionIds = loadBookmarkedQuestionsFromStorage(
+            topicData.title
+          );
+          const bookmarkedQuestionsData =
+            loadBookmarkedQuestionsDataFromStorage(topicData.title);
+          const bookmarkedQuestions = createTopicQuestionsFromBookmarks(
+            bookmarkedQuestionIds,
+            bookmarkedQuestionsData,
+            topicData.title
+          );
+
           // Convert GameTopic to TopicDetailData format
           const topicDetailData: TopicDetailData = {
             id: topicData.id,
@@ -67,9 +178,9 @@ export function useTopicDetail({
             image: topicData.image,
             totalQuestions: topicData.totalQuestions,
             completedQuestions: topicData.completedQuestions,
-            bookmarkedQuestions: 0, // Not available in backend yet
+            bookmarkedQuestions: bookmarkedQuestionIds.length,
             stars: topicData.stars,
-            questions: [], // Not available in backend yet
+            questions: bookmarkedQuestions, // Use bookmarked questions from localStorage
             isFavorite: topicData.isFavorite,
             wisecoinReward: topicData.wisecoinReward,
           };

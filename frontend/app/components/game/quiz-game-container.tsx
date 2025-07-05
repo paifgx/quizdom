@@ -198,6 +198,33 @@ export function QuizGameContainer({
       }
       return newSet;
     });
+
+    // Also store the complete question data for display in topic overview
+    const bookmarkedQuestionsDataKey = `bookmarked_questions_data_${topicTitle}`;
+    const existingData = localStorage.getItem(bookmarkedQuestionsDataKey);
+    const existingQuestions = existingData ? JSON.parse(existingData) : {};
+
+    // Check if we're adding or removing the bookmark
+    const isCurrentlyBookmarked = bookmarkedQuestions.has(questionId);
+
+    if (isCurrentlyBookmarked) {
+      // Remove from data
+      delete existingQuestions[questionId];
+    } else {
+      // Add to data
+      existingQuestions[questionId] = {
+        id: currentQuestion.id,
+        text: currentQuestion.text,
+        answers: currentQuestion.answers,
+        topicTitle: topicTitle,
+        bookmarkedAt: new Date().toISOString(),
+      };
+    }
+
+    localStorage.setItem(
+      bookmarkedQuestionsDataKey,
+      JSON.stringify(existingQuestions)
+    );
   };
 
   // ESC key handler to quit game
