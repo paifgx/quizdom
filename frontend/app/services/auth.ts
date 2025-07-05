@@ -28,6 +28,10 @@ export interface User {
   role?: 'player' | 'admin';
   wisecoins?: number;
   achievements?: string[];
+  // Profile fields
+  nickname?: string;
+  avatar_url?: string;
+  bio?: string;
 }
 
 export interface AuthResponse {
@@ -40,6 +44,12 @@ export interface AuthError {
   detail: string;
   code?: string;
   field?: string;
+}
+
+export interface UserProfileUpdate {
+  nickname?: string;
+  avatar_url?: string;
+  bio?: string;
 }
 
 /**
@@ -283,6 +293,52 @@ class AuthService {
   getAuthHeader(): Record<string, string> {
     const token = this.getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  /**
+   * Update user profile information.
+   *
+   * Updates nickname, avatar_url, and bio fields.
+   * Automatically updates stored user data on success.
+   */
+  async updateProfile(data: UserProfileUpdate): Promise<User> {
+    try {
+      const response = await apiClient.put<User>('/v1/auth/me', data, {
+        headers: this.getAuthHeader(),
+      });
+
+      // Update stored user data with new profile information
+      const currentUser = this.getUser();
+      if (currentUser) {
+        const updatedUser = { ...currentUser, ...response };
+        this.setUser(updatedUser);
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      handleAuthError(error);
+    }
+  }
+
+  /**
+   * Delete user account.
+   *
+   * Soft-deletes the user account on the backend.
+   * Automatically logs out the user after successful deletion.
+   */
+  async deleteAccount(): Promise<void> {
+    try {
+      await apiClient.delete('/v1/auth/me', {
+        headers: this.getAuthHeader(),
+      });
+
+      // Clear all authentication data after successful deletion
+      this.logout();
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+      handleAuthError(error);
+    }
   }
 }
 

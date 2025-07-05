@@ -310,7 +310,7 @@ export const translations = {
     // Getting Started Section
     whatIsQuizdom: 'Was ist QUIZDOM - Rise of the Wise?',
     whatIsQuizdomDesc:
-      'Mit “QUIZDOM – Rise of the Wise” bringen wir die Kraft von Gamification, Kollaboration und Kooperation sowie künstlicher Intelligenz in die akademische Bildung. Mit einer interaktiven Quiz-Plattform wollen wir Lernen neugestalten – als positives, motivierendes Erlebnis, ausgerichtet auf die Bedürfnisse der Studierenden. Wir glauben: Wenn Lernen richtig gestaltet ist, fühlt es sich nicht wie Mühe an, sondern wie ein sinnvoller, belohnender Prozess. Mit QUIZDOM kannst dich auf spielerische Art und Weise in einer Fantasy-Mittelalter-Atmosphäre auf deine Prüfungen vorbereiten. Dabei bist du nicht auf dich allein gestellt - z.B. im Spielmodus Team Battle kannst du zusammen mit anderen Quizfragen zu verschiedenen Themenbereichen beantworten.',
+      'Mit "QUIZDOM – Rise of the Wise" bringen wir die Kraft von Gamification, Kollaboration und Kooperation sowie künstlicher Intelligenz in die akademische Bildung. Mit einer interaktiven Quiz-Plattform wollen wir Lernen neugestalten – als positives, motivierendes Erlebnis, ausgerichtet auf die Bedürfnisse der Studierenden. Wir glauben: Wenn Lernen richtig gestaltet ist, fühlt es sich nicht wie Mühe an, sondern wie ein sinnvoller, belohnender Prozess. Mit QUIZDOM kannst dich auf spielerische Art und Weise in einer Fantasy-Mittelalter-Atmosphäre auf deine Prüfungen vorbereiten. Dabei bist du nicht auf dich allein gestellt - z.B. im Spielmodus Team Battle kannst du zusammen mit anderen Quizfragen zu verschiedenen Themenbereichen beantworten.',
 
     howToPlay: 'Wo bzw. wie kann ich QUIZDOM spielen?',
     howToPlayDesc:
@@ -456,6 +456,62 @@ export const translations = {
       'In der aktuellen prototypischen Umsetzung gibt es keinen direkten Benutzersupport. Fragen, Wünsche, Fehler sowie Lob und Kritik können Sie gerne an example@quizdom.com senden. Bitte haben Sie Verständnis dafür, dass wir es vermutlich nicht schaffen auf jede E-Mail zu antworten.',
 
     contactEmail: 'Kontakt: example@quizdom.com',
+  },
+
+  // Profile
+  profile: {
+    pageTitle: 'Profil | Quizdom',
+    pageDescription: 'Verwalten Sie Ihr Quizdom-Profil.',
+    title: 'Profil',
+    subtitle: 'Verwalten Sie Ihr Quizdom-Profil und Ihre Einstellungen.',
+    editProfile: 'Profil bearbeiten',
+    saveChanges: 'Änderungen speichern',
+    saving: 'Speichert...',
+    role: {
+      admin: 'Administrator',
+      player: 'Spieler',
+    },
+    fields: {
+      nickname: 'Nickname',
+      nicknamePlaceholder: 'Geben Sie Ihren Nickname ein',
+      avatar: 'Avatar auswählen',
+      bio: 'Bio',
+      bioPlaceholder: 'Erzählen Sie etwas über sich...',
+      bioHelper: '{chars} / {max} Zeichen',
+    },
+    errors: {
+      nicknameMin: 'Nickname muss mindestens 3 Zeichen lang sein',
+      nicknameMax: 'Nickname darf maximal 50 Zeichen lang sein',
+      bioMax: 'Bio darf maximal 500 Zeichen lang sein',
+      updateFailed: 'Profil konnte nicht aktualisiert werden',
+      nicknameAlreadyTaken: 'Dieser Nickname ist bereits vergeben',
+      invalidInput: 'Ungültige Eingabe',
+      deleteFailed: 'Konto konnte nicht gelöscht werden',
+    },
+    success: {
+      profileUpdated: 'Profil erfolgreich aktualisiert',
+    },
+    dangerZone: {
+      title: 'Gefahrenzone',
+      deleteWarning: 'Das Löschen Ihres Kontos ist endgültig. Alle Ihre Daten werden unwiderruflich gelöscht.',
+      deleteButton: 'Konto löschen',
+    },
+    deleteModal: {
+      title: 'Konto löschen',
+      message: 'Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+      inputPlaceholder: 'Geben Sie Ihren Nickname zur Bestätigung ein',
+      confirm: 'Konto löschen',
+      deleting: 'Lösche Konto...',
+    },
+  },
+
+  // Goodbye page
+  goodbye: {
+    pageTitle: 'Auf Wiedersehen | Quizdom',
+    pageDescription: 'Ihr Konto wurde deaktiviert.',
+    title: 'Auf Wiedersehen!',
+    message: 'Dein Konto wurde deaktiviert. Hoffentlich bis bald!',
+    homeButton: 'Zur Startseite',
   },
 } as const;
 

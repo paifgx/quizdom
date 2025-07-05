@@ -13,8 +13,9 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import { authService, type User as AuthUser } from '../services/auth';
+import { authService, type User as AuthUser, type UserProfileUpdate } from '../services/auth';
 import { setAuthErrorHandler } from '../api/client';
+import { useNavigate } from 'react-router';
 
 export type UserRole = 'player' | 'admin';
 export type ActiveRole = 'player' | 'admin';
@@ -35,6 +36,10 @@ export interface User {
   avatar?: string;
   wisecoins: number;
   achievements: string[];
+  // Profile fields
+  nickname?: string;
+  avatar_url?: string;
+  bio?: string;
 }
 
 interface AuthContextType {
@@ -43,9 +48,12 @@ interface AuthContextType {
   isAdmin: boolean;
   activeRole: ActiveRole;
   isViewingAsAdmin: boolean;
+  setActiveRole: (role: ActiveRole) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (data: UserProfileUpdate) => Promise<void>;
+  deleteAccount: () => Promise<void>;
   switchToAdminView: (
     navigate?: (path: string) => void,
     currentPath?: string
@@ -101,6 +109,9 @@ function transformBackendUser(backendUser: AuthUser): User {
         : '/avatars/player_male_with_greataxe.png',
     wisecoins: 500, // Default value, could be fetched from backend later
     achievements: ['first_quiz', 'quiz_master'], // Default achievements
+    nickname: backendUser.nickname,
+    avatar_url: backendUser.avatar_url,
+    bio: backendUser.bio,
   };
 }
 
@@ -234,12 +245,16 @@ function useSessionMonitoring(
  */
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeRole, setActiveRole] = useState<ActiveRole>('player');
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const { validateSession } = useSessionValidation(setUser, setActiveRole);
-  const { updateActivity, startSessionMonitoring, stopSessionMonitoring } =
-    useSessionMonitoring(setUser, setActiveRole);
+  const {
+    updateActivity,
+    startSessionMonitoring,
+    stopSessionMonitoring,
+  } = useSessionMonitoring(setUser, setActiveRole);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
@@ -285,10 +300,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    authService.logout();
     clearUserSession(setUser, setActiveRole);
     stopSessionMonitoring();
-  };
+    redirectToLogin();
+  }, [stopSessionMonitoring]);
+
+  const updateProfile = useCallback(async (data: UserProfileUpdate) => {
+    try {
+      const updatedAuthUser = await authService.updateProfile(data);
+      const updatedUser = transformBackendUser(updatedAuthUser);
+      setUser(updatedUser);
+
+      // Update localStorage to persist the changes
+      localStorage.setItem('quizdom_user', JSON.stringify(updatedAuthUser));
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      throw error;
+    }
+  }, []);
+
+  const deleteAccount = useCallback(async () => {
+    try {
+      await authService.deleteAccount();
+      clearUserSession(setUser, setActiveRole);
+      stopSessionMonitoring();
+
+      // Trigger storage event to logout all tabs
+      window.localStorage.setItem('quizdom_logout', Date.now().toString());
+
+      // Navigate to goodbye page
+      navigate('/goodbye');
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+      throw error;
+    }
+  }, [stopSessionMonitoring, navigate]);
 
   const switchToAdminView = (
     navigate?: (path: string) => void,
@@ -380,15 +428,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [startSessionMonitoring, stopSessionMonitoring, updateActivity]);
 
+  // Listen for logout events from other tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'quizdom_logout' && e.newValue) {
+        clearUserSession(setUser, setActiveRole);
+        stopSessionMonitoring();
+        navigate('/goodbye');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [stopSessionMonitoring, navigate]);
+
   const contextValue: AuthContextType = {
     user,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     activeRole,
     isViewingAsAdmin: activeRole === 'admin',
+    setActiveRole,
     login,
     register,
     logout,
+    updateProfile,
+    deleteAccount,
     switchToAdminView,
     switchToPlayerView,
     loading,
