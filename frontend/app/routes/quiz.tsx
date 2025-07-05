@@ -7,9 +7,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import { QuizContainer } from '../components/nine-slice-quiz';
 import type { TopicQuestion } from '../types/topic-detail';
-import { fetchTopicDetailData } from '../api';
 import { LoadingSpinner } from '../components/home/loading-spinner';
 import { translations } from '../utils/translations';
+import { questionAdminService } from '../services/question-admin';
 
 export function meta() {
   return [
@@ -26,17 +26,17 @@ export function meta() {
  * Displays a back button, the question title, bookmark button, and an AI assistant button.
  */
 function QuizHeader({
-  title,
   onBack,
   onAIAssist,
   isBookmarked,
   onToggleBookmark,
+  topicTitle,
 }: {
-  title: string;
   onBack: () => void;
   onAIAssist: () => void;
   isBookmarked: boolean;
   onToggleBookmark: () => void;
+  topicTitle: string;
 }) {
   return (
     <div className="relative bg-gray-800/80 rounded-xl border border-gray-600 backdrop-blur-sm p-3 flex justify-between items-center mb-8">
@@ -47,9 +47,12 @@ function QuizHeader({
         <img src="/buttons/Left.png" alt="Zurück" className="h-6 w-6 mr-2" />
         <span>{translations.common.back}</span>
       </button>
-      <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white text-center max-w-md truncate">
-        {title}
-      </h1>
+      <div className="absolute left-1/2 -translate-x-1/2 text-center">
+        <div className="text-sm text-gray-400 mb-1">gemerkte Fragen</div>
+        <h1 className="text-xl font-bold text-white max-w-md truncate">
+          {topicTitle}
+        </h1>
+      </div>
       <div className="flex items-center gap-2">
         <button
           onClick={onToggleBookmark}
@@ -128,9 +131,10 @@ function QuizNavigation({
 interface BookmarkedQuestionData {
   id: string;
   text: string;
-  answers: string[];
+  answers: Array<{ id: string; text: string }>;
   topicTitle: string;
   bookmarkedAt: string;
+  correctAnswerId?: string;
 }
 
 /**
@@ -145,19 +149,31 @@ function createTopicQuestionsFromBookmarks(
     const questionData = bookmarkedQuestionsData[questionId];
 
     if (questionData) {
+      // Validate and convert answers to correct format
+      const validatedAnswers = questionData.answers.map((answer, index) => {
+        if (typeof answer === 'string') {
+          // Old format: answer is a string
+          return {
+            id: (index + 1).toString(),
+            text: answer,
+          };
+        } else {
+          // New format: answer is an object
+          return {
+            id: answer.id,
+            text: answer.text,
+          };
+        }
+      });
+
       // Use the actual question data
       return {
         id: questionData.id,
         number: index + 1,
         title: questionData.text,
         questionText: questionData.text,
-        answers: questionData.answers.map(
-          (answer: string, answerIndex: number) => ({
-            id: (answerIndex + 1).toString(),
-            text: answer,
-          })
-        ),
-        correctAnswerId: '1', // We don't store the correct answer, so default to first
+        answers: validatedAnswers,
+        correctAnswerId: questionData.correctAnswerId || '1',
         isBookmarked: true,
         isCompleted: false,
         difficulty: 2, // Default difficulty
@@ -217,6 +233,42 @@ function findBookmarkedQuestionsData(_topicId: string): {
   }
 
   return { questionIds: [], questionData: {}, topicTitle: 'General Knowledge' };
+}
+
+/**
+ * Loads questions from backend and sets correctAnswerId properly
+ */
+async function loadQuestionsFromBackend(
+  topicId: string
+): Promise<TopicQuestion[]> {
+  try {
+    const questions = await questionAdminService.getQuestions();
+    const topicQuestions = questions.filter(q => q.topicId === topicId);
+
+    return topicQuestions.map(q => {
+      // Find the correct answer
+      const correctAnswer = q.answers.find(a => a.isCorrect);
+      const correctAnswerId = correctAnswer?.id || '1';
+
+      return {
+        id: q.id,
+        number: 1, // We don't have number in backend
+        title: q.content,
+        questionText: q.content,
+        answers: q.answers.map(a => ({
+          id: a.id,
+          text: a.content,
+        })),
+        correctAnswerId: correctAnswerId,
+        isBookmarked: false,
+        isCompleted: false,
+        difficulty: q.difficulty,
+      };
+    });
+  } catch (error) {
+    console.error('Failed to load questions from backend:', error);
+    return [];
+  }
 }
 
 /**
@@ -288,9 +340,10 @@ export default function QuizPage() {
       currentBookmarkedData[question.id] = {
         id: question.id,
         text: question.questionText,
-        answers: question.answers.map(a => a.text),
+        answers: question.answers.map(a => ({ id: a.id, text: a.text })),
         topicTitle: topicTitle,
         bookmarkedAt: new Date().toISOString(),
+        correctAnswerId: question.correctAnswerId,
       };
 
       localStorage.setItem(bookmarkedKey, JSON.stringify(newBookmarked));
@@ -313,27 +366,6 @@ export default function QuizPage() {
       try {
         setLoading(true);
 
-        // Load topic data from backend (might be empty)
-        let topicData;
-        try {
-          topicData = await fetchTopicDetailData(topicId);
-        } catch {
-          // If backend fails, create minimal topic data
-          topicData = {
-            id: topicId,
-            title: 'General Knowledge', // Default title
-            description: '',
-            image: '',
-            totalQuestions: 0,
-            completedQuestions: 0,
-            bookmarkedQuestions: 0,
-            stars: 1,
-            questions: [],
-            isFavorite: false,
-            wisecoinReward: 0,
-          };
-        }
-
         // Load bookmarked questions from localStorage (try to find any available data)
         const {
           questionIds: bookmarkedQuestionIds,
@@ -349,9 +381,19 @@ export default function QuizPage() {
         // For bookmarked questions, prioritize localStorage data
         const currentQ = bookmarkedQuestions.find(q => q.id === questionId);
 
+        console.log('Looking for question:', questionId);
+        console.log('Bookmarked questions:', bookmarkedQuestions);
+        console.log('Found in bookmarked:', currentQ);
+
         if (!currentQ) {
           // If not found in bookmarked questions, try backend questions
-          const backendQ = topicData.questions.find(q => q.id === questionId);
+          console.log(
+            'Question not found in bookmarked, loading from backend...'
+          );
+          const backendQuestions = await loadQuestionsFromBackend(topicId);
+          console.log('Backend questions:', backendQuestions);
+          const backendQ = backendQuestions.find(q => q.id === questionId);
+          console.log('Found in backend:', backendQ);
           if (!backendQ) {
             throw new Error('Question not found in topic data');
           }
@@ -362,11 +404,45 @@ export default function QuizPage() {
             ...backendQ,
             isBookmarked: isBackendQuestionBookmarked,
           };
+          console.log(
+            'Setting question from backend:',
+            backendQuestionWithBookmark
+          );
           setQuestion(backendQuestionWithBookmark);
           setBookmarkedQuestions(bookmarkedQuestions);
           setCurrentQuestionIndex(-1); // Not in bookmarked questions
         } else {
-          setQuestion(currentQ);
+          // Question found in bookmarked, but check if correctAnswerId is correct
+          console.log('Setting question from bookmarked:', currentQ);
+          // If correctAnswerId is '1' (default), try to get correct one from backend
+          if (currentQ.correctAnswerId === '1') {
+            console.log('CorrectAnswerId is default, updating from backend...');
+            const backendQuestions = await loadQuestionsFromBackend(topicId);
+            const backendQ = backendQuestions.find(q => q.id === questionId);
+            console.log('Backend question for update:', backendQ);
+            if (backendQ && backendQ.correctAnswerId !== '1') {
+              console.log(
+                'Updating correctAnswerId from backend:',
+                backendQ.correctAnswerId
+              );
+              const updatedQuestion = {
+                ...currentQ,
+                correctAnswerId: backendQ.correctAnswerId,
+                answers: backendQ.answers,
+              };
+              console.log('Updated question:', updatedQuestion);
+              setQuestion(updatedQuestion);
+            } else {
+              console.log('No update needed or backend question not found');
+              setQuestion(currentQ);
+            }
+          } else {
+            console.log(
+              'CorrectAnswerId is already correct:',
+              currentQ.correctAnswerId
+            );
+            setQuestion(currentQ);
+          }
           setBookmarkedQuestions(bookmarkedQuestions);
           const currentIndex = bookmarkedQuestions.findIndex(
             q => q.id === questionId
@@ -420,19 +496,39 @@ export default function QuizPage() {
     answers: question.answers,
   };
 
+  // Index der richtigen Antwort ermitteln
+  const correctIndex = question.answers.findIndex(
+    a => a.id === question.correctAnswerId
+  );
+
+  // Debug-Ausgaben
+  console.log('Question:', question);
+  console.log('Correct Answer ID:', question.correctAnswerId);
+  console.log('Answers:', question.answers);
+  console.log('Correct Index:', correctIndex);
+
+  // Get topic title from bookmarked questions data
+  const { topicTitle } = findBookmarkedQuestionsData(topicId!);
+
   return (
     <div>
       <QuizHeader
-        title={question.title}
         onBack={() => navigate(`/topics/${topicId}`)}
         onAIAssist={() => window.alert('AI Assistant coming soon!')}
         isBookmarked={question.isBookmarked}
         onToggleBookmark={toggleBookmark}
+        topicTitle={topicTitle}
       />
       <QuizContainer
         quizData={quizData}
         selectedAnswer={selectedAnswer}
         onAnswerSelect={setSelectedAnswer}
+        showCorrectAnswer={{
+          correct: correctIndex,
+          selected: selectedAnswer
+            ? question.answers.findIndex(a => a.id === selectedAnswer)
+            : undefined,
+        }}
       />
       {bookmarkedQuestions.length > 0 && (
         <QuizNavigation
