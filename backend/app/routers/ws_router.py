@@ -1,7 +1,8 @@
 """WebSocket router for real-time game session events."""
 
-from typing import Any, Dict, List, Optional
+import asyncio
 import contextlib
+from typing import Any, Dict, List, Optional
 
 from fastapi import (
     APIRouter,
@@ -193,8 +194,6 @@ async def websocket_endpoint(
     # connections after ~20 s. We spawn a background task that sends a
     # lightweight keep-alive message every 10 s so the connection stays
     # open during RTT/Jitter tests where clients only send 'ping' events.
-
-    import asyncio
 
     async def _keep_alive() -> None:
         try:
