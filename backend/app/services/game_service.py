@@ -317,8 +317,7 @@ class GameService:
         # Check if session allows more players
         current_players = list(
             self.db.exec(
-                select(SessionPlayers).where(
-                    SessionPlayers.session_id == session_id)
+                select(SessionPlayers).where(SessionPlayers.session_id == session_id)
             ).all()
         )
 
@@ -349,8 +348,7 @@ class GameService:
         # Get all players including the new one
         all_players = list(
             self.db.exec(
-                select(SessionPlayers).where(
-                    SessionPlayers.session_id == session_id)
+                select(SessionPlayers).where(SessionPlayers.session_id == session_id)
             ).all()
         )
 
@@ -427,8 +425,7 @@ class GameService:
         if session.quiz_id is not None:
             quiz = self.db.get(Quiz, session.quiz_id)
             if quiz and quiz.time_limit_minutes:
-                time_limit = quiz.time_limit_minutes * \
-                    60 // len(session.question_ids)
+                time_limit = quiz.time_limit_minutes * 60 // len(session.question_ids)
 
         return question, list(answers), time_limit
 
@@ -635,8 +632,7 @@ class GameService:
         ).all()
 
         questions_answered = len(player_answers)
-        correct_answers = sum(
-            1 for answer in player_answers if answer.is_correct)
+        correct_answers = sum(1 for answer in player_answers if answer.is_correct)
 
         # Calculate total time in seconds
         total_time_seconds = 0

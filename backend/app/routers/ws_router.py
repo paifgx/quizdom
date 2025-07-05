@@ -257,9 +257,8 @@ async def websocket_endpoint(
     game_service = GameService(db)
 
     # Send initial question if available and index valid
-    if (
+    if session.question_ids and 0 <= session.current_question_index < len(
         session.question_ids
-        and 0 <= session.current_question_index < len(session.question_ids)
     ):
         try:
             question_data = game_service.get_question_data(
@@ -282,11 +281,13 @@ async def websocket_endpoint(
             # Handle ping-pong for latency testing
             if event_type == "ping":
                 # Immediately respond with pong containing the same ID
-                await websocket.send_json({
-                    "event": "pong",
-                    "id": data.get("id"),
-                    "timestamp": data.get("timestamp", 0)
-                })
+                await websocket.send_json(
+                    {
+                        "event": "pong",
+                        "id": data.get("id"),
+                        "timestamp": data.get("timestamp", 0),
+                    }
+                )
                 continue
 
             if event_type == "answer":
@@ -340,7 +341,11 @@ async def websocket_endpoint(
                         db.commit()
 
                         # Send next question if available
-                        if session.question_ids and session.current_question_index < len(session.question_ids):
+                        if (
+                            session.question_ids
+                            and session.current_question_index
+                            < len(session.question_ids)
+                        ):
                             question_data = game_service.get_question_data(
                                 session_id=session_id,
                                 question_index=session.current_question_index,
@@ -365,8 +370,12 @@ async def websocket_endpoint(
                                 "payload": {
                                     "result": complete_result.get("result"),
                                     "final_score": complete_result.get("final_score"),
-                                    "hearts_remaining": complete_result.get("hearts_remaining"),
-                                    "questions_answered": complete_result.get("questions_answered"),
+                                    "hearts_remaining": complete_result.get(
+                                        "hearts_remaining"
+                                    ),
+                                    "questions_answered": complete_result.get(
+                                        "questions_answered"
+                                    ),
                                     "time_taken": complete_result.get("time_taken"),
                                 },
                             }
@@ -394,7 +403,9 @@ async def websocket_endpoint(
                             "result": complete_result.get("result"),
                             "final_score": complete_result.get("final_score"),
                             "hearts_remaining": complete_result.get("hearts_remaining"),
-                            "questions_answered": complete_result.get("questions_answered"),
+                            "questions_answered": complete_result.get(
+                                "questions_answered"
+                            ),
                             "time_taken": complete_result.get("time_taken"),
                         },
                     }
