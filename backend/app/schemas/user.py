@@ -62,6 +62,8 @@ class UserStatsResponse(BaseModel):
     active_users: int = Field(..., description="Number of active users")
     verified_users: int = Field(..., description="Number of verified users")
     recent_registrations: int = Field(..., description="New users recently")
+    admin_users: int = Field(0, description="Number of admin users")
+    new_users_this_month: int = Field(0, description="New users this month")
 
 
 class RoleResponse(BaseModel):

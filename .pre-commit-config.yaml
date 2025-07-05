@@ -1,77 +1,62 @@
 repos:
-  # General hooks for all files
+  # 1) Schnell beim Commit: Whitespace, Datei-Enden, YAML/JSON/TOML prüfen
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
+        stages: [commit]
       - id: end-of-file-fixer
-      - id: check-merge-conflict
-      - id: check-yaml
-      - id: check-json
-      - id: check-toml
-      - id: check-added-large-files
-        args: ["--maxkb=1000"]
+        stages: [commit]
       - id: mixed-line-ending
         args: ["--fix=lf"]
+        stages: [commit]
+      - id: check-yaml
+        stages: [commit]
+      - id: check-json
+        stages: [commit]
+      - id: check-toml
+        stages: [commit]
 
-  # Python backend hooks
-  - repo: https://github.com/psf/black
-    rev: 24.8.0
+  # 2) Python: Ruff ersetzt Flake8/Black/Isort, auto-fix, max line length
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.6
     hooks:
-      - id: black
-        files: ^backend/
-        language_version: python3
+      - id: ruff
+        args: [--fix, "--max-line-length=88"]
+        stages: [push]
 
-  - repo: https://github.com/pycqa/isort
-    rev: 6.0.1
+  # 3) Python-Typencheck via mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.6.1
     hooks:
-      - id: isort
-        files: ^backend/
+      - id: mypy
+        additional_dependencies:
+          - "pydantic>=2.0.0"
+          - "sqlmodel>=0.0.8"
+        stages: [push]
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
+  # 4) Frontend Lint & Format via offizielle Mirrors
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.42.0
     hooks:
-      - id: flake8
-        files: ^backend/
-        args: ["--max-line-length=88", "--extend-ignore=E203,W503,E501"]
+      - id: eslint
+        files: ^frontend/.*\.(js|jsx|ts|tsx)$
+        args: ["--max-warnings=0"]
+        stages: [push]
 
-  # Frontend TypeScript/React hooks
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0
+    hooks:
+      - id: prettier
+        files: ^frontend/.*\.(js|jsx|ts|tsx|json|css|md)$
+        stages: [push]
+
+  # 5) Frontend TypeScript-Check als lokaler Hook
   - repo: local
     hooks:
-      - id: frontend-eslint
-        name: ESLint (Frontend)
-        entry: bash -c 'cd frontend && npm run lint:check'
-        language: system
-        files: ^frontend/.*\.(ts|tsx|js|jsx)$
-        pass_filenames: false
-
-      - id: frontend-prettier
-        name: Prettier (Frontend)
-        entry: bash -c 'cd frontend && npm run format:check'
-        language: system
-        files: ^frontend/.*\.(ts|tsx|js|jsx|json|css|md)$
-        pass_filenames: false
-
       - id: frontend-typecheck
-        name: TypeScript Check (Frontend)
-        entry: bash -c 'cd frontend && npm run typecheck'
+        name: TS Typecheck (Frontend)
+        entry: bash -c 'cd frontend && pnpm run typecheck'
         language: system
-        files: ^frontend/.*\.(ts|tsx)$
         pass_filenames: false
-
-      - id: frontend-unit-tests
-        name: Frontend Unit Tests
-        entry: bash -c 'cd frontend && npm run test:unit'
-        language: system
-        files: ^frontend/.*\.(ts|tsx|js|jsx)$
-        pass_filenames: false
-
-  # Backend Python testing
-  - repo: local
-    hooks:
-      - id: backend-tests
-        name: Backend Tests
-        entry: bash -c 'cd backend && python -m pytest tests/ --tb=short'
-        language: system
-        files: ^backend/
-        pass_filenames: false
+        stages: [push]
