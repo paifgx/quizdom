@@ -25,12 +25,14 @@ const MockAdminUsersPage = () => {
   useEffect(() => {
     userAdminService.listUsers();
   }, []);
-  return <div data-testid="mock-admin-users-page">Mock AdminUsersPage Component</div>;
+  return (
+    <div data-testid="mock-admin-users-page">Mock AdminUsersPage Component</div>
+  );
 };
 
 // Mock the component to call listUsers when mounted
 vi.mock('../../app/routes/admin.users', () => ({
-  default: MockAdminUsersPage
+  default: MockAdminUsersPage,
 }));
 
 // Sample data for tests - with all required properties
@@ -45,7 +47,7 @@ const mockUsers = [
     last_login: '2023-01-10T00:00:00',
     quizzes_completed: 5,
     average_score: 90.5,
-    total_score: 450
+    total_score: 450,
   },
   {
     id: 2,
@@ -57,7 +59,7 @@ const mockUsers = [
     last_login: null,
     quizzes_completed: 0,
     average_score: 0,
-    total_score: 0
+    total_score: 0,
   },
 ];
 

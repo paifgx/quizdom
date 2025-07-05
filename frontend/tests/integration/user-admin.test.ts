@@ -21,7 +21,7 @@ vi.mock('../../app/services/auth', () => ({
   authService: {
     getToken: vi.fn(() => 'mock-token'),
     getAuthHeader: vi.fn(() => ({
-      Authorization: 'Bearer mock-token'
+      Authorization: 'Bearer mock-token',
     })),
   },
 }));

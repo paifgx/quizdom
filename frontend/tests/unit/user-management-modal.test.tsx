@@ -52,8 +52,12 @@ describe('UserManagementModal', () => {
     expect(screen.getByLabelText(/^Passwort$/i)).toHaveValue('');
 
     // Verify buttons are present
-    expect(screen.getByRole('button', { name: /abbrechen/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /erstellen/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /abbrechen/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /erstellen/i })
+    ).toBeInTheDocument();
   });
 
   it('renders the edit user form when a user is provided', () => {
@@ -63,13 +67,17 @@ describe('UserManagementModal', () => {
     expect(screen.getByText(/benutzer bearbeiten/i)).toBeInTheDocument();
 
     // Verify form fields are pre-populated
-    expect(screen.getByLabelText(/^E-Mail-Adresse$/i)).toHaveValue('user@example.com');
+    expect(screen.getByLabelText(/^E-Mail-Adresse$/i)).toHaveValue(
+      'user@example.com'
+    );
 
     // Edit mode shouldn't have password field
     expect(screen.queryByLabelText(/^Passwort$/i)).toBeNull();
 
     // Verification status should match user data
-    expect(screen.getByLabelText(/E-Mail-Adresse ist verifiziert/i)).toBeChecked();
+    expect(
+      screen.getByLabelText(/E-Mail-Adresse ist verifiziert/i)
+    ).toBeChecked();
 
     // Role should be pre-selected
     const roleSelect = screen.getByLabelText(/^Rolle$/i);
@@ -113,7 +121,9 @@ describe('UserManagementModal', () => {
     await user.click(submitButton);
 
     // Wait for validation error to appear
-    const errorText = await screen.findByText('Passwort muss mindestens 6 Zeichen lang sein');
+    const errorText = await screen.findByText(
+      'Passwort muss mindestens 6 Zeichen lang sein'
+    );
     expect(errorText).toBeInTheDocument();
 
     // Verify onSubmit was not called
@@ -135,7 +145,7 @@ describe('UserManagementModal', () => {
 
     // Verify onSubmit was called with correct data
     expect(defaultProps.onSubmit).toHaveBeenCalledWith({
-      email: 'updated@example.com'
+      email: 'updated@example.com',
     });
   });
 
@@ -144,7 +154,10 @@ describe('UserManagementModal', () => {
     render(<UserManagementModal {...defaultProps} />);
 
     // Fill in the form
-    await user.type(screen.getByLabelText(/^E-Mail-Adresse$/i), 'new@example.com');
+    await user.type(
+      screen.getByLabelText(/^E-Mail-Adresse$/i),
+      'new@example.com'
+    );
     await user.type(screen.getByLabelText(/^Passwort$/i), 'password123');
     await user.selectOptions(screen.getByLabelText(/^Rolle$/i), '2');
     await user.click(screen.getByLabelText(/E-Mail-Adresse ist verifiziert/i));
@@ -178,10 +191,14 @@ describe('UserManagementModal', () => {
     render(<UserManagementModal {...defaultProps} isLoading={true} />);
 
     // Check for loading indicator
-    expect(screen.getByRole('button', { name: /wird gespeichert/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /wird gespeichert/i })
+    ).toBeInTheDocument();
 
     // Submit button should be disabled
-    const submitButton = screen.getByRole('button', { name: /wird gespeichert/i });
+    const submitButton = screen.getByRole('button', {
+      name: /wird gespeichert/i,
+    });
     expect(submitButton).toBeDisabled();
   });
 
@@ -189,7 +206,11 @@ describe('UserManagementModal', () => {
     render(<UserManagementModal {...defaultProps} isOpen={false} />);
 
     // Modal should not be in the document
-    expect(screen.queryByText(/neuen benutzer anlegen/i)).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/^E-Mail-Adresse$/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/neuen benutzer anlegen/i)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/^E-Mail-Adresse$/i)
+    ).not.toBeInTheDocument();
   });
 });

@@ -19,78 +19,89 @@ export const meta: MetaFunction = () => {
 export default function UserManual() {
   const [activeSection, setActiveSection] = useState<string>('getting-started');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<Array<{
-    id: string;
-    text: string;
-    section: string;
-    element: HTMLElement;
-  }>>([]);
-  const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const sections = useMemo(() => [
-    {
-      id: 'getting-started',
-      title: translate('userManual.gettingStarted'),
-      icon: '🚀',
-    },
-    { id: 'gameplay', title: translate('userManual.gameplay'), icon: '🎮' },
-    { id: 'features', title: translate('userManual.features'), icon: '✨' },
-    { id: 'account', title: translate('userManual.account'), icon: '👤' },
-    { id: 'faq', title: translate('userManual.faq'), icon: '❓' },
-    { id: 'support', title: translate('userManual.support'), icon: '💬' },
-  ], []);
-
-  // Search functionality
-  const performSearch = useCallback((query: string) => {
-    if (!query.trim() || !contentRef.current) {
-      setSearchResults([]);
-      setCurrentResultIndex(-1);
-      return;
-    }
-
-    const results: Array<{
+  const [searchResults, setSearchResults] = useState<
+    Array<{
       id: string;
       text: string;
       section: string;
       element: HTMLElement;
-    }> = [];
+    }>
+  >([]);
+  const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-    const walkTextNodes = (node: Node, section: string) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent || '';
-        const lowerText = text.toLowerCase();
-        const lowerQuery = query.toLowerCase();
+  const sections = useMemo(
+    () => [
+      {
+        id: 'getting-started',
+        title: translate('userManual.gettingStarted'),
+        icon: '🚀',
+      },
+      { id: 'gameplay', title: translate('userManual.gameplay'), icon: '🎮' },
+      { id: 'features', title: translate('userManual.features'), icon: '✨' },
+      { id: 'account', title: translate('userManual.account'), icon: '👤' },
+      { id: 'faq', title: translate('userManual.faq'), icon: '❓' },
+      { id: 'support', title: translate('userManual.support'), icon: '💬' },
+    ],
+    []
+  );
 
-        if (lowerText.includes(lowerQuery)) {
-          const parentElement = node.parentElement;
-          if (parentElement && !parentElement.closest('button, input, textarea')) {
-            results.push({
-              id: `${section}-${results.length}`,
-              text: text.trim(),
-              section,
-              element: parentElement,
-            });
+  // Search functionality
+  const performSearch = useCallback(
+    (query: string) => {
+      if (!query.trim() || !contentRef.current) {
+        setSearchResults([]);
+        setCurrentResultIndex(-1);
+        return;
+      }
+
+      const results: Array<{
+        id: string;
+        text: string;
+        section: string;
+        element: HTMLElement;
+      }> = [];
+
+      const walkTextNodes = (node: Node, section: string) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent || '';
+          const lowerText = text.toLowerCase();
+          const lowerQuery = query.toLowerCase();
+
+          if (lowerText.includes(lowerQuery)) {
+            const parentElement = node.parentElement;
+            if (
+              parentElement &&
+              !parentElement.closest('button, input, textarea')
+            ) {
+              results.push({
+                id: `${section}-${results.length}`,
+                text: text.trim(),
+                section,
+                element: parentElement,
+              });
+            }
+          }
+        } else {
+          for (const child of Array.from(node.childNodes)) {
+            walkTextNodes(child, section);
           }
         }
-      } else {
-        for (const child of Array.from(node.childNodes)) {
-          walkTextNodes(child, section);
+      };
+
+      // Search through each section
+      sections.forEach(section => {
+        const sectionElement = document.getElementById(section.id);
+        if (sectionElement) {
+          walkTextNodes(sectionElement, section.title);
         }
-      }
-    };
+      });
 
-    // Search through each section
-    sections.forEach(section => {
-      const sectionElement = document.getElementById(section.id);
-      if (sectionElement) {
-        walkTextNodes(sectionElement, section.title);
-      }
-    });
-
-    setSearchResults(results);
-    setCurrentResultIndex(results.length > 0 ? 0 : -1);
-  }, [sections]);
+      setSearchResults(results);
+      setCurrentResultIndex(results.length > 0 ? 0 : -1);
+    },
+    [sections]
+  );
 
   // Handle search input changes
   useEffect(() => {
@@ -123,11 +134,11 @@ export default function UserManual() {
     if (searchResults.length === 0) return;
 
     if (direction === 'next') {
-      setCurrentResultIndex((prev) =>
+      setCurrentResultIndex(prev =>
         prev < searchResults.length - 1 ? prev + 1 : 0
       );
     } else {
-      setCurrentResultIndex((prev) =>
+      setCurrentResultIndex(prev =>
         prev > 0 ? prev - 1 : searchResults.length - 1
       );
     }
@@ -141,10 +152,12 @@ export default function UserManual() {
 
       // Calculate the target scroll position
       const elementRect = element.getBoundingClientRect();
-      const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const currentScrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
 
       // Scroll to position the element in the upper third of the viewport
-      const targetScrollTop = currentScrollTop + elementRect.top - (window.innerHeight * 0.3);
+      const targetScrollTop =
+        currentScrollTop + elementRect.top - window.innerHeight * 0.3;
 
       window.scrollTo({
         top: targetScrollTop,
@@ -159,7 +172,9 @@ export default function UserManual() {
       if (e.ctrlKey || e.metaKey) {
         if (e.key === 'f') {
           e.preventDefault();
-          const searchInput = document.getElementById('search-input') as HTMLInputElement;
+          const searchInput = document.getElementById(
+            'search-input'
+          ) as HTMLInputElement;
           searchInput?.focus();
         }
       }
@@ -268,76 +283,76 @@ export default function UserManual() {
               </div>
             </div>
 
-              {/* Search Bar */}
-              <div className="mb-6">
-                <div className="relative">
-                  <input
-                    id="search-input"
-                    type="text"
-                    placeholder="Inhalte durchsuchen..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => handleSearchKeyDown(e.nativeEvent)}
-                    className="w-full bg-[#16213E] border border-gray-600 rounded-lg px-4 py-2 text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#FCC822] focus:ring-1 focus:ring-[#FCC822] transition-all duration-200"
-                  />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                    {searchResults.length > 0 && (
-                      <span className="text-xs text-gray-400 bg-[#0F1B2D] px-2 py-1 rounded">
-                        {currentResultIndex + 1}/{searchResults.length}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => navigateResults('prev')}
-                      disabled={searchResults.length === 0}
-                      className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
-                      title="Vorheriger Treffer"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      onClick={() => navigateResults('next')}
-                      disabled={searchResults.length === 0}
-                      className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
-                      title="Nächster Treffer"
-                    >
-                      ↓
-                    </button>
-                    <button
-                      onClick={jumpToCurrentResult}
-                      disabled={searchResults.length === 0}
-                      className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
-                      title="Zum Treffer springen"
-                    >
-                      ↵
-                    </button>
-                  </div>
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative">
+                <input
+                  id="search-input"
+                  type="text"
+                  placeholder="Inhalte durchsuchen..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onKeyDown={e => handleSearchKeyDown(e.nativeEvent)}
+                  className="w-full bg-[#16213E] border border-gray-600 rounded-lg px-4 py-2 text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#FCC822] focus:ring-1 focus:ring-[#FCC822] transition-all duration-200"
+                />
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                  {searchResults.length > 0 && (
+                    <span className="text-xs text-gray-400 bg-[#0F1B2D] px-2 py-1 rounded">
+                      {currentResultIndex + 1}/{searchResults.length}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => navigateResults('prev')}
+                    disabled={searchResults.length === 0}
+                    className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
+                    title="Vorheriger Treffer"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    onClick={() => navigateResults('next')}
+                    disabled={searchResults.length === 0}
+                    className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
+                    title="Nächster Treffer"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    onClick={jumpToCurrentResult}
+                    disabled={searchResults.length === 0}
+                    className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
+                    title="Zum Treffer springen"
+                  >
+                    ↵
+                  </button>
                 </div>
-
-                {/* Search Results */}
-                {searchResults.length > 0 && (
-                  <div className="mt-3 max-h-48 overflow-y-auto search-results">
-                    <div className="text-xs text-gray-400 mb-2">
-                      {searchResults.length} Treffer gefunden
-                    </div>
-                    {searchResults.map((result, index) => (
-                      <button
-                        key={result.id}
-                        onClick={() => setCurrentResultIndex(index)}
-                        className={`w-full text-left p-2 rounded text-xs transition-all duration-200 ${
-                          index === currentResultIndex
-                            ? 'bg-[#FCC822] text-[#061421]'
-                            : 'bg-[#16213E] text-gray-300 hover:bg-[#1a2a4a]'
-                        }`}
-                      >
-                        <div className="font-medium">{result.section}</div>
-                        <div className="truncate text-gray-500">
-                          {result.text.substring(0, 50)}...
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="mt-3 max-h-48 overflow-y-auto search-results">
+                  <div className="text-xs text-gray-400 mb-2">
+                    {searchResults.length} Treffer gefunden
+                  </div>
+                  {searchResults.map((result, index) => (
+                    <button
+                      key={result.id}
+                      onClick={() => setCurrentResultIndex(index)}
+                      className={`w-full text-left p-2 rounded text-xs transition-all duration-200 ${
+                        index === currentResultIndex
+                          ? 'bg-[#FCC822] text-[#061421]'
+                          : 'bg-[#16213E] text-gray-300 hover:bg-[#1a2a4a]'
+                      }`}
+                    >
+                      <div className="font-medium">{result.section}</div>
+                      <div className="truncate text-gray-500">
+                        {result.text.substring(0, 50)}...
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Getting Started Section */}
             <section id="getting-started" className="mb-12">

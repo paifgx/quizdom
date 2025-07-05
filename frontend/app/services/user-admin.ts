@@ -103,9 +103,12 @@ class UserAdminService {
    * Get a specific user by ID
    */
   async getUser(userId: number): Promise<UserAdminData> {
-    const response = await apiClient.get<UserAdminData>(`/v1/admin/users/${userId}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await apiClient.get<UserAdminData>(
+      `/v1/admin/users/${userId}`,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
     return response;
   }
 
@@ -113,9 +116,13 @@ class UserAdminService {
    * Create a new user
    */
   async createUser(userData: CreateUserRequest): Promise<UserAdminData> {
-    const response = await apiClient.post<UserAdminData>('/v1/admin/users', userData, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await apiClient.post<UserAdminData>(
+      '/v1/admin/users',
+      userData,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
     return response;
   }
 
@@ -126,9 +133,13 @@ class UserAdminService {
     userId: number,
     userData: UpdateUserRequest
   ): Promise<UserAdminData> {
-    const response = await apiClient.put<UserAdminData>(`/v1/admin/users/${userId}`, userData, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await apiClient.put<UserAdminData>(
+      `/v1/admin/users/${userId}`,
+      userData,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
     return response;
   }
 
@@ -155,9 +166,12 @@ class UserAdminService {
    * Permanently delete a user
    */
   async deleteUser(userId: number): Promise<{ message: string }> {
-    const response = await apiClient.delete<{ message: string }>(`/v1/admin/users/${userId}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await apiClient.delete<{ message: string }>(
+      `/v1/admin/users/${userId}`,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
     return response;
   }
 
