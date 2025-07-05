@@ -63,8 +63,7 @@ def test_user_create_request_validation():
 def test_user_update_request_validation():
     """Test UserUpdateRequest schema validation."""
     # All fields optional
-    empty_update = UserUpdateRequest(
-        email=None, is_verified=None, role_id=None)
+    empty_update = UserUpdateRequest(email=None, is_verified=None, role_id=None)
     assert empty_update.email is None
     assert empty_update.is_verified is None
     assert empty_update.role_id is None
@@ -80,8 +79,7 @@ def test_user_update_request_validation():
     # Email validation still applies
     with pytest.raises(ValidationError):
         # Other fields default to None
-        UserUpdateRequest(email="invalid-email",
-                          is_verified=None, role_id=None)
+        UserUpdateRequest(email="invalid-email", is_verified=None, role_id=None)
 
 
 def test_user_status_update_request_validation():

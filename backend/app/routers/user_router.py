@@ -85,8 +85,7 @@ def get_user_stats(
     total_users = session.exec(select(func.count()).select_from(User)).one()
 
     # Get verified users count
-    verified_users = session.exec(
-        select(func.count()).where(User.is_verified)).one()
+    verified_users = session.exec(select(func.count()).where(User.is_verified)).one()
 
     # Get recent registrations (last 7 days)
     seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
@@ -113,7 +112,8 @@ def get_user_stats(
 
     # Get new users this month
     first_of_month = datetime.now(timezone.utc).replace(
-        day=1, hour=0, minute=0, second=0)
+        day=1, hour=0, minute=0, second=0
+    )
     new_users_this_month = session.exec(
         select(func.count()).where(User.created_at >= first_of_month)
     ).one()

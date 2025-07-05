@@ -71,7 +71,8 @@ class UserAdminService:
             str or None: Role name if found, None otherwise
         """
         stmt = text(
-            "SELECT r.name FROM role r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = :user_id")
+            "SELECT r.name FROM role r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = :user_id"
+        )
         result = self.session.execute(stmt, {"user_id": user_id}).first()
 
         if result:
@@ -91,8 +92,7 @@ class UserAdminService:
             - Total score
         """
         # Get completed sessions for this user
-        stmt = text(
-            "SELECT score FROM session_players WHERE user_id = :user_id")
+        stmt = text("SELECT score FROM session_players WHERE user_id = :user_id")
         results = self.session.execute(stmt, {"user_id": user_id}).fetchall()
 
         if not results:
@@ -115,43 +115,61 @@ class UserAdminService:
         # Use plain SQL to avoid SQLModel typing issues
 
         # Total users
-        total_users = self.session.execute(
-            text("SELECT COUNT(*) FROM user")).scalar() or 0
+        total_users = (
+            self.session.execute(text("SELECT COUNT(*) FROM user")).scalar() or 0
+        )
 
         # Active users (not deleted)
-        active_users = self.session.execute(
-            text("SELECT COUNT(*) FROM user WHERE deleted_at IS NULL")
-        ).scalar() or 0
+        active_users = (
+            self.session.execute(
+                text("SELECT COUNT(*) FROM user WHERE deleted_at IS NULL")
+            ).scalar()
+            or 0
+        )
 
         # Verified users
-        verified_users = self.session.execute(
-            text("SELECT COUNT(*) FROM user WHERE is_verified = 1")
-        ).scalar() or 0
+        verified_users = (
+            self.session.execute(
+                text("SELECT COUNT(*) FROM user WHERE is_verified = 1")
+            ).scalar()
+            or 0
+        )
 
         # Admin users
-        admin_users = self.session.execute(
-            text("""
+        admin_users = (
+            self.session.execute(
+                text(
+                    """
                 SELECT COUNT(DISTINCT u.id)
                 FROM user u
                 JOIN user_roles ur ON u.id = ur.user_id
                 JOIN role r ON ur.role_id = r.id
                 WHERE r.name = 'admin'
-            """)
-        ).scalar() or 0
+            """
+                )
+            ).scalar()
+            or 0
+        )
 
         # Recent registrations (last 7 days)
         seven_days_ago = datetime.utcnow() - timedelta(days=7)
-        recent_registrations = self.session.execute(
-            text("SELECT COUNT(*) FROM user WHERE created_at >= :cutoff"),
-            {"cutoff": seven_days_ago}
-        ).scalar() or 0
+        recent_registrations = (
+            self.session.execute(
+                text("SELECT COUNT(*) FROM user WHERE created_at >= :cutoff"),
+                {"cutoff": seven_days_ago},
+            ).scalar()
+            or 0
+        )
 
         # New users this month
         first_of_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0)
-        new_users_this_month = self.session.execute(
-            text("SELECT COUNT(*) FROM user WHERE created_at >= :cutoff"),
-            {"cutoff": first_of_month}
-        ).scalar() or 0
+        new_users_this_month = (
+            self.session.execute(
+                text("SELECT COUNT(*) FROM user WHERE created_at >= :cutoff"),
+                {"cutoff": first_of_month},
+            ).scalar()
+            or 0
+        )
 
         return UserStatsResponse(
             total_users=total_users,

@@ -447,8 +447,7 @@ async def archive_quiz(
             )
         return {"message": "Quiz erfolgreich archiviert", "quiz_id": quiz_id}
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # User Management Endpoints
@@ -544,8 +543,7 @@ async def get_user_stats(
     total_users = session.exec(select(func.count()).select_from(User)).one()
 
     # Get verified users count
-    verified_users = session.exec(
-        select(func.count()).where(User.is_verified)).one()
+    verified_users = session.exec(select(func.count()).where(User.is_verified)).one()
 
     # Get recent registrations (last 30 days)
     thirty_days_ago = datetime.now() - timedelta(days=30)

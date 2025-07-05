@@ -118,7 +118,9 @@ def test_list_users_empty(admin_client: TestClient, session: Session):
     assert data["data"] == []
 
 
-def test_list_users_with_data(admin_client: TestClient, admin_user: User, regular_user: User):
+def test_list_users_with_data(
+    admin_client: TestClient, admin_user: User, regular_user: User
+):
     """Test listing users with populated data."""
     # Call the endpoint
     response = admin_client.get("/v1/admin/users?limit=10")
@@ -201,8 +203,7 @@ def test_update_user(admin_client: TestClient, regular_user: User, session: Sess
     }
 
     # Call the endpoint
-    response = admin_client.put(
-        f"/v1/admin/users/{regular_user.id}", json=update_data)
+    response = admin_client.put(f"/v1/admin/users/{regular_user.id}", json=update_data)
 
     # Verify response
     assert response.status_code == status.HTTP_200_OK
@@ -257,7 +258,8 @@ def test_access_denied_for_regular_users(regular_client: TestClient):
 
     # Try to create user
     response = regular_client.post(
-        "/v1/admin/users", json={"email": "test@example.com", "password": "test123"})
+        "/v1/admin/users", json={"email": "test@example.com", "password": "test123"}
+    )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
     # Try to get user stats
@@ -270,21 +272,24 @@ def test_invalid_input_validation(admin_client: TestClient):
     # Invalid email format
     response = admin_client.post(
         "/v1/admin/users",
-        json={"email": "invalid-email", "password": "valid123", "role_id": 2}
+        json={"email": "invalid-email", "password": "valid123", "role_id": 2},
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     # Password too short
     response = admin_client.post(
         "/v1/admin/users",
-        json={"email": "valid@example.com", "password": "short", "role_id": 2}
+        json={"email": "valid@example.com", "password": "short", "role_id": 2},
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     # Invalid role_id (non-integer)
     response = admin_client.post(
         "/v1/admin/users",
-        json={"email": "valid@example.com",
-              "password": "valid123", "role_id": "not-a-number"}
+        json={
+            "email": "valid@example.com",
+            "password": "valid123",
+            "role_id": "not-a-number",
+        },
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

@@ -42,8 +42,7 @@ def require_admin(
     ).first()
 
     if not admin_role:
-        log_operation(app_logger, "admin_access_denied",
-                      user_id=current_user.id)
+        log_operation(app_logger, "admin_access_denied", user_id=current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Administrator-Zugriff erforderlich",

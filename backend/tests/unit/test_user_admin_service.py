@@ -85,7 +85,9 @@ def sample_users(session: Session):
     return [admin_user, regular_user, inactive_user]
 
 
-def test_build_user_list_response(user_admin_service: UserAdminService, sample_users: list[User], session: Session):
+def test_build_user_list_response(
+    user_admin_service: UserAdminService, sample_users: list[User], session: Session
+):
     """Test building user list response."""
     # Get a user with role for testing
     admin_user = sample_users[0]
@@ -125,7 +127,9 @@ def test_get_user_role(user_admin_service: UserAdminService, sample_users: list[
     assert role_name is None
 
 
-def test_get_user_statistics(user_admin_service: UserAdminService, sample_users: list[User]):
+def test_get_user_statistics(
+    user_admin_service: UserAdminService, sample_users: list[User]
+):
     """Test getting user statistics."""
     # Call the service method
     stats = user_admin_service.get_user_statistics()
@@ -139,21 +143,20 @@ def test_get_user_statistics(user_admin_service: UserAdminService, sample_users:
     assert stats.new_users_this_month >= 0
 
 
-def test_calculate_user_quiz_stats(user_admin_service: UserAdminService, sample_users: list[User], session: Session):
+def test_calculate_user_quiz_stats(
+    user_admin_service: UserAdminService, sample_users: list[User], session: Session
+):
     """Test calculating user quiz statistics."""
     # Mock quiz session data
     user_id = cast(int, sample_users[0].id)
 
     # Mock direct SQL execution instead of using exec
-    session.execute = MagicMock(return_value=MagicMock(
-        fetchall=MagicMock(return_value=[
-            (80,), (90,), (100,)
-        ])
-    ))
+    session.execute = MagicMock(
+        return_value=MagicMock(fetchall=MagicMock(return_value=[(80,), (90,), (100,)]))
+    )
 
     # Call the service method
-    completed, avg_score, total = user_admin_service.calculate_user_quiz_stats(
-        user_id)
+    completed, avg_score, total = user_admin_service.calculate_user_quiz_stats(user_id)
 
     # Verify results
     assert completed == 3
