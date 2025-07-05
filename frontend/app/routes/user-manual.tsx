@@ -101,7 +101,7 @@ export default function UserManual() {
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-    // Highlight current search result
+  // Highlight current search result
   useEffect(() => {
     // Remove previous highlights
     document.querySelectorAll('.search-highlight').forEach(el => {
@@ -118,7 +118,7 @@ export default function UserManual() {
     }
   }, [currentResultIndex, searchResults]);
 
-    // Navigate through search results
+  // Navigate through search results (without jumping)
   const navigateResults = (direction: 'next' | 'prev') => {
     if (searchResults.length === 0) return;
 
@@ -133,16 +133,22 @@ export default function UserManual() {
     }
   };
 
-  // Jump to current search result
+  // Jump to current search result (only called explicitly)
   const jumpToCurrentResult = () => {
     if (currentResultIndex >= 0 && searchResults[currentResultIndex]) {
       const result = searchResults[currentResultIndex];
       const element = result.element;
 
-      // Scroll to the element
-      element.scrollIntoView({
+      // Calculate the target scroll position
+      const elementRect = element.getBoundingClientRect();
+      const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      // Scroll to position the element in the upper third of the viewport
+      const targetScrollTop = currentScrollTop + elementRect.top - (window.innerHeight * 0.3);
+
+      window.scrollTo({
+        top: targetScrollTop,
         behavior: 'smooth',
-        block: 'center',
       });
     }
   };
@@ -159,10 +165,7 @@ export default function UserManual() {
       }
 
       if (searchResults.length > 0) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          jumpToCurrentResult();
-        } else if (e.key === 'Escape') {
+        if (e.key === 'Escape') {
           setSearchQuery('');
           setSearchResults([]);
           setCurrentResultIndex(-1);
@@ -173,6 +176,14 @@ export default function UserManual() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchResults]);
+
+  // Handle Enter key on search input
+  const handleSearchKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && searchResults.length > 0) {
+      e.preventDefault();
+      jumpToCurrentResult();
+    }
+  };
 
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -225,8 +236,6 @@ export default function UserManual() {
                 📖 {translate('userManual.tableOfContents')}
               </h2>
 
-
-
               <nav className="space-y-2">
                 {sections.map(section => (
                   <button
@@ -268,6 +277,7 @@ export default function UserManual() {
                     placeholder="Inhalte durchsuchen..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => handleSearchKeyDown(e as any)}
                     className="w-full bg-[#16213E] border border-gray-600 rounded-lg px-4 py-2 text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#FCC822] focus:ring-1 focus:ring-[#FCC822] transition-all duration-200"
                   />
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
