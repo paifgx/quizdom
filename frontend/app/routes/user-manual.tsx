@@ -101,7 +101,7 @@ export default function UserManual() {
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  // Highlight current search result
+    // Highlight current search result
   useEffect(() => {
     // Remove previous highlights
     document.querySelectorAll('.search-highlight').forEach(el => {
@@ -115,16 +115,10 @@ export default function UserManual() {
       // Highlight the element
       element.classList.add('search-highlight');
       element.classList.add('search-highlight-current');
-
-      // Scroll to the element
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
     }
   }, [currentResultIndex, searchResults]);
 
-  // Navigate through search results
+    // Navigate through search results
   const navigateResults = (direction: 'next' | 'prev') => {
     if (searchResults.length === 0) return;
 
@@ -136,6 +130,20 @@ export default function UserManual() {
       setCurrentResultIndex((prev) =>
         prev > 0 ? prev - 1 : searchResults.length - 1
       );
+    }
+  };
+
+  // Jump to current search result
+  const jumpToCurrentResult = () => {
+    if (currentResultIndex >= 0 && searchResults[currentResultIndex]) {
+      const result = searchResults[currentResultIndex];
+      const element = result.element;
+
+      // Scroll to the element
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
     }
   };
 
@@ -153,7 +161,7 @@ export default function UserManual() {
       if (searchResults.length > 0) {
         if (e.key === 'Enter') {
           e.preventDefault();
-          navigateResults('next');
+          jumpToCurrentResult();
         } else if (e.key === 'Escape') {
           setSearchQuery('');
           setSearchResults([]);
@@ -283,6 +291,14 @@ export default function UserManual() {
                       title="Nächster Treffer"
                     >
                       ↓
+                    </button>
+                    <button
+                      onClick={jumpToCurrentResult}
+                      disabled={searchResults.length === 0}
+                      className="text-gray-400 hover:text-[#FCC822] disabled:opacity-50 disabled:cursor-not-allowed p-1"
+                      title="Zum Treffer springen"
+                    >
+                      ↵
                     </button>
                   </div>
                 </div>
