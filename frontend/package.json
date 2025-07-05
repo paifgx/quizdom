@@ -16,9 +16,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:integration": "vitest run tests/integration"
   },
   "dependencies": {
     "@react-router/node": "^7.6.2",
@@ -30,7 +28,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
-    "@playwright/test": "^1.53.0",
     "@react-router/dev": "^7.6.2",
     "@tailwindcss/vite": "^4.1.10",
     "@testing-library/jest-dom": "^6.6.3",

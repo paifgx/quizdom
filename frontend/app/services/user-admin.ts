@@ -21,18 +21,29 @@ export interface UserAdminData {
   total_score: number;
 }
 
-export interface UserStats {
-  total_users: number;
-  active_users: number;
-  admin_users: number;
-  verified_users: number;
-  new_users_this_month: number;
+// Response type for user list endpoint
+export interface UserListResponse {
+  data: UserAdminData[];
+  total: number;
+  skip: number;
+  limit: number;
 }
 
+// Response type for roles list endpoint
 export interface Role {
   id: number;
   name: string;
-  description: string | null;
+  description: string;
+}
+
+// Response type for user statistics
+export interface UserStats {
+  total_users: number;
+  active_users: number;
+  verified_users: number;
+  admin_users: number;
+  recent_registrations: number;
+  new_users_this_month: number;
 }
 
 export interface CreateUserRequest {
@@ -57,17 +68,11 @@ export interface UserListParams {
 }
 
 class UserAdminService {
-  private getAuthHeaders(): Record<string, string> {
-    return authService.getAuthHeader();
-  }
-
   /**
-   * Get user statistics for admin dashboard
+   * Get authentication headers for API requests
    */
-  async getUserStats(): Promise<UserStats> {
-    return apiClient.get<UserStats>('/v1/admin/users/stats', {
-      headers: this.getAuthHeaders(),
-    });
+  private getAuthHeaders() {
+    return authService.getAuthHeader();
   }
 
   /**
@@ -87,27 +92,38 @@ class UserAdminService {
 
     const url = `/v1/admin/users${searchParams.toString() ? `?${searchParams}` : ''}`;
 
-    return apiClient.get<UserAdminData[]>(url, {
+    const response = await apiClient.get<UserListResponse>(url, {
       headers: this.getAuthHeaders(),
     });
+
+    return response.data;
   }
 
   /**
    * Get a specific user by ID
    */
   async getUser(userId: number): Promise<UserAdminData> {
-    return apiClient.get<UserAdminData>(`/v1/admin/users/${userId}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await apiClient.get<UserAdminData>(
+      `/v1/admin/users/${userId}`,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+    return response;
   }
 
   /**
    * Create a new user
    */
   async createUser(userData: CreateUserRequest): Promise<UserAdminData> {
-    return apiClient.post<UserAdminData>('/v1/admin/users', userData, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await apiClient.post<UserAdminData>(
+      '/v1/admin/users',
+      userData,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+    return response;
   }
 
   /**
@@ -117,9 +133,14 @@ class UserAdminService {
     userId: number,
     userData: UpdateUserRequest
   ): Promise<UserAdminData> {
-    return apiClient.put<UserAdminData>(`/v1/admin/users/${userId}`, userData, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await apiClient.put<UserAdminData>(
+      `/v1/admin/users/${userId}`,
+      userData,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+    return response;
   }
 
   /**
@@ -129,7 +150,7 @@ class UserAdminService {
     userId: number,
     isActive: boolean
   ): Promise<UserAdminData> {
-    return apiClient.put<UserAdminData>(
+    const response = await apiClient.put<UserAdminData>(
       `/v1/admin/users/${userId}/status`,
       {
         deleted_at: isActive ? null : new Date().toISOString(),
@@ -138,24 +159,40 @@ class UserAdminService {
         headers: this.getAuthHeaders(),
       }
     );
+    return response;
   }
 
   /**
    * Permanently delete a user
    */
   async deleteUser(userId: number): Promise<{ message: string }> {
-    return apiClient.delete<{ message: string }>(`/v1/admin/users/${userId}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await apiClient.delete<{ message: string }>(
+      `/v1/admin/users/${userId}`,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+    return response;
   }
 
   /**
-   * Get all available roles
+   * Get user statistics
    */
-  async getRoles(): Promise<Role[]> {
-    return apiClient.get<Role[]>('/v1/admin/roles', {
+  async getUserStats(): Promise<UserStats> {
+    const response = await apiClient.get<UserStats>('/v1/admin/users/stats', {
       headers: this.getAuthHeaders(),
     });
+    return response;
+  }
+
+  /**
+   * Get available user roles
+   */
+  async getRoles(): Promise<Role[]> {
+    const response = await apiClient.get<Role[]>('/v1/admin/roles', {
+      headers: this.getAuthHeaders(),
+    });
+    return response;
   }
 }
 

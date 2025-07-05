@@ -12,7 +12,7 @@ export default defineConfig({
       'tests/integration/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
       'app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', // Support co-located tests if needed
     ],
-    exclude: ['node_modules', 'dist', 'build', '.react-router', 'tests/e2e'],
+    exclude: ['node_modules', 'dist', 'build', '.react-router'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

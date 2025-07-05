@@ -96,3 +96,16 @@ alwaysApply: false
   - Follow German capitalization rules for UI elements
   - Use appropriate formal/informal address (Sie/du) based on context
   - Ensure proper pluralization and gender agreement
+
+## Tests
+- Write tests for business logic in `app/utils/`
+- Test components with React Testing Library
+- Write unit tests for isolated components/hooks
+- Write integration tests for interactive features
+- Add snapshot tests only when markup must stay unchanged
+- Enforce formatting with ESLint and Prettier
+
+- **Use proper German grammar and terminology**
+  - Follow German capitalization rules for UI elements
+  - Use appropriate formal/informal address (Sie/du) based on context
+  - Ensure proper pluralization and gender agreement

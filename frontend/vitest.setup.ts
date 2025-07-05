@@ -1,4 +1,7 @@
-// global vitest setup file to make import.meta.env.DEV writable so tests can redefine it
+// Global Vitest setup file.
+// Setup testing-library dom matchers
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Ensure import.meta.env exists and is configurable
 Object.defineProperty(import.meta, 'env', {
@@ -8,7 +11,4 @@ Object.defineProperty(import.meta, 'env', {
 });
 
 // Mock CSS imports to avoid parsing errors
-import { vi } from 'vitest';
-
-// Mock CSS files that cause parsing issues with @layer syntax
 vi.mock('../app/app.css', () => ({}));
