@@ -6,7 +6,7 @@
   font-display: swap;
 }
 
-:root {
+@theme {
   --font-sans:
     'Tiny5', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
     'DejaVu Sans Mono', monospace;
