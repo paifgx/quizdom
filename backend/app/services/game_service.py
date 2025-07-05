@@ -664,3 +664,38 @@ class GameService:
             "rank": rank,
             "percentile": percentile,
         }
+
+    # ---------------------------------------------------------------------
+    # Compatibility helpers
+    # ---------------------------------------------------------------------
+
+    def get_question_data(
+        self, session_id: int, question_index: int, user: User
+    ) -> dict[str, Any]:
+        """Return question data structure expected by WebSocket router.
+
+        This is a compatibility shim for the WebSocket router that expects
+        a *question* event payload. It returns the question content, possible
+        answers and basic metadata.
+
+        NOTE: The implementation focuses only on the data required for
+        real-time latency tests (ping/pong) and therefore keeps the payload
+        minimal. Extend as soon as the frontend relies on richer data.
+        """
+        # Fetch question and answers using existing helper
+        question, answers, _time_limit = self.get_question(
+            session_id=session_id, question_index=question_index, user=user
+        )
+
+        return {
+            "id": question.id,
+            "content": question.content,
+            "answers": [
+                {
+                    "id": a.id,
+                    "content": a.content,
+                }
+                for a in answers
+            ],
+            "index": question_index,
+        }

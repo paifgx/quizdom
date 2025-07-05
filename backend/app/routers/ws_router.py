@@ -1,5 +1,7 @@
 """WebSocket router for real-time game session events."""
 
+import asyncio
+import contextlib
 from typing import Any, Dict, List, Optional
 
 from fastapi import (
@@ -47,7 +49,12 @@ async def get_current_user_from_ws(
         )
 
     try:
-        user_email = verify_token(token)
+        token_data = verify_token(token)
+        if token_data is None or token_data.email is None:
+            raise ValueError("Invalid token data")
+
+        user_email = token_data.email
+
         user = db.exec(select(User).where(User.email == user_email)).first()
         if not user:
             raise ValueError("User not found")
@@ -177,7 +184,30 @@ async def websocket_endpoint(
         return
 
     # Accept connection and add to connection manager
+    assert user.id is not None, "User ID must be set"
     await manager.connect(websocket, session_id, user.id)
+
+    # ------------------------------------------------------------------
+    # KEEP-ALIVE PINGS
+    # ------------------------------------------------------------------
+    # WHY: In local test-environment Uvicorn closes idle WebSocket
+    # connections after ~20 s. We spawn a background task that sends a
+    # lightweight keep-alive message every 10 s so the connection stays
+    # open during RTT/Jitter tests where clients only send 'ping' events.
+
+    async def _keep_alive() -> None:
+        try:
+            while True:
+                await asyncio.sleep(10)  # shorter than default 20 s timeout
+                try:
+                    await websocket.send_json({"event": "server-ping"})
+                except WebSocketDisconnect:
+                    break
+        except asyncio.CancelledError:
+            # Task will be cancelled on disconnect – silent exit
+            pass
+
+    keep_alive_task = asyncio.create_task(_keep_alive())
 
     # Send session-start event
     await websocket.send_json(
@@ -226,21 +256,39 @@ async def websocket_endpoint(
     # Initialize game service
     game_service = GameService(db)
 
-    # Send initial question if available
-    if session.current_question_index >= 0 and session.question_ids:
-        question_data = game_service.get_question_data(
-            session_id=session_id,
-            question_index=session.current_question_index,
-            user=user,
-        )
+    # Send initial question if available and index valid
+    if session.question_ids and 0 <= session.current_question_index < len(
+        session.question_ids
+    ):
+        try:
+            question_data = game_service.get_question_data(
+                session_id=session_id,
+                question_index=session.current_question_index,
+                user=user,
+            )
 
-        await websocket.send_json({"event": "question", "payload": question_data})
+            await websocket.send_json({"event": "question", "payload": question_data})
+        except ValueError:
+            # Inconsistent DB state – skip initial question to keep WS alive
+            pass
 
     try:
         # Handle incoming messages
         while True:
             data = await websocket.receive_json()
             event_type = data.get("event")
+
+            # Handle ping-pong for latency testing
+            if event_type == "ping":
+                # Immediately respond with pong containing the same ID
+                await websocket.send_json(
+                    {
+                        "event": "pong",
+                        "id": data.get("id"),
+                        "timestamp": data.get("timestamp", 0),
+                    }
+                )
+                continue
 
             if event_type == "answer":
                 # Process answer submission
@@ -293,7 +341,11 @@ async def websocket_endpoint(
                         db.commit()
 
                         # Send next question if available
-                        if session.current_question_index < len(session.question_ids):
+                        if (
+                            session.question_ids
+                            and session.current_question_index
+                            < len(session.question_ids)
+                        ):
                             question_data = game_service.get_question_data(
                                 session_id=session_id,
                                 question_index=session.current_question_index,
@@ -316,11 +368,15 @@ async def websocket_endpoint(
                             complete_event = {
                                 "event": "session-complete",
                                 "payload": {
-                                    "result": complete_result.result,
-                                    "final_score": complete_result.final_score,
-                                    "hearts_remaining": complete_result.hearts_remaining,
-                                    "questions_answered": complete_result.questions_answered,
-                                    "time_taken": complete_result.time_taken,
+                                    "result": complete_result.get("result"),
+                                    "final_score": complete_result.get("final_score"),
+                                    "hearts_remaining": complete_result.get(
+                                        "hearts_remaining"
+                                    ),
+                                    "questions_answered": complete_result.get(
+                                        "questions_answered"
+                                    ),
+                                    "time_taken": complete_result.get("time_taken"),
                                 },
                             }
 
@@ -344,11 +400,13 @@ async def websocket_endpoint(
                     complete_event = {
                         "event": "session-complete",
                         "payload": {
-                            "result": complete_result.result,
-                            "final_score": complete_result.final_score,
-                            "hearts_remaining": complete_result.hearts_remaining,
-                            "questions_answered": complete_result.questions_answered,
-                            "time_taken": complete_result.time_taken,
+                            "result": complete_result.get("result"),
+                            "final_score": complete_result.get("final_score"),
+                            "hearts_remaining": complete_result.get("hearts_remaining"),
+                            "questions_answered": complete_result.get(
+                                "questions_answered"
+                            ),
+                            "time_taken": complete_result.get("time_taken"),
                         },
                     }
 
@@ -374,3 +432,8 @@ async def websocket_endpoint(
                 },
                 session_id,
             )
+
+    # Ensure keep-alive background task terminates
+    keep_alive_task.cancel()
+    with contextlib.suppress(Exception):
+        await keep_alive_task
