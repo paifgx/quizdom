@@ -170,6 +170,12 @@ export function useTopicDetail({
             topicData.title
           );
 
+          // Load favorite status from localStorage
+          const favoriteIds = JSON.parse(
+            localStorage.getItem('favoriteTopicIds') || '[]'
+          );
+          const isFavorite = favoriteIds.includes(topicData.id);
+
           // Convert GameTopic to TopicDetailData format
           const topicDetailData: TopicDetailData = {
             id: topicData.id,
@@ -181,7 +187,7 @@ export function useTopicDetail({
             bookmarkedQuestions: bookmarkedQuestionIds.length,
             stars: topicData.stars,
             questions: bookmarkedQuestions, // Use bookmarked questions from localStorage
-            isFavorite: topicData.isFavorite,
+            isFavorite: isFavorite,
             wisecoinReward: topicData.wisecoinReward,
           };
           setTopic(topicDetailData);
@@ -199,10 +205,35 @@ export function useTopicDetail({
    * Updates local state to reflect the change immediately.
    */
   const toggleFavorite = useCallback(() => {
-    setTopic(prevTopic => ({
-      ...prevTopic,
-      isFavorite: !prevTopic.isFavorite,
-    }));
+    setTopic(prevTopic => {
+      const newIsFavorite = !prevTopic.isFavorite;
+
+      // Update localStorage
+      const favoriteIds = JSON.parse(
+        localStorage.getItem('favoriteTopicIds') || '[]'
+      );
+      let updatedFavoriteIds;
+
+      if (newIsFavorite) {
+        // Add to favorites
+        updatedFavoriteIds = [...favoriteIds, prevTopic.id];
+      } else {
+        // Remove from favorites
+        updatedFavoriteIds = favoriteIds.filter(
+          (id: string) => id !== prevTopic.id
+        );
+      }
+
+      localStorage.setItem(
+        'favoriteTopicIds',
+        JSON.stringify(updatedFavoriteIds)
+      );
+
+      return {
+        ...prevTopic,
+        isFavorite: newIsFavorite,
+      };
+    });
   }, []);
 
   /**

@@ -126,6 +126,11 @@ export const translations = {
     exploreTopic: 'Thema erkunden',
     addToFavorites: 'Zu Favoriten hinzufügen',
     removeFromFavorites: 'Aus Favoriten entfernen',
+    favoriteTopics: 'Favoriten',
+    favoriteTopicsDescription: 'Deine markierten Themen',
+    noFavoriteTopics: 'Noch keine Favoriten',
+    addFavoritesFromTopics:
+      'Markiere Themen in der Themenübersicht als Favorit',
   },
 
   // Game Modes
