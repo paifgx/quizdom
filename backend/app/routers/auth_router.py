@@ -146,8 +146,7 @@ def register_user(
     Raises:
         HTTPException: When registration fails
     """
-    log_operation(app_logger, "user_registration_attempt",
-                  email=user_data.email)
+    log_operation(app_logger, "user_registration_attempt", email=user_data.email)
 
     # WHY: Check for existing user to prevent duplicates
     existing_user = get_user_by_email(session, user_data.email)

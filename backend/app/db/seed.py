@@ -40,8 +40,7 @@ def create_test_users(session: Session) -> None:
 
     # Create admin user
     admin_email = "admin@quizdom.de"
-    existing_admin = session.exec(
-        select(User).where(User.email == admin_email)).first()
+    existing_admin = session.exec(select(User).where(User.email == admin_email)).first()
     if not existing_admin:
         admin_user = User(
             email=admin_email,
@@ -68,8 +67,7 @@ def create_test_users(session: Session) -> None:
 
     # Create first normal user
     user_email = "user1@quizdom.de"
-    existing_user = session.exec(
-        select(User).where(User.email == user_email)).first()
+    existing_user = session.exec(select(User).where(User.email == user_email)).first()
     if not existing_user:
         normal_user = User(
             email=user_email,
@@ -96,8 +94,7 @@ def create_test_users(session: Session) -> None:
 
     # Create normal user
     user_email = "user2@quizdom.de"
-    existing_user = session.exec(
-        select(User).where(User.email == user_email)).first()
+    existing_user = session.exec(select(User).where(User.email == user_email)).first()
     if not existing_user:
         normal_user = User(
             email=user_email,

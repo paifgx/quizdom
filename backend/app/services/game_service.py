@@ -261,7 +261,9 @@ class GameService:
 
         return session
 
-    def join_session(self, session_id: int, user: User) -> Tuple[GameSession, List[SessionPlayers]]:
+    def join_session(
+        self, session_id: int, user: User
+    ) -> Tuple[GameSession, List[SessionPlayers]]:
         """Join an existing game session.
 
         Allows a user to join an existing multiplayer game session.
@@ -303,24 +305,31 @@ class GameService:
 
         if existing_player:
             # User already in session, just return current state
-            all_players = list(self.db.exec(
-                select(SessionPlayers)
-                .where(SessionPlayers.session_id == session_id)
-            ).all())
+            all_players = list(
+                self.db.exec(
+                    select(SessionPlayers).where(
+                        SessionPlayers.session_id == session_id
+                    )
+                ).all()
+            )
             return session, all_players
 
         # Check if session allows more players
-        current_players = list(self.db.exec(
-            select(SessionPlayers)
-            .where(SessionPlayers.session_id == session_id)
-        ).all())
+        current_players = list(
+            self.db.exec(
+                select(SessionPlayers).where(SessionPlayers.session_id == session_id)
+            ).all()
+        )
 
         # For solo mode, only one player allowed
         if session.mode == GameMode.SOLO and len(current_players) >= 1:
             raise ValueError("Solo-Spiele erlauben nur einen Spieler")
 
         # For competitive and collaborative, limit to 2 players for now
-        if session.mode in [GameMode.COMP, GameMode.COLLAB] and len(current_players) >= 2:
+        if (
+            session.mode in [GameMode.COMP, GameMode.COLLAB]
+            and len(current_players) >= 2
+        ):
             raise ValueError("Dieses Spiel ist bereits voll")
 
         # Add user to session
@@ -337,10 +346,11 @@ class GameService:
         self.db.commit()
 
         # Get all players including the new one
-        all_players = list(self.db.exec(
-            select(SessionPlayers)
-            .where(SessionPlayers.session_id == session_id)
-        ).all())
+        all_players = list(
+            self.db.exec(
+                select(SessionPlayers).where(SessionPlayers.session_id == session_id)
+            ).all()
+        )
 
         return session, all_players
 
@@ -415,8 +425,7 @@ class GameService:
         if session.quiz_id is not None:
             quiz = self.db.get(Quiz, session.quiz_id)
             if quiz and quiz.time_limit_minutes:
-                time_limit = quiz.time_limit_minutes * \
-                    60 // len(session.question_ids)
+                time_limit = quiz.time_limit_minutes * 60 // len(session.question_ids)
 
         return question, list(answers), time_limit
 
@@ -623,8 +632,7 @@ class GameService:
         ).all()
 
         questions_answered = len(player_answers)
-        correct_answers = sum(
-            1 for answer in player_answers if answer.is_correct)
+        correct_answers = sum(1 for answer in player_answers if answer.is_correct)
 
         # Calculate total time in seconds
         total_time_seconds = 0

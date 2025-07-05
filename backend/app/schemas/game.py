@@ -33,7 +33,7 @@ class GameSessionCreate(BaseModel):
     def validate_game_mode(cls, v: Any) -> Any:
         """Validiere den Spielmodus."""
         valid_modes = [mode.value for mode in GameMode]
-        if hasattr(v, 'value') and v.value.lower() not in valid_modes:
+        if hasattr(v, "value") and v.value.lower() not in valid_modes:
             raise ValueError(
                 f"Ungültiger Spielmodus. Erlaubte Werte: {', '.join(valid_modes)}"
             )
@@ -102,8 +102,7 @@ class AnswerOption(BaseModel):
         if not v or not v.strip():
             raise ValueError("Antwortinhalt darf nicht leer sein")
         if len(v) > 500:
-            raise ValueError(
-                "Antwortinhalt darf nicht länger als 500 Zeichen sein")
+            raise ValueError("Antwortinhalt darf nicht länger als 500 Zeichen sein")
         return v
 
 
@@ -114,11 +113,9 @@ class QuestionResponse(BaseModel):
     question_number: int = Field(
         ..., ge=1, description="Fragennummer (beginnend bei 1)"
     )
-    content: str = Field(..., min_length=1, max_length=1000,
-                         description="Fragetext")
+    content: str = Field(..., min_length=1, max_length=1000, description="Fragetext")
     answers: List[AnswerOption] = Field(..., description="Antwortoptionen")
-    time_limit: int = Field(
-        30, ge=10, le=300, description="Zeitlimit in Sekunden")
+    time_limit: int = Field(30, ge=10, le=300, description="Zeitlimit in Sekunden")
     show_timestamp: int = Field(
         ...,
         description="Unix-Zeitstempel in Millisekunden, wann die Frage angezeigt wurde",
@@ -149,8 +146,7 @@ class QuestionResponse(BaseModel):
     def validate_answers(cls, v: List[AnswerOption]) -> List[AnswerOption]:
         """Validiere die Antwortoptionen."""
         if len(v) < 2:
-            raise ValueError(
-                "Mindestens zwei Antwortoptionen sind erforderlich")
+            raise ValueError("Mindestens zwei Antwortoptionen sind erforderlich")
         if len(v) > 10:
             raise ValueError("Maximal zehn Antwortoptionen sind erlaubt")
         return v
@@ -188,8 +184,7 @@ class SubmitAnswerResponse(BaseModel):
     points_earned: int = Field(
         ..., ge=0, description="Erzielte Punkte für diese Antwort"
     )
-    response_time_ms: int = Field(...,
-                                  description="Antwortzeit in Millisekunden")
+    response_time_ms: int = Field(..., description="Antwortzeit in Millisekunden")
     player_score: int = Field(..., ge=0, description="Aktueller Spielerstand")
     player_hearts: int = Field(
         ..., ge=0, le=3, description="Verbleibende Leben des Spielers"
@@ -206,8 +201,7 @@ class GameResultResponse(BaseModel):
     mode: GameMode
     result: str = Field(..., description="Spielergebnis (win oder fail)")
     final_score: int = Field(..., ge=0, description="Endgültiger Punktestand")
-    hearts_remaining: int = Field(..., ge=0, le=3,
-                                  description="Verbleibende Leben")
+    hearts_remaining: int = Field(..., ge=0, le=3, description="Verbleibende Leben")
     questions_answered: int = Field(
         ..., ge=0, description="Anzahl der beantworteten Fragen"
     )
@@ -217,8 +211,7 @@ class GameResultResponse(BaseModel):
     total_time_seconds: int = Field(
         ..., ge=0, description="Gesamtspielzeit in Sekunden"
     )
-    rank: Optional[int] = Field(
-        None, ge=1, description="Rang in der Bestenliste")
+    rank: Optional[int] = Field(None, ge=1, description="Rang in der Bestenliste")
     percentile: Optional[float] = Field(
         None, ge=0, le=100, description="Perzentilrang (0-100)"
     )
@@ -246,13 +239,16 @@ class SessionJoinResponse(BaseModel):
 
     session_id: str
     mode: str
-    players: List[Dict[str, Any]
-                  ] = Field(..., description="List of players in the session")
-    current_question: int = Field(..., ge=0,
-                                  description="Current question index")
-    total_questions: int = Field(..., ge=1,
-                                 description="Total number of questions in the session")
+    players: List[Dict[str, Any]] = Field(
+        ..., description="List of players in the session"
+    )
+    current_question: int = Field(..., ge=0, description="Current question index")
+    total_questions: int = Field(
+        ..., ge=1, description="Total number of questions in the session"
+    )
     quiz_id: Optional[int] = Field(
-        None, description="Quiz ID if this is a quiz-based session")
+        None, description="Quiz ID if this is a quiz-based session"
+    )
     topic_id: Optional[int] = Field(
-        None, description="Topic ID if this is a topic-based session")
+        None, description="Topic ID if this is a topic-based session"
+    )
