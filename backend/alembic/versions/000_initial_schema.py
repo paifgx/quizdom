@@ -1,7 +1,7 @@
 """Initial schema
 
-Revision ID: 000_initial
-Revises: 001_implement_erm
+Revision ID: 000_initial_schema
+Revises:
 Create Date: 2025-06-27 20:46:13.046431
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "000_initial"
+revision: str = "000_initial_schema"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

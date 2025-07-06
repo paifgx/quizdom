@@ -1,7 +1,7 @@
 """add_user_profile_fields
 
-Revision ID: 0c736aa11b72
-Revises: 002_game_tracking
+Revision ID: 005_add_user_profile_fields
+Revises: 004_quiz_status_idx
 Create Date: 2025-07-05 22:11:15.112110
 
 """
@@ -9,12 +9,11 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = '0c736aa11b72'
-down_revision: Union[str, None] = '002_game_tracking'
+revision: str = '005_add_user_profile_fields'
+down_revision: Union[str, None] = '004_quiz_status_idx'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
