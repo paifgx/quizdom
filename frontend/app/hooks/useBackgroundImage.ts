@@ -1,6 +1,7 @@
-import { useLocation } from 'react-router';
+import { useLocation, useSearchParams } from 'react-router';
 import { useBackground } from '../contexts/background';
 import { useEffect } from 'react';
+import type { GameModeId } from '../types/game';
 
 /**
  * Configuration for route-specific backgrounds
@@ -16,12 +17,29 @@ const routeBackgrounds: Record<string, string> = {
   '/admin/questions': '/background/backgroud_night.png',
   '/admin/users': '/background/backgroud_night.png',
   '/admin/logs': '/background/backgroud_night.png',
+  '/quiz': '/background/background_orange.png',
 };
 
 /**
- * Get background image URL based on current route
+ * Get background image URL based on current route and game mode
  */
-function getBackgroundForRoute(pathname: string): string {
+function getBackgroundForRoute(
+  pathname: string,
+  gameMode?: GameModeId | null
+): string {
+  // Special handling for quiz game routes - use background based on game mode
+  if (pathname.includes('/quiz-game')) {
+    if (gameMode === 'solo') {
+      return '/background/backgroud_night.png';
+    } else if (gameMode === 'competitive') {
+      return '/background/background_day.png';
+    } else if (gameMode === 'collaborative') {
+      return '/background/background_orange.png';
+    }
+    // Fallback to orange for unknown modes
+    return '/background/background_orange.png';
+  }
+
   // Check for exact matches first
   if (routeBackgrounds[pathname]) {
     return routeBackgrounds[pathname];
@@ -44,14 +62,18 @@ function getBackgroundForRoute(pathname: string): string {
  */
 export function useBackgroundImage() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { backgroundImage, setBackgroundImage, resetToDefault } =
     useBackground();
 
-  // Automatically set background based on route when location changes
+  // Get game mode from URL parameters
+  const gameMode = searchParams.get('mode') as GameModeId | null;
+
+  // Automatically set background based on route and game mode when location changes
   useEffect(() => {
-    const routeBackground = getBackgroundForRoute(location.pathname);
+    const routeBackground = getBackgroundForRoute(location.pathname, gameMode);
     setBackgroundImage(routeBackground);
-  }, [location.pathname, setBackgroundImage]);
+  }, [location.pathname, gameMode, setBackgroundImage]);
 
   return {
     backgroundImage,
@@ -61,7 +83,10 @@ export function useBackgroundImage() {
      * Set background to the default for current route
      */
     setToRouteDefault: () => {
-      const routeBackground = getBackgroundForRoute(location.pathname);
+      const routeBackground = getBackgroundForRoute(
+        location.pathname,
+        gameMode
+      );
       setBackgroundImage(routeBackground);
     },
   };

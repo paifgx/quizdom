@@ -3,88 +3,63 @@
  * Shows only bookmarked questions in a grid layout.
  */
 
+import { useCallback, useMemo } from 'react';
 import type { TopicQuestionsProps } from '../../types/topic-detail';
-import { QuestionCard } from './question-card';
+import { QuestionsGrid } from './questions-grid';
+import { QuestionsHeader } from './questions-header';
 
 /**
- * Displays bookmarked questions section with grid layout.
- * Shows question count and displays only bookmarked questions directly.
- *
- * @param props - Component properties including questions data
- * @returns JSX element for questions section
+ * Displays the bookmarked questions for a topic.
  */
 export function TopicQuestions({
   questions,
   bookmarkedCount,
   topicId,
 }: TopicQuestionsProps) {
-  // Filter to show only bookmarked questions
-  const bookmarkedQuestions = questions.filter(
-    question => question.isBookmarked
+  const bookmarkedQuestions = useMemo(
+    () => questions.filter(question => question.isBookmarked),
+    [questions]
   );
+
+  const handleClearBookmarks = useCallback(() => {
+    if (
+      !window.confirm(
+        'Möchtest du wirklich alle markierten Fragen für dieses Thema löschen?'
+      )
+    ) {
+      return;
+    }
+
+    // This logic is specific to how bookmarks are stored. Ideally, this would
+    // be handled in a dedicated service or hook to abstract away localStorage
+    // details and provide a cleaner interface for components.
+    const keysToRemove = Object.keys(localStorage).filter(key => {
+      const isTopicBookmark =
+        key.startsWith('bookmarked_') && key.includes(topicId);
+      const isTopicBookmarkData =
+        key === `bookmarked_questions_data_${topicId}`;
+      return isTopicBookmark || isTopicBookmarkData;
+    });
+
+    for (const key of keysToRemove) {
+      localStorage.removeItem(key);
+    }
+
+    // A full page reload is not ideal for user experience.
+    // A better approach would be to use a state management library (like
+    // React Query or SWR) to invalidate queries and refetch data seamlessly,
+    // or lift state up and pass a callback to refresh the questions.
+    window.location.reload();
+  }, [topicId]);
 
   return (
     <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-600 backdrop-blur-sm mb-6">
-      <QuestionsHeader bookmarkedCount={bookmarkedCount} />
+      <QuestionsHeader
+        bookmarkedCount={bookmarkedCount}
+        onClearBookmarks={handleClearBookmarks}
+        hasBookmarks={bookmarkedQuestions.length > 0}
+      />
       <QuestionsGrid questions={bookmarkedQuestions} topicId={topicId} />
-    </div>
-  );
-}
-
-interface QuestionsHeaderProps {
-  /** Number of bookmarked questions */
-  bookmarkedCount: number;
-}
-
-/**
- * Questions section header with count in German.
- * Displays bookmarked questions count without navigation link.
- *
- * @param props - Header properties including count
- * @returns JSX element for questions header
- */
-function QuestionsHeader({ bookmarkedCount }: QuestionsHeaderProps) {
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-xl font-bold text-white">
-        Markierte Fragen: {bookmarkedCount}
-      </h2>
-    </div>
-  );
-}
-
-interface QuestionsGridProps {
-  /** Array of questions to display */
-  questions: TopicQuestionsProps['questions'];
-  /** ID of the topic */
-  topicId: string;
-}
-
-/**
- * Questions grid component displaying question cards in responsive layout.
- * Arranges question cards in a grid with proper spacing and responsive design.
- * Shows a message when no bookmarked questions are available.
- *
- * @param props - Grid properties including questions array
- * @returns JSX element for questions grid
- */
-function QuestionsGrid({ questions, topicId }: QuestionsGridProps) {
-  if (questions.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-400">
-          Keine markierten Fragen verfügbar. Markiere Fragen, um sie hier zu
-          sehen.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {questions.map(question => (
-        <QuestionCard key={question.id} question={question} topicId={topicId} />
-      ))}
     </div>
   );
 }

@@ -198,26 +198,31 @@ interface ProgressBarProps {
   completed: number;
   total: number;
   percentage: number;
+  className?: string;
 }
 
 /**
  * Progress bar component showing topic completion status.
  */
-function ProgressBar({
+export function ProgressBar({
   completed: _completed,
   total: _total,
   percentage,
+  className = '',
 }: ProgressBarProps) {
   return (
-    <div className="mb-4">
+    <div className={`mb-4 ${className}`}>
       <div className="flex justify-between text-sm text-gray-400 mb-1">
         <span>{translate('topics.progress')}</span>
-        <span>{percentage}%</span>
+        <span className="font-bold text-lg">{percentage}%</span>
       </div>
-      <div className="w-full bg-gray-700 rounded-full h-2">
+      <div
+        className="w-full bg-gray-700 rounded-full"
+        style={{ height: '1rem' }}
+      >
         <div
-          className="bg-[#FCC822] h-2 rounded-full transition-all duration-500"
-          style={{ width: `${percentage}%` }}
+          className="bg-[#FCC822] rounded-full transition-all duration-500"
+          style={{ width: `${percentage}%`, height: '1rem' }}
         />
       </div>
     </div>

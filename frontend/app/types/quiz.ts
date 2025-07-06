@@ -160,3 +160,16 @@ export interface QuizStatistics {
   totalPlays: number;
   averageCompletionRate: number;
 }
+
+/**
+ * Represents a quiz that is published and available for play.
+ */
+export interface PublishedQuiz {
+  id: number;
+  title: string;
+  description?: string;
+  questionCount: number;
+  difficulty: number;
+  playCount: number;
+  topicId?: number;
+}

@@ -1,7 +1,7 @@
 """Add game session tracking fields
 
-Revision ID: 002_game_tracking
-Revises: ada817a8cedb
+Revision ID: 003_game_tracking
+Revises: 002_difficulty_int
 Create Date: 2025-06-30 18:46:00.000000
 """
 
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "002_game_tracking"
-down_revision: Union[str, None] = "ada817a8cedb"
+revision: str = "003_game_tracking"
+down_revision: Union[str, None] = "002_difficulty_int"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

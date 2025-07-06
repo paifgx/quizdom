@@ -103,11 +103,6 @@ export default function GameModesPage() {
     navigate(`/quiz/${quizId}/quiz-game?mode=${selectedMode}`);
   };
 
-  const handleSelectRandomFromTopic = (topicId: string) => {
-    // Navigate to quiz game with topic ID for random questions
-    navigate(`/topics/${topicId}/quiz-game?mode=${selectedMode}`);
-  };
-
   const handleBackFromQuizSelection = () => {
     setShowAllQuizzes(false);
     setSelectedMode(null);
@@ -136,7 +131,6 @@ export default function GameModesPage() {
             selectedMode={selectedMode}
             topics={topics}
             onSelectQuiz={handleSelectQuiz}
-            onSelectRandomFromTopic={handleSelectRandomFromTopic}
             onBack={handleBackFromQuizSelection}
           />
         </div>

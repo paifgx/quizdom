@@ -222,7 +222,6 @@ function processPlayerAnswer(
 
   let newState = { ...gameState };
 
-  // Update player answer data
   newState.players = newState.players.map(p => {
     if (p.id === playerId) {
       return {
@@ -237,7 +236,6 @@ function processPlayerAnswer(
     return p;
   });
 
-  // Handle scoring and hearts based on mode
   if (mode === 'collaborative') {
     newState.teamScore = (newState.teamScore || 0) + points;
   }
@@ -246,7 +244,6 @@ function processPlayerAnswer(
     newState = handleHeartLoss(newState, mode, playerId, onHeartLoss);
   }
 
-  // Emit score update for correct answers
   if (isCorrect) {
     onScoreUpdate?.({
       playerId,
@@ -273,25 +270,66 @@ function useQuestionProgression(
   setIsTimerRunning: (running: boolean) => void,
   setTimeRemaining: (time: number) => void
 ) {
+  const isProgressingRef = useRef(false);
+
   const handleQuestionComplete = useCallback(() => {
+    console.log('[useGameState] handleQuestionComplete called');
+
+    // Prevent multiple simultaneous progressions
+    if (isProgressingRef.current) {
+      console.log(
+        '[useGameState] Already progressing to next question, ignoring duplicate call'
+      );
+      return;
+    }
+
+    isProgressingRef.current = true;
     setIsTimerRunning(false);
 
     setGameState(prevState => {
-      // Check for game over conditions
+      console.log('[useGameState] handleQuestionComplete - current state:', {
+        currentQuestionIndex: prevState.currentQuestionIndex,
+        totalQuestions: prevState.questions.length,
+        status: prevState.status,
+      });
+
       const shouldEndGame = checkGameOver(prevState, mode);
       if (shouldEndGame) {
+        console.log('[useGameState] Game should end');
         endGame(prevState, mode, onGameOver, setGameState, setIsTimerRunning);
+        isProgressingRef.current = false;
         return prevState;
       }
 
-      // Move to next question
       if (prevState.currentQuestionIndex < prevState.questions.length - 1) {
+        console.log('[useGameState] Moving to next question in 2 seconds', {
+          currentIndex: prevState.currentQuestionIndex,
+          totalQuestions: prevState.questions.length,
+          willMoveTo: prevState.currentQuestionIndex + 1,
+        });
         setTimeout(() => {
+          console.log('[useGameState] Timeout fired, updating state now');
           setGameState(prev => {
+            // Check if we've already progressed past this point
+            if (prev.currentQuestionIndex !== prevState.currentQuestionIndex) {
+              console.log(
+                '[useGameState] Question index already changed, skipping update'
+              );
+              isProgressingRef.current = false;
+              return prev;
+            }
+
             const nextIndex = prev.currentQuestionIndex + 1;
+            console.log(
+              '[useGameState] Inside setState - Setting next question index:',
+              {
+                currentIndex: prev.currentQuestionIndex,
+                nextIndex,
+                totalQuestions: prev.questions.length,
+              }
+            );
             const updatedQuestions = [...prev.questions];
 
-            // Set timestamp for next question
             if (nextIndex < updatedQuestions.length) {
               updatedQuestions[nextIndex] = {
                 ...updatedQuestions[nextIndex],
@@ -299,7 +337,7 @@ function useQuestionProgression(
               };
             }
 
-            return {
+            const newState = {
               ...prev,
               currentQuestionIndex: nextIndex,
               questions: updatedQuestions,
@@ -311,13 +349,20 @@ function useQuestionProgression(
                 isCorrect: undefined,
               })),
             };
+            console.log('[useGameState] Returning new state:', {
+              oldIndex: prev.currentQuestionIndex,
+              newIndex: newState.currentQuestionIndex,
+            });
+            // Reset the progressing flag after successful update
+            isProgressingRef.current = false;
+            return newState;
           });
           setTimeRemaining(TIME_LIMITS[mode]);
           setIsTimerRunning(true);
-        }, 2000); // 2 second delay before next question
+        }, 2000);
       } else {
-        // All questions answered
         endGame(prevState, mode, onGameOver, setGameState, setIsTimerRunning);
+        isProgressingRef.current = false;
       }
 
       return prevState;
@@ -341,7 +386,6 @@ export function useGameState({
   onScoreUpdate,
   onHeartLoss,
 }: UseGameStateProps) {
-  // Game state
   const [gameState, setGameState] = useState<GameState>({
     mode,
     status: 'waiting',
@@ -358,12 +402,10 @@ export function useGameState({
     timeLimit: TIME_LIMITS[mode],
   });
 
-  // Timer state
   const [timeRemaining, setTimeRemaining] = useState(TIME_LIMITS[mode]);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Get current question
   const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
 
   const { handleQuestionComplete } = useQuestionProgression(
@@ -375,16 +417,9 @@ export function useGameState({
     setTimeRemaining
   );
 
-  /**
-   * Start the game and begin first question.
-   *
-   * Initializes game timing and question display.
-   * Sets up game state for active play.
-   */
   const startGame = useCallback(() => {
     setGameState(prev => {
       const updatedQuestions = [...prev.questions];
-      // Set timestamp for first question
       if (updatedQuestions.length > 0) {
         updatedQuestions[0] = {
           ...updatedQuestions[0],
@@ -402,19 +437,41 @@ export function useGameState({
     setIsTimerRunning(true);
   }, []);
 
-  /**
-   * Handle player answer selection.
-   *
-   * Processes answer, updates scores, and manages game flow.
-   * Checks for question completion and game progression.
-   */
+  const isProcessingAnswerRef = useRef(false);
+
   const handleAnswer = useCallback(
     (playerId: string, answerIndex: number, answeredAt: number) => {
-      const player = gameState.players.find(p => p.id === playerId);
-      if (!player || player.hasAnswered) return;
+      // Prevent multiple simultaneous answer processing
+      if (isProcessingAnswerRef.current) {
+        console.log(
+          '[useGameState] Already processing answer, ignoring duplicate call'
+        );
+        return;
+      }
 
-      setGameState(prev =>
-        processPlayerAnswer(
+      const player = gameState.players.find(p => p.id === playerId);
+      if (!player || player.hasAnswered) {
+        console.log('[useGameState] Player not found or already answered', {
+          playerId,
+          hasAnswered: player?.hasAnswered,
+        });
+        return;
+      }
+
+      isProcessingAnswerRef.current = true;
+
+      setGameState(prev => {
+        // Double-check inside setState to ensure we haven't already processed
+        const currentPlayer = prev.players.find(p => p.id === playerId);
+        if (!currentPlayer || currentPlayer.hasAnswered) {
+          console.log(
+            '[useGameState] Player already answered (inside setState)'
+          );
+          isProcessingAnswerRef.current = false;
+          return prev;
+        }
+
+        const newState = processPlayerAnswer(
           prev,
           playerId,
           answerIndex,
@@ -423,17 +480,39 @@ export function useGameState({
           mode,
           onScoreUpdate,
           onHeartLoss
-        )
-      );
+        );
 
-      // Check if all players have answered
-      const allAnswered = gameState.players
-        .filter(p => p.id !== playerId)
-        .every(p => p.hasAnswered);
+        const allAnswered = newState.players
+          .filter(p => p.id !== playerId)
+          .every(p => p.hasAnswered);
 
-      if (allAnswered || mode === 'solo') {
-        handleQuestionComplete();
-      }
+        console.log('[useGameState] handleAnswer check:', {
+          mode,
+          playerId,
+          allAnswered,
+          shouldProgress: allAnswered || mode === 'solo',
+          players: newState.players.map(p => ({
+            id: p.id,
+            hasAnswered: p.hasAnswered,
+          })),
+        });
+
+        if (allAnswered || mode === 'solo') {
+          setTimeout(() => {
+            console.log('[useGameState] Calling handleQuestionComplete');
+            handleQuestionComplete();
+            // Reset the processing flag after question complete
+            setTimeout(() => {
+              isProcessingAnswerRef.current = false;
+            }, 100);
+          }, 0);
+        } else {
+          // Reset immediately if not progressing
+          isProcessingAnswerRef.current = false;
+        }
+
+        return newState;
+      });
     },
     [
       gameState.players,
@@ -445,18 +524,11 @@ export function useGameState({
     ]
   );
 
-  /**
-   * Handle question timeout.
-   *
-   * Processes timeout behavior for different game modes.
-   * Manages heart loss and question progression.
-   */
   const handleTimeout = useCallback(() => {
     setGameState(prev => {
       let newState = { ...prev };
 
       if (mode === 'collaborative') {
-        // Check if team got the answer wrong
         const teamAnswers = prev.players.filter(
           p => p.hasAnswered && p.isCorrect
         );
@@ -464,7 +536,6 @@ export function useGameState({
           newState = handleHeartLoss(newState, mode, '', onHeartLoss);
         }
       } else {
-        // Solo and competitive: players who didn't answer lose a heart
         newState.players = prev.players.map(p => {
           if (!p.hasAnswered && p.hearts > 0) {
             const newHearts = p.hearts - 1;
@@ -484,12 +555,11 @@ export function useGameState({
     handleQuestionComplete();
   }, [mode, onHeartLoss, handleQuestionComplete]);
 
-  // Timer effect
   useEffect(() => {
     if (isTimerRunning && timeRemaining > 0) {
       timerRef.current = setTimeout(() => {
         setTimeRemaining(prev => prev - 0.1);
-      }, 100); // Update every 100ms for smooth countdown
+      }, 100);
     } else if (isTimerRunning && timeRemaining <= 0) {
       handleTimeout();
     }

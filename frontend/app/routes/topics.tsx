@@ -7,7 +7,7 @@ import {
   TopicsGrid,
 } from '../components';
 import { useTopicsPage } from '../hooks/useTopicsPage';
-import { fetchTopics } from '../api';
+import { topicsService } from '../services/api';
 import type { GameTopic } from '../types/topics';
 
 /**
@@ -49,8 +49,22 @@ export default function TopicsPage() {
     const loadTopics = async () => {
       try {
         setError(null);
-        const topicsData = await fetchTopics();
-        setTopics(topicsData);
+        const topicsData = await topicsService.getAll();
+        // Fortschritt aus LocalStorage für jedes Topic setzen
+        const topicsWithProgress = topicsData.map(topic => {
+          const completedKey = `completed_${topic.id}`;
+          let completed: string[] = [];
+          try {
+            completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
+          } catch {
+            completed = [];
+          }
+          return {
+            ...topic,
+            completedQuestions: completed.length,
+          };
+        });
+        setTopics(topicsWithProgress);
       } catch {
         setError('Fehler beim Laden der Themen');
       } finally {
