@@ -20,7 +20,13 @@ from app.core.security import (
 )
 from app.db.models import Role, User, UserRoles
 from app.db.session import get_session
-from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse, UserProfileResponse, UserProfileUpdate
+from app.schemas.auth import (
+    TokenResponse,
+    UserProfileResponse,
+    UserProfileUpdate,
+    UserRegisterRequest,
+    UserResponse,
+)
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
@@ -156,8 +162,7 @@ def register_user(
     Raises:
         HTTPException: When registration fails
     """
-    log_operation(app_logger, "user_registration_attempt",
-                  email=user_data.email)
+    log_operation(app_logger, "user_registration_attempt", email=user_data.email)
 
     # WHY: Check for existing user to prevent duplicates
     existing_user = get_user_by_email(session, user_data.email)

@@ -498,12 +498,14 @@ export const translations = {
     },
     dangerZone: {
       title: 'Gefahrenzone',
-      deleteWarning: 'Das Löschen Ihres Kontos ist endgültig. Alle Ihre Daten werden unwiderruflich gelöscht.',
+      deleteWarning:
+        'Das Löschen Ihres Kontos ist endgültig. Alle Ihre Daten werden unwiderruflich gelöscht.',
       deleteButton: 'Konto löschen',
     },
     deleteModal: {
       title: 'Konto löschen',
-      message: 'Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+      message:
+        'Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
       inputPlaceholder: 'Geben Sie Ihren Nickname zur Bestätigung ein',
       confirm: 'Konto löschen',
       deleting: 'Lösche Konto...',

@@ -63,12 +63,13 @@ export function ConfirmModal({
 
   if (!isOpen) return null;
 
-  const isConfirmDisabled = confirmInput && inputValue !== confirmInput.expectedValue;
+  const isConfirmDisabled =
+    confirmInput && inputValue !== confirmInput.expectedValue;
 
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-      onClick={(e) => {
+      onClick={e => {
         if (e.target === e.currentTarget) {
           onCancel();
         }
@@ -93,7 +94,7 @@ export function ConfirmModal({
               ref={inputRef}
               type="text"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={e => setInputValue(e.target.value)}
               placeholder={confirmInput.placeholder}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />

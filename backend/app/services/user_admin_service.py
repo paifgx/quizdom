@@ -5,12 +5,12 @@ including CRUD operations, role management, and statistics.
 """
 
 from datetime import datetime, timedelta
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
-from sqlalchemy import and_, select as sa_select, text
-from sqlmodel import Session, select
+from sqlalchemy import text
+from sqlmodel import Session
 
-from app.db.models import Role, SessionPlayers, User, UserRoles
+from app.db.models import User
 from app.schemas.user import UserListItemResponse, UserStatsResponse
 
 
@@ -71,7 +71,7 @@ class UserAdminService:
             str or None: Role name if found, None otherwise
         """
         stmt = text(
-            "SELECT r.name FROM role r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = :user_id"
+            "SELECT r.name FROM role r JOIN userroles ur ON r.id = ur.role_id WHERE ur.user_id = :user_id"
         )
         result = self.session.execute(stmt, {"user_id": user_id}).first()
 
@@ -92,7 +92,7 @@ class UserAdminService:
             - Total score
         """
         # Get completed sessions for this user
-        stmt = text("SELECT score FROM session_players WHERE user_id = :user_id")
+        stmt = text("SELECT score FROM sessionplayers WHERE user_id = :user_id")
         results = self.session.execute(stmt, {"user_id": user_id}).fetchall()
 
         if not results:
@@ -142,7 +142,7 @@ class UserAdminService:
                     """
                 SELECT COUNT(DISTINCT u.id)
                 FROM user u
-                JOIN user_roles ur ON u.id = ur.user_id
+                JOIN userroles ur ON u.id = ur.user_id
                 JOIN role r ON ur.role_id = r.id
                 WHERE r.name = 'admin'
             """

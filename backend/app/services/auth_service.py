@@ -18,7 +18,7 @@ from app.db.models import (
     SessionPlayers,
     User,
     UserRoles,
-    Wallet
+    Wallet,
 )
 from app.schemas.auth import UserProfileResponse, UserProfileUpdate, UserStats
 
@@ -108,7 +108,7 @@ class AuthService:
                 select(User).where(
                     User.nickname == update_data.nickname,
                     User.id != user_id,
-                    User.deleted_at == None  # noqa: E711
+                    User.deleted_at == None,  # noqa: E711
                 )
             ).first()
             if existing:
@@ -137,8 +137,9 @@ class AuthService:
             app_logger,
             "user_profile_updated",
             user_id=user_id,
-            updated_fields=[k for k, v in update_data.model_dump(
-                exclude_unset=True).items()]
+            updated_fields=[
+                k for k, v in update_data.model_dump(exclude_unset=True).items()
+            ],
         )
 
         return self.get_user_profile(user)
@@ -174,7 +175,7 @@ class AuthService:
         refresh_tokens = self.session.exec(
             select(RefreshToken).where(
                 RefreshToken.user_id == user_id,
-                RefreshToken.revoked_at == None  # noqa: E711
+                RefreshToken.revoked_at == None,  # noqa: E711
             )
         ).all()
 
@@ -255,7 +256,9 @@ class AuthService:
 
         quizzes_completed = len(sessions)
         total_score = sum(s.score for s in sessions)
-        average_score = total_score / quizzes_completed if quizzes_completed > 0 else 0.0
+        average_score = (
+            total_score / quizzes_completed if quizzes_completed > 0 else 0.0
+        )
 
         return UserStats(
             quizzes_completed=quizzes_completed,

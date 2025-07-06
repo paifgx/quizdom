@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { ProtectedRoute } from '../components/auth/protected-route';
 import { QuizList } from '../components/admin/quiz-list';
 import { quizAdminService } from '../services/quiz-admin';
-import type { QuizSummary, QuizStatus, QuizDifficulty } from '../types/quiz';
+import type {
+  Quiz,
+  QuizSummary,
+  QuizStatus,
+  QuizDifficulty,
+} from '../types/quiz';
 
 export function meta() {
   return [
@@ -32,18 +37,17 @@ export default function AdminQuizzesPage() {
     'all'
   );
 
-  // Load data on component mount
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadQuizzes = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-
-      // Load quizzes
-      const quizzesData = await quizAdminService.getQuizzes();
+      const filters = {
+        search: searchTerm,
+        difficulty:
+          selectedDifficulty === 'all' ? undefined : selectedDifficulty,
+        status: selectedStatus === 'all' ? undefined : selectedStatus,
+      };
+      const quizzesData = await quizAdminService.getQuizzes(filters);
       setQuizzes(quizzesData);
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -51,37 +55,48 @@ export default function AdminQuizzesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedDifficulty, selectedStatus]);
 
-  // Apply filters
-  const filteredQuizzes = quizzes.filter(quiz => {
-    const matchesSearch =
-      searchTerm === '' ||
-      quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quiz.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesDifficulty =
-      selectedDifficulty === 'all' || quiz.difficulty === selectedDifficulty;
-    const matchesStatus =
-      selectedStatus === 'all' || quiz.status === selectedStatus;
-
-    return matchesSearch && matchesDifficulty && matchesStatus;
-  });
+  // Load data on component mount and when filters change
+  useEffect(() => {
+    loadQuizzes();
+  }, [loadQuizzes]);
 
   const handleStatusChange = async (quizId: string, newStatus: QuizStatus) => {
     try {
       setError(null);
+      let updatedQuiz: Quiz;
 
       if (newStatus === 'published') {
-        await quizAdminService.publishQuiz(quizId);
+        updatedQuiz = await quizAdminService.publishQuiz(quizId);
       } else if (newStatus === 'archived') {
-        await quizAdminService.archiveQuiz(quizId);
+        updatedQuiz = await quizAdminService.archiveQuiz(quizId);
+      } else if (newStatus === 'draft') {
+        updatedQuiz = await quizAdminService.reactivateQuiz(quizId);
+      } else {
+        loadQuizzes();
+        return;
       }
 
-      // Update local state
+      // Update local state with the response from the server
       setQuizzes(prev =>
         prev.map(quiz =>
-          quiz.id === quizId ? { ...quiz, status: newStatus } : quiz
+          quiz.id === quizId
+            ? {
+                ...quiz, // Retain fields like playCount from the old summary
+                id: updatedQuiz.id,
+                title: updatedQuiz.title,
+                description: updatedQuiz.description,
+                difficulty: updatedQuiz.difficulty,
+                status: updatedQuiz.status,
+                questionCount: updatedQuiz.questions.length,
+                totalPoints: updatedQuiz.totalPoints,
+                estimatedDuration: updatedQuiz.estimatedDuration,
+                createdAt: updatedQuiz.createdAt,
+                updatedAt: updatedQuiz.updatedAt,
+                createdBy: updatedQuiz.createdBy,
+              }
+            : quiz
         )
       );
     } catch (err) {
@@ -149,7 +164,7 @@ export default function AdminQuizzesPage() {
           <div className="bg-red-600 bg-opacity-20 border border-red-600 rounded-xl p-6 text-center">
             <p className="text-red-300 mb-4">{error}</p>
             <button
-              onClick={loadData}
+              onClick={loadQuizzes}
               className="btn-gradient px-4 py-2 rounded-lg font-medium"
             >
               Erneut versuchen
@@ -265,13 +280,13 @@ export default function AdminQuizzesPage() {
         <div className="bg-gray-800 bg-opacity-50 rounded-xl border border-gray-700 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-700">
             <h2 className="text-xl font-bold text-[#FCC822]">
-              Quizze ({filteredQuizzes.length})
+              Quizze ({quizzes.length})
             </h2>
           </div>
 
-          {filteredQuizzes.length > 0 ? (
+          {quizzes.length > 0 ? (
             <QuizList
-              quizzes={filteredQuizzes}
+              quizzes={quizzes}
               onStatusChange={handleStatusChange}
               onDelete={handleDelete}
               onDuplicate={handleDuplicate}

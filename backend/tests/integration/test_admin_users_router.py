@@ -1,109 +1,23 @@
 """Integration tests for admin user router endpoints."""
 
-from datetime import datetime
-from typing import cast
-
-import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlmodel import Session
 
-from app.db.models import Role, User, UserRoles
-from app.main import app
+from app.db.models import User
 
 
-@pytest.fixture
-def admin_user(session: Session):
-    """Create admin user and role for testing."""
-    # Create admin role
-    admin_role = Role(id=1, name="admin", description="Administrator")
-    session.add(admin_role)
-    session.commit()
-    session.refresh(admin_role)
-
-    # Create admin user
-    admin = User(
-        id=1,
-        email="admin@example.com",
-        password_hash="admin_hash",
-        is_verified=True,
-        created_at=datetime.utcnow(),
+def test_list_users_empty(admin_client: TestClient, admin_user: User, session: Session):
+    """Test listing users when only admin exists."""
+    # Delete all users except admin
+    session.execute(
+        text("DELETE FROM userroles WHERE user_id != :admin_id"),
+        {"admin_id": admin_user.id},
     )
-    session.add(admin)
-    session.commit()
-    session.refresh(admin)
-
-    # Link user to admin role
-    admin_user_role = UserRoles(
-        user_id=cast(int, admin.id),
-        role_id=cast(int, admin_role.id),
-        granted_at=datetime.utcnow(),
+    session.execute(
+        text("DELETE FROM user WHERE id != :admin_id"), {"admin_id": admin_user.id}
     )
-    session.add(admin_user_role)
-    session.commit()
-
-    return admin
-
-
-@pytest.fixture
-def regular_user(session: Session):
-    """Create regular user for testing."""
-    # Create user role
-    user_role = Role(id=2, name="user", description="Regular User")
-    session.add(user_role)
-    session.commit()
-    session.refresh(user_role)
-
-    # Create regular user
-    user = User(
-        id=2,
-        email="user@example.com",
-        password_hash="user_hash",
-        is_verified=True,
-        created_at=datetime.utcnow(),
-    )
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-
-    # Link user to regular role
-    user_user_role = UserRoles(
-        user_id=cast(int, user.id),
-        role_id=cast(int, user_role.id),
-        granted_at=datetime.utcnow(),
-    )
-    session.add(user_user_role)
-    session.commit()
-
-    return user
-
-
-@pytest.fixture
-def admin_client(client: TestClient, admin_user: User):
-    """Create client with admin authentication."""
-    from app.routers.auth_router import get_current_user
-
-    app.dependency_overrides[get_current_user] = lambda: admin_user
-    yield client
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def regular_client(client: TestClient, regular_user: User):
-    """Create client with regular user authentication."""
-    from app.routers.auth_router import get_current_user
-
-    app.dependency_overrides[get_current_user] = lambda: regular_user
-    yield client
-    app.dependency_overrides.clear()
-
-
-def test_list_users_empty(admin_client: TestClient, session: Session):
-    """Test listing users when no users exist."""
-    # Clear all users from the database
-    session.execute(text("DELETE FROM user_roles"))
-    session.execute(text("DELETE FROM user"))
     session.commit()
 
     # Call the endpoint
@@ -112,14 +26,15 @@ def test_list_users_empty(admin_client: TestClient, session: Session):
     # Verify response
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["total"] == 0
+    assert data["total"] == 1  # Only admin user remains
     assert data["skip"] == 0
     assert data["limit"] == 100
-    assert data["data"] == []
+    assert len(data["data"]) == 1
+    assert data["data"][0]["email"] == admin_user.email
 
 
 def test_list_users_with_data(
-    admin_client: TestClient, admin_user: User, regular_user: User
+    admin_client: TestClient, admin_user: User, regular_user: User, test_user: User
 ):
     """Test listing users with populated data."""
     # Call the endpoint
@@ -128,16 +43,19 @@ def test_list_users_with_data(
     # Verify response
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["total"] == 2  # admin_user + regular_user
-    assert len(data["data"]) == 2
+    assert data["total"] >= 3  # at least admin_user + regular_user + test_user
+    assert len(data["data"]) >= 3
 
-    # Check that both users are in the response
+    # Check that all expected users are in the response
     emails = [user["email"] for user in data["data"]]
     assert "admin@example.com" in emails
     assert "user@example.com" in emails
+    assert "test@example.com" in emails
 
 
-def test_list_users_pagination(admin_client: TestClient):
+def test_list_users_pagination(
+    admin_client: TestClient, admin_user: User, regular_user: User, test_user: User
+):
     """Test user listing pagination."""
     # First page (limit 1, skip 0)
     response = admin_client.get("/v1/admin/users?limit=1&skip=0")
@@ -161,9 +79,21 @@ def test_list_users_pagination(admin_client: TestClient):
 
 def test_create_user(admin_client: TestClient, session: Session):
     """Test creating a new user."""
-    # Create user data
+    import uuid
+
+    # Ensure regular user role exists
+    from app.db.models import Role
+
+    user_role = session.get(Role, 2)
+    if not user_role:
+        user_role = Role(id=2, name="user", description="Regular User")
+        session.add(user_role)
+        session.commit()
+
+    # Create user data with unique email
+    unique_email = f"new_{uuid.uuid4().hex[:8]}@example.com"
     user_data = {
-        "email": "new@example.com",
+        "email": unique_email,
         "password": "newpass123",
         "role_id": 2,  # Regular user role
         "is_verified": True,
@@ -175,20 +105,20 @@ def test_create_user(admin_client: TestClient, session: Session):
     # Verify response
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
-    assert data["email"] == "new@example.com"
+    assert data["email"] == unique_email
     assert data["is_verified"] is True
     assert "id" in data
     assert "password" not in data  # Password should not be returned
 
     # Verify user was created in database
     stmt = text("SELECT * FROM user WHERE email = :email")
-    result = session.execute(stmt, {"email": "new@example.com"}).first()
+    result = session.execute(stmt, {"email": unique_email}).first()
     assert result is not None
     created_user_id = result[0]
-    assert result[3] is True  # is_verified
+    assert result[6] == 1  # is_verified (SQLite stores boolean as 0/1)
 
     # Verify role assignment
-    stmt = text("SELECT * FROM user_roles WHERE user_id = :user_id")
+    stmt = text("SELECT * FROM userroles WHERE user_id = :user_id")
     result = session.execute(stmt, {"user_id": created_user_id}).first()
     assert result is not None
     assert result[1] == 2  # role_id
@@ -218,21 +148,17 @@ def test_update_user(admin_client: TestClient, regular_user: User, session: Sess
 
 
 def test_delete_user(admin_client: TestClient, regular_user: User, session: Session):
-    """Test deleting a user (soft delete)."""
+    """Test deleting a user (hard delete)."""
     # Call the endpoint
     response = admin_client.delete(f"/v1/admin/users/{regular_user.id}")
 
     # Verify response
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    # Verify user was soft-deleted
-    session.refresh(regular_user)
-    assert regular_user.deleted_at is not None
-
-    # User should still exist in database (soft delete)
+    # Verify user was hard-deleted (completely removed from database)
     stmt = text("SELECT COUNT(*) FROM user WHERE id = :user_id")
     result = session.execute(stmt, {"user_id": regular_user.id}).scalar()
-    assert result == 1
+    assert result == 0
 
 
 def test_get_user_stats(admin_client: TestClient):

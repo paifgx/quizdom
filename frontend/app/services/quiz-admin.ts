@@ -15,6 +15,7 @@ import type {
   QuizQuestion,
   CreateQuizBatchPayload,
   QuizDifficulty,
+  QuizStatus,
 } from '../types/quiz';
 import { QuestionType } from '../types/quiz';
 
@@ -32,6 +33,9 @@ interface BackendQuizResponse {
     description: string | null;
   };
   question_count: number;
+  status: QuizStatus;
+  published_at: string | null;
+  play_count: number;
 }
 
 interface BackendQuizDetailResponse extends BackendQuizResponse {
@@ -103,14 +107,14 @@ class QuizAdminService {
       title: backendQuiz.title,
       description: backendQuiz.description || '',
       difficulty: backendQuiz.difficulty as QuizDifficulty,
-      status: 'published', // Default status since backend doesn't have status field yet
+      status: backendQuiz.status,
       questionCount: backendQuiz.question_count,
       totalPoints: backendQuiz.question_count * 10, // Estimate: 10 points per question
       estimatedDuration: backendQuiz.time_limit_minutes || 15,
-      playCount: 0, // Not available in backend yet
+      playCount: backendQuiz.play_count,
       averageScore: 0, // Not available in backend yet
       createdAt: backendQuiz.created_at,
-      updatedAt: backendQuiz.created_at,
+      updatedAt: backendQuiz.published_at || backendQuiz.created_at,
       createdBy: 'admin', // Not available in backend yet
     };
   }
@@ -139,7 +143,7 @@ class QuizAdminService {
       title: backendQuiz.title,
       description: backendQuiz.description || '',
       difficulty: backendQuiz.difficulty as QuizDifficulty,
-      status: 'published',
+      status: backendQuiz.status,
       questions,
       settings: {
         randomizeQuestions: false,
@@ -153,7 +157,7 @@ class QuizAdminService {
       estimatedDuration: backendQuiz.time_limit_minutes || 15,
       totalPoints: questions.length * 10,
       createdAt: backendQuiz.created_at,
-      updatedAt: backendQuiz.created_at,
+      updatedAt: backendQuiz.published_at || backendQuiz.created_at,
       createdBy: 'admin',
     };
   }
@@ -167,6 +171,12 @@ class QuizAdminService {
       if (filters?.search) {
         // Backend doesn't support search yet, we'll filter client-side
       }
+      if (filters?.difficulty) {
+        params.append('difficulty', filters.difficulty.toString());
+      }
+      if (filters?.status) {
+        params.append('status', filters.status);
+      }
 
       const response = await apiClient.get<BackendQuizResponse[]>(
         `/v1/admin/quizzes?${params.toString()}`,
@@ -177,19 +187,13 @@ class QuizAdminService {
 
       let quizzes = response.map(quiz => this.mapToQuizSummary(quiz));
 
-      // Apply client-side filtering for now
+      // Apply client-side filtering for search only, as others are handled by backend
       if (filters?.search) {
         const searchLower = filters.search.toLowerCase();
         quizzes = quizzes.filter(
           quiz =>
             quiz.title.toLowerCase().includes(searchLower) ||
             quiz.description.toLowerCase().includes(searchLower)
-        );
-      }
-
-      if (filters?.difficulty) {
-        quizzes = quizzes.filter(
-          quiz => quiz.difficulty === filters.difficulty
         );
       }
 
@@ -332,19 +336,66 @@ class QuizAdminService {
   }
 
   /**
-   * Publish a quiz (placeholder - backend doesn't support status yet).
+   * Publish a quiz.
    */
   async publishQuiz(id: string): Promise<Quiz> {
-    // For now, just return the quiz as-is since backend doesn't have status
-    return this.getQuizById(id);
+    try {
+      const response = await apiClient.post<BackendQuizDetailResponse>(
+        `/v1/admin/quizzes/${id}/publish`,
+        {},
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+      return this.mapToQuiz(response);
+    } catch (error) {
+      console.error('Failed to publish quiz:', error);
+      throw new Error(
+        'Fehler beim Veröffentlichen des Quiz. Bitte versuchen Sie es erneut.'
+      );
+    }
   }
 
   /**
-   * Archive a quiz (placeholder - backend doesn't support status yet).
+   * Archive a quiz.
    */
   async archiveQuiz(id: string): Promise<Quiz> {
-    // For now, just return the quiz as-is since backend doesn't have status
-    return this.getQuizById(id);
+    try {
+      const response = await apiClient.post<BackendQuizDetailResponse>(
+        `/v1/admin/quizzes/${id}/archive`,
+        {},
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+      return this.mapToQuiz(response);
+    } catch (error) {
+      console.error('Failed to archive quiz:', error);
+      throw new Error(
+        'Fehler beim Archivieren des Quiz. Bitte versuchen Sie es erneut.'
+      );
+    }
+  }
+
+  /**
+   * Reactivate an archived quiz.
+   */
+  async reactivateQuiz(id: string): Promise<Quiz> {
+    try {
+      const response = await apiClient.post<BackendQuizDetailResponse>(
+        `/v1/admin/quizzes/${id}/reactivate`,
+        {},
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+      return this.mapToQuiz(response);
+    } catch (error) {
+      console.error('Failed to reactivate quiz:', error);
+      throw new Error(
+        'Fehler beim Reaktivieren des Quiz. Bitte versuchen Sie es erneut.'
+      );
+    }
   }
 
   /**

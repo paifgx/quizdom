@@ -13,7 +13,11 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import { authService, type User as AuthUser, type UserProfileUpdate } from '../services/auth';
+import {
+  authService,
+  type User as AuthUser,
+  type UserProfileUpdate,
+} from '../services/auth';
 import { setAuthErrorHandler } from '../api/client';
 import { useNavigate } from 'react-router';
 
@@ -250,11 +254,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const navigate = useNavigate();
 
   const { validateSession } = useSessionValidation(setUser, setActiveRole);
-  const {
-    updateActivity,
-    startSessionMonitoring,
-    stopSessionMonitoring,
-  } = useSessionMonitoring(setUser, setActiveRole);
+  const { updateActivity, startSessionMonitoring, stopSessionMonitoring } =
+    useSessionMonitoring(setUser, setActiveRole);
 
   const login = async (email: string, password: string) => {
     setLoading(true);

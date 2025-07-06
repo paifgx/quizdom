@@ -7,10 +7,12 @@ from sqlmodel import Session, func, select
 
 from app.db.models import Answer, Question, Quiz, QuizQuestion, Topic
 from app.schemas.quiz_admin import (
+    Difficulty,
     QuestionCreate,
     QuestionUpdate,
     QuizBatchCreate,
     QuizCreate,
+    QuizStatus,
     QuizUpdate,
     TopicCreate,
     TopicUpdate,
@@ -236,7 +238,12 @@ class QuizAdminService:
 
     # Quiz operations
     def get_quizzes(
-        self, skip: int = 0, limit: int = 100, topic_id: Optional[int] = None
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        topic_id: Optional[int] = None,
+        status: Optional[QuizStatus] = None,
+        difficulty: Optional[Difficulty] = None,
     ) -> List[dict[str, Any]]:
         """Get all quizzes with pagination and optional topic filter."""
         # Get quizzes with question count
@@ -244,6 +251,10 @@ class QuizAdminService:
 
         if topic_id:
             statement = statement.where(Quiz.topic_id == topic_id)
+        if status:
+            statement = statement.where(Quiz.status == status)
+        if difficulty:
+            statement = statement.where(Quiz.difficulty == difficulty)
 
         quizzes = list(self.db.exec(statement).all())
 
@@ -270,6 +281,9 @@ class QuizAdminService:
                 "difficulty": quiz.difficulty,
                 "time_limit_minutes": quiz.time_limit_minutes,
                 "created_at": quiz.created_at,
+                "status": quiz.status,
+                "published_at": quiz.published_at,
+                "play_count": quiz.play_count,
                 "topic": topic,
                 "question_count": question_count,
                 "has_image": quiz.image_data is not None,
@@ -328,6 +342,9 @@ class QuizAdminService:
             "difficulty": quiz.difficulty,
             "time_limit_minutes": quiz.time_limit_minutes,
             "created_at": quiz.created_at,
+            "status": quiz.status,
+            "published_at": quiz.published_at,
+            "play_count": quiz.play_count,
             "topic": topic,
             "questions": question_responses,
             "question_count": len(question_responses),
@@ -551,6 +568,21 @@ class QuizAdminService:
         from app.db.models import QuizStatus
 
         quiz.status = QuizStatus.ARCHIVED
+
+        self.db.commit()
+        self.db.refresh(quiz)
+        return self.get_quiz(quiz_id)
+
+    def reactivate_quiz(self, quiz_id: int) -> Optional[dict[str, Any]]:
+        """Reactivate an archived quiz back to draft status."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            return None
+
+        from app.db.models import QuizStatus
+
+        quiz.status = QuizStatus.DRAFT
+        quiz.published_at = None  # Clear the publication date
 
         self.db.commit()
         self.db.refresh(quiz)

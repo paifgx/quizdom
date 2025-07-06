@@ -1,14 +1,29 @@
 """Unit tests for User Admin Service."""
 
 from datetime import datetime
-from typing import cast
+from typing import Generator, cast
 from unittest.mock import MagicMock
 
 import pytest
-from sqlmodel import Session
+from sqlalchemy import StaticPool, create_engine
+from sqlmodel import Session, SQLModel
 
 from app.db.models import Role, User, UserRoles
 from app.services.user_admin_service import UserAdminService
+
+
+@pytest.fixture
+def session() -> Generator[Session, None, None]:
+    """Create a new database session for each test."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session
+    SQLModel.metadata.drop_all(engine)
 
 
 @pytest.fixture
@@ -20,16 +35,6 @@ def user_admin_service(session: Session):
 @pytest.fixture
 def sample_users(session: Session):
     """Create sample users for testing."""
-    # Create database tables
-    from sqlalchemy import MetaData
-
-    # Get all tables from the session engine
-    metadata = MetaData()
-
-    # Drop and create all tables
-    metadata.drop_all(session.get_bind())
-    metadata.create_all(session.get_bind())
-
     # Create roles
     admin_role = Role(name="admin", description="Administrator")
     user_role = Role(name="user", description="Regular User")
@@ -78,10 +83,9 @@ def sample_users(session: Session):
         role_id=cast(int, user_role.id),
         granted_at=datetime.utcnow(),
     )
-    session.add(admin_user_role)
-    session.add(regular_user_role)
-
+    session.add_all([admin_user_role, regular_user_role])
     session.commit()
+
     return [admin_user, regular_user, inactive_user]
 
 

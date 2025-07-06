@@ -1,7 +1,6 @@
 """Unit tests for AuthService."""
 
 from datetime import datetime, timezone
-from unittest.mock import Mock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -123,7 +122,9 @@ class TestGetUserProfile:
         assert profile.wisecoins == 150
         assert isinstance(profile.stats, UserStats)
 
-    def test_get_profile_deleted_user(self, auth_service: AuthService, session: Session):
+    def test_get_profile_deleted_user(
+        self, auth_service: AuthService, session: Session
+    ):
         """Test profile retrieval for deleted user."""
         deleted_user = User(
             email="deleted@example.com",
@@ -146,9 +147,7 @@ class TestGetUserProfile:
         profile = auth_service.get_user_profile(sample_user)
         assert profile.role == "player"  # Default role
 
-    def test_get_profile_no_wallet(
-        self, auth_service: AuthService, sample_user: User
-    ):
+    def test_get_profile_no_wallet(self, auth_service: AuthService, sample_user: User):
         """Test profile retrieval for user without wallet."""
         profile = auth_service.get_user_profile(sample_user)
         assert profile.wisecoins == 0  # Default wisecoins
@@ -180,9 +179,7 @@ class TestGetUserProfile:
 class TestUpdateUserProfile:
     """Test update_user_profile method."""
 
-    def test_update_profile_success(
-        self, auth_service: AuthService, sample_user: User
-    ):
+    def test_update_profile_success(self, auth_service: AuthService, sample_user: User):
         """Test successful profile update."""
         assert sample_user.id is not None
         update_data = UserProfileUpdate(
@@ -197,15 +194,11 @@ class TestUpdateUserProfile:
         assert profile.avatar_url == "https://example.com/new-avatar.jpg"
         assert profile.bio == "New bio text"
 
-    def test_update_profile_partial(
-        self, auth_service: AuthService, sample_user: User
-    ):
+    def test_update_profile_partial(self, auth_service: AuthService, sample_user: User):
         """Test partial profile update."""
         assert sample_user.id is not None
         update_data = UserProfileUpdate(
-            nickname="OnlyNickname",
-            avatar_url=None,
-            bio=None
+            nickname="OnlyNickname", avatar_url=None, bio=None
         )
 
         profile = auth_service.update_user_profile(sample_user.id, update_data)
@@ -229,9 +222,7 @@ class TestUpdateUserProfile:
 
         assert sample_user.id is not None
         update_data = UserProfileUpdate(
-            nickname="TakenNickname",
-            avatar_url=None,
-            bio=None
+            nickname="TakenNickname", avatar_url=None, bio=None
         )
 
         with pytest.raises(HTTPException) as exc_info:
@@ -240,15 +231,9 @@ class TestUpdateUserProfile:
         assert exc_info.value.status_code == 409
         assert "Nickname bereits vergeben" in str(exc_info.value.detail)
 
-    def test_update_profile_user_not_found(
-        self, auth_service: AuthService
-    ):
+    def test_update_profile_user_not_found(self, auth_service: AuthService):
         """Test update for non-existent user."""
-        update_data = UserProfileUpdate(
-            nickname="NewNick",
-            avatar_url=None,
-            bio=None
-        )
+        update_data = UserProfileUpdate(nickname="NewNick", avatar_url=None, bio=None)
 
         with pytest.raises(HTTPException) as exc_info:
             auth_service.update_user_profile(9999, update_data)
@@ -264,11 +249,7 @@ class TestUpdateUserProfile:
         session.commit()
 
         assert sample_user.id is not None
-        update_data = UserProfileUpdate(
-            nickname="NewNick",
-            avatar_url=None,
-            bio=None
-        )
+        update_data = UserProfileUpdate(nickname="NewNick", avatar_url=None, bio=None)
 
         with pytest.raises(HTTPException) as exc_info:
             auth_service.update_user_profile(sample_user.id, update_data)
@@ -380,8 +361,7 @@ class TestHelperMethods:
     ):
         """Test _get_user_wisecoins method."""
         assert sample_user_with_wallet.id is not None
-        wisecoins = auth_service._get_user_wisecoins(
-            sample_user_with_wallet.id)
+        wisecoins = auth_service._get_user_wisecoins(sample_user_with_wallet.id)
         assert wisecoins == 100
 
     def test_get_user_wisecoins_no_wallet(
