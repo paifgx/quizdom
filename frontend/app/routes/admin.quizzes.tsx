@@ -71,6 +71,8 @@ export default function AdminQuizzesPage() {
         updatedQuiz = await quizAdminService.publishQuiz(quizId);
       } else if (newStatus === 'archived') {
         updatedQuiz = await quizAdminService.archiveQuiz(quizId);
+      } else if (newStatus === 'draft') {
+        updatedQuiz = await quizAdminService.reactivateQuiz(quizId);
       } else {
         loadQuizzes();
         return;
