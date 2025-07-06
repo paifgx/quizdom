@@ -22,10 +22,10 @@ from app.db.models import Role, User, UserRoles
 from app.db.session import get_session
 from app.schemas.auth import (
     TokenResponse,
-    UserRegisterRequest,
-    UserResponse,
     UserProfileResponse,
     UserProfileUpdate,
+    UserRegisterRequest,
+    UserResponse,
 )
 from app.services.auth_service import AuthService
 

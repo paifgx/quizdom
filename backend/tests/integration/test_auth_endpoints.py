@@ -8,8 +8,8 @@ from sqlmodel import Session
 
 from app.core.security import create_access_token, get_password_hash
 from app.db.models import RefreshToken, User
-from app.main import app
 from app.db.session import get_session
+from app.main import app
 
 
 @pytest.fixture

@@ -1,13 +1,12 @@
 """Unit tests for User Admin Service."""
 
 from datetime import datetime
-from typing import cast
+from typing import Generator, cast
 from unittest.mock import MagicMock
-from typing import Generator
 
 import pytest
+from sqlalchemy import StaticPool, create_engine
 from sqlmodel import Session, SQLModel
-from sqlalchemy import create_engine, StaticPool
 
 from app.db.models import Role, User, UserRoles
 from app.services.user_admin_service import UserAdminService

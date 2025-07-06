@@ -1,7 +1,8 @@
 """Unit tests for the QuizAdminService."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from app.db.models import Quiz, QuizStatus
 from app.services.quiz_admin_service import QuizAdminService

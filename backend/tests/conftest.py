@@ -7,11 +7,11 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
+from app.core.security import get_password_hash
 from app.db.models import Role, User, UserRoles, Wallet
 from app.db.session import get_session
 from app.main import app
 from app.routers.auth_router import get_current_user
-from app.core.security import get_password_hash
 
 
 @pytest.fixture(scope="session")
