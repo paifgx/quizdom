@@ -63,12 +63,6 @@ test-frontend-watch: ## Run frontend tests in watch mode
 test-frontend-coverage: ## Run frontend tests with coverage
 	cd frontend && pnpm run test:coverage
 
-test-frontend-e2e: ## Run frontend end-to-end tests
-	cd frontend && pnpm run test:e2e
-
-test-frontend-e2e-ui: ## Run frontend end-to-end tests with UI
-	cd frontend && pnpm run test:e2e:ui
-
 test-backend: ## Run backend tests
 	@echo "Running backend tests..."
 	cd backend && pytest

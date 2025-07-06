@@ -1,152 +1,87 @@
 ```mermaid
+%%{init: {'securityLevel':'loose'}}%%
 erDiagram
-    %% ───────────────────────────────────────────
-    %%  Core User & Role
-    %% ───────────────────────────────────────────
-    USER {
+    %% Domain
+    TOPIC {
         int id PK
-        string email "unique"
-        string password_hash
-        string nickname
-        boolean is_verified
-        datetime created_at
-        datetime deleted_at
+        varchar title
+        varchar description
     }
-
-    ROLE {
-        int id PK
-        string name
-        string description
-    }
-
-    USER_ROLES {
-        int user_id PK FK
-        int role_id PK FK
-        datetime granted_at
-    }
-
-    WALLET {
-        int user_id PK FK
-        int wisecoins
-        datetime updated_at
-    }
-
-    REFRESH_TOKEN {
-        int id PK
-        int user_id FK
-        string token_hash
-        datetime issued_at
-        datetime expires_at
-        datetime revoked_at
-    }
-
-    EMAIL_TOKENS {
-        int id PK
-        int user_id FK
-        string token
-        enum type "verify | reset"
-        datetime expires_at
-    }
-
-    AUDIT_LOGS {
-        int id PK
-        int actor_id FK "user"
-        int target_id
-        string action
-        jsonb meta
-        datetime created_at
-    }
-
-    %% ───────────────────────────────────────────
-    %%  Game Sessions & Gameplay
-    %% ───────────────────────────────────────────
-    GAME_SESSION {
-        int id PK
-        enum mode   "solo | comp | collab"
-        enum status "active | paused | finished"
-        datetime started_at
-        datetime updated_at
-        datetime ended_at
-    }
-
-    SESSION_PLAYERS {
-        int session_id PK FK
-        int user_id    PK FK
-        smallint hearts_left
-        int score
-    }
-
     QUESTION {
         int id PK
         int topic_id FK
-        enum difficulty "1–5"
-        text content
-        text explanation
-        datetime created_at
+        int difficulty
+        varchar content
+        varchar explanation
+        timestamp created_at
     }
-
     ANSWER {
         int id PK
         int question_id FK
-        text content
-        boolean is_correct
+        varchar content
+        bool is_correct
     }
-
-    QUESTION_MEDIA {
+    QUESTIONMEDIA {
         int id PK
         int question_id FK
-        string url
-        enum media_type "png | gif | mp3"
+        varchar url
+        varchar media_type
+    }
+    QUIZ {
+        int id PK
+        varchar title
+        varchar description
+        int topic_id FK
+        int difficulty
+        int time_limit_minutes
+        timestamp created_at
+        varchar status
+        timestamp published_at
+        int play_count
+    }
+    QUIZQUESTION {
+        int id PK
+        int quiz_id FK
+        int question_id FK
+        int order
     }
 
-    PLAYER_ANSWER {
+    GAMESESSION {
+        int id PK
+        varchar mode
+        varchar status
+        timestamp started_at
+        timestamp updated_at
+        timestamp ended_at
+        int quiz_id FK
+        int topic_id FK
+        json question_ids
+        int current_question_index
+    }
+    SESSIONPLAYERS {
+        int session_id PK, FK
+        int user_id PK, FK
+        int hearts_left
+        int score
+    }
+    PLAYERANSWER {
         int id PK
         int session_id FK
         int question_id FK
         int selected_answer_id FK
-        boolean is_correct
+        bool is_correct
         int points_awarded
+        timestamp answered_at
         int answer_time_ms
-        datetime answered_at
-    }
-
-    TOPIC {
-        int id PK
-        string title
-        text description
-    }
-
-    USER_QUESTION_STAR {
-        int user_id PK FK
-        int question_id PK FK
-        datetime starred_at
-    }
-
-    %% ───────────────────────────────────────────
-    %%  Gamification
-    %% ───────────────────────────────────────────
-    BADGE {
-        int id PK
-        string title
-        text description
-        string icon_path
-    }
-
-    USER_BADGE {
-        int id PK
-        int user_id FK
-        int badge_id FK
-        datetime achieved_at
     }
 
     LEADERBOARD {
         int id PK
-        enum mode   "solo | comp | collab"
-        enum period "daily | weekly | monthly"
-        datetime created_at
+        varchar mode
+        varchar period
+        timestamp created_at
     }
-
-    LEADERBOARD_ENTRY {
+    LEADERBOARDENTRY {
         int id PK
         int leaderboard_id FK
         int user_id FK
@@ -154,35 +89,103 @@ erDiagram
         int score
     }
 
-    %% ───────────────────────────────────────────
-    %%  Relationships
-    %% ───────────────────────────────────────────
-    USER        ||--o{ USER_ROLES           : has
-    ROLE        ||--o{ USER_ROLES           : defines
-    USER        ||--o{ WALLET               : owns
-    USER        ||--o{ REFRESH_TOKEN        : uses
-    USER        ||--o{ EMAIL_TOKENS         : receives
-    USER        ||--o{ SESSION_PLAYERS      : plays
-    USER        ||--o{ USER_BADGE           : earns
-    USER        ||--o{ USER_QUESTION_STAR   : stars
-    USER        ||--o{ LEADERBOARD_ENTRY    : ranked
-    USER        ||--o{ AUDIT_LOGS           : acts
+    %% User & Auth
+    USER {
+        int id PK
+        varchar email
+        varchar password_hash
+        bool is_verified
+        timestamp created_at
+        timestamp deleted_at
+        varchar nickname
+    }
+    EMAILTOKENS {
+        int id PK
+        int user_id FK
+        varchar token
+        varchar type
+        timestamp expires_at
+    }
+    REFRESHTOKEN {
+        int id PK
+        int user_id FK
+        varchar token_hash
+        timestamp issued_at
+        timestamp expires_at
+        timestamp revoked_at
+    }
 
-    GAME_SESSION ||--o{ SESSION_PLAYERS     : includes
-    GAME_SESSION ||--o{ PLAYER_ANSWER       : records
+    ROLE {
+        int id PK
+        varchar name
+        varchar description
+    }
+    USERROLES {
+        int user_id PK, FK
+        int role_id PK, FK
+        timestamp granted_at
+    }
 
-    SESSION_PLAYERS }o--|| USER             : player
-    SESSION_PLAYERS }o--|| GAME_SESSION     : session
+    BADGE {
+        int id PK
+        varchar title
+        varchar description
+        varchar icon_path
+    }
+    USERBADGE {
+        int id PK
+        int user_id FK
+        int badge_id FK
+        timestamp achieved_at
+    }
+    USERQUESTIONSTAR {
+        int user_id PK, FK
+        int question_id PK, FK
+        timestamp starred_at
+    }
+    WALLET {
+        int user_id PK, FK
+        int wisecoins
+        timestamp updated_at
+    }
+    AUDITLOGS {
+        int id PK
+        int actor_id FK
+        int target_id
+        varchar action
+        json meta
+        timestamp created_at
+    }
 
-    QUESTION    ||--o{ ANSWER              : has
-    QUESTION    ||--o{ QUESTION_MEDIA      : media
-    QUESTION    ||--o{ PLAYER_ANSWER       : asked_in
-    QUESTION    ||--o{ USER_QUESTION_STAR  : starred
-    TOPIC       ||--o{ QUESTION            : groups
+    %% Relations
+    TOPIC ||--o{ QUESTION            : categorizes
+    TOPIC ||--o{ QUIZ                : covers
+    TOPIC ||--o{ GAMESESSION         : runs
 
-    PLAYER_ANSWER }o--|| ANSWER            : chosen
-    PLAYER_ANSWER }o--|| QUESTION          : for
+    QUESTION ||--o{ ANSWER            : has
+    QUESTION ||--o{ QUESTIONMEDIA     : has
+    QUESTION ||--o{ QUIZQUESTION      : in
+    QUESTION ||--o{ USERQUESTIONSTAR  : starred_by
 
-    BADGE       ||--o{ USER_BADGE          : awarded
-    LEADERBOARD ||--o{ LEADERBOARD_ENTRY   : lists
+    QUIZ ||--o{ QUIZQUESTION         : contains
+
+    GAMESESSION ||--o{ SESSIONPLAYERS  : includes
+    GAMESESSION ||--o{ PLAYERANSWER    : records
+    PLAYERANSWER ||--o{ ANSWER          : selected
+
+    LEADERBOARD ||--o{ LEADERBOARDENTRY : records
+    USER        ||--o{ LEADERBOARDENTRY : appears_in
+
+    USER ||--o{ EMAILTOKENS   : issues
+    USER ||--o{ REFRESHTOKEN  : issues
+    USER ||--o{ USERROLES     : assigned
+    ROLE ||--o{ USERROLES     : receives
+
+    USER ||--o{ USERBADGE     : earns
+    BADGE ||--o{ USERBADGE     : awards
+
+    USER ||--o{ USERQUESTIONSTAR : stars
+
+    USER ||--o{ WALLET        : owns
+    USER ||--o{ AUDITLOGS     : logs
 ```

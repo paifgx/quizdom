@@ -2,21 +2,34 @@
 
 import io
 import logging
-from typing import Any, List, Optional
+from datetime import datetime, timedelta
+from typing import Any, List, Optional, cast
 
 from fastapi import (
     APIRouter,
     Depends,
     File,
     HTTPException,
+    Query,
     UploadFile,
     status,
 )
-from sqlmodel import Session
+from sqlalchemy import func
+from sqlmodel import Session, col, select
 from starlette.responses import StreamingResponse
 
-from app.db.models import Topic
+from app.core.dependencies import require_admin
+from app.core.logging import app_logger, log_operation
+from app.core.security import get_password_hash
+from app.db.helpers import (
+    build_user_list_response,
+    check_email_available,
+    get_user_with_role_name,
+    validate_role_exists,
+)
+from app.db.models import Role, SessionPlayers, Topic, User, UserRoles
 from app.db.session import get_session
+from app.routers.auth_router import get_current_user
 from app.schemas.quiz_admin import (
     ImageUploadResponse,
     QuestionCreate,
@@ -30,6 +43,14 @@ from app.schemas.quiz_admin import (
     TopicCreate,
     TopicResponse,
     TopicUpdate,
+)
+from app.schemas.user import (
+    UserCreateRequest,
+    UserListItemResponse,
+    UserListResponse,
+    UserStatsResponse,
+    UserStatusUpdateRequest,
+    UserUpdateRequest,
 )
 from app.services.quiz_admin_service import QuizAdminService
 
@@ -427,3 +448,398 @@ async def archive_quiz(
         return {"message": "Quiz erfolgreich archiviert", "quiz_id": quiz_id}
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+# User Management Endpoints
+@router.get("/users", response_model=UserListResponse)
+async def list_users(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    search: Optional[str] = None,
+    role_filter: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    admin_user: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> UserListResponse:
+    """List all users with pagination and filtering.
+
+    Args:
+        skip: Number of users to skip
+        limit: Maximum number of users to return
+        search: Optional search term for email
+        role_filter: Optional role filter (admin, user, etc)
+        status_filter: Optional status filter (active, inactive)
+        admin_user: Admin user dependency
+        session: Database session dependency
+
+    Returns:
+        UserListResponse: List of users with pagination metadata
+    """
+    query = select(User)
+
+    # Apply filters if provided
+    if search:
+        query = query.where(col(User.email).contains(search))
+
+    if status_filter:
+        if status_filter.lower() == "active":
+            query = query.where(User.deleted_at == None)  # noqa: E711
+        elif status_filter.lower() == "inactive":
+            query = query.where(User.deleted_at != None)  # noqa: E711
+
+    # Get total count before applying pagination
+    total_query = select(func.count()).select_from(query.subquery())
+    total = session.exec(total_query).one()
+
+    # Apply pagination
+    query = query.offset(skip).limit(limit)
+
+    # Execute query
+    users_db = session.exec(query).all()
+
+    # Process users and add role information
+    result_users = []
+    for user in users_db:
+        # Get role information
+        role_query = (
+            select(Role.name)
+            .join(UserRoles)
+            .where(UserRoles.role_id == Role.id)
+            .where(UserRoles.user_id == user.id)
+        )
+        role_name = session.exec(role_query).first()
+
+        # Only apply role filter after getting the role name
+        if role_filter and role_name != role_filter:
+            continue
+
+        # Use helper function to build response
+        user_response = build_user_list_response(session, user, role_name)
+        result_users.append(user_response)
+
+    return UserListResponse(
+        total=total,
+        skip=skip,
+        limit=limit,
+        data=result_users,
+    )
+
+
+@router.get("/users/stats", response_model=UserStatsResponse)
+async def get_user_stats(
+    admin_user: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> UserStatsResponse:
+    """Get user statistics.
+
+    Args:
+        admin_user: Admin user dependency
+        session: Database session dependency
+
+    Returns:
+        UserStatsResponse: User statistics
+    """
+    # Get total users
+    total_users = session.exec(select(func.count()).select_from(User)).one()
+
+    # Get verified users count
+    verified_users = session.exec(select(func.count()).where(User.is_verified)).one()
+
+    # Get recent registrations (last 30 days)
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    recent_registrations = session.exec(
+        select(func.count()).where(User.created_at >= thirty_days_ago)
+    ).one()
+
+    # Get active users (users who have played games)
+    active_users = session.exec(
+        select(func.count(func.distinct(SessionPlayers.user_id))).select_from(
+            SessionPlayers
+        )
+    ).one()
+
+    # Get admin users count
+    admin_users_query = (
+        select(func.count(func.distinct(UserRoles.user_id)))
+        .select_from(UserRoles)
+        .join(Role)
+        .where(UserRoles.role_id == Role.id)
+        .where(Role.name == "admin")
+    )
+    admin_users = session.exec(admin_users_query).one()
+
+    return UserStatsResponse(
+        total_users=total_users,
+        verified_users=verified_users,
+        recent_registrations=recent_registrations,
+        active_users=active_users,
+        admin_users=admin_users,
+        new_users_this_month=recent_registrations,
+    )
+
+
+@router.get("/users/{user_id}", response_model=UserListItemResponse)
+async def get_user(
+    user_id: int,
+    admin_user: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> UserListItemResponse:
+    """Get a specific user by ID.
+
+    Args:
+        user_id: User ID to retrieve
+        admin_user: Admin user dependency
+        session: Database session dependency
+
+    Returns:
+        UserListItemResponse: User details
+    """
+    user_result = get_user_with_role_name(session, user_id)
+    if not user_result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Benutzer nicht gefunden"
+        )
+
+    user, role_name = user_result
+    return build_user_list_response(session, user, role_name)
+
+
+@router.post(
+    "/users", status_code=status.HTTP_201_CREATED, response_model=UserListItemResponse
+)
+async def create_user(
+    user_data: UserCreateRequest,
+    admin_user: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> UserListItemResponse:
+    """Create a new user.
+
+    Args:
+        user_data: User data to create
+        admin_user: Admin user dependency
+        session: Database session dependency
+
+    Returns:
+        UserListItemResponse: Created user details
+    """
+    # Check if email already exists
+    if not check_email_available(session, user_data.email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="E-Mail-Adresse wird bereits verwendet",
+        )
+
+    # Hash password
+    password_hash = get_password_hash(user_data.password)
+
+    # Create user
+    new_user = User(
+        email=user_data.email,
+        password_hash=password_hash,
+        is_verified=user_data.is_verified,
+        created_at=datetime.now(),
+    )
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)
+
+    # We need user id for role assignment, ensure it's not None
+    new_user_id = cast(int, new_user.id)
+
+    # Assign role if provided
+    role_name = None
+    if user_data.role_id:
+        if not validate_role_exists(session, user_data.role_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Ungültige Rolle"
+            )
+
+        user_role = UserRoles(
+            user_id=new_user_id, role_id=user_data.role_id, granted_at=datetime.now()
+        )
+        session.add(user_role)
+        session.commit()
+
+        # Get role name for response
+        role = session.get(Role, user_data.role_id)
+        if role:
+            role_name = role.name
+
+    return build_user_list_response(session, new_user, role_name)
+
+
+@router.put("/users/{user_id}", response_model=UserListItemResponse)
+async def update_user(
+    user_id: int,
+    user_data: UserUpdateRequest,
+    admin_user: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> UserListItemResponse:
+    """Update a user.
+
+    Args:
+        user_id: User ID to update
+        user_data: User data to update
+        admin_user: Admin user dependency
+        session: Database session dependency
+
+    Returns:
+        UserListItemResponse: Updated user details
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Benutzer nicht gefunden"
+        )
+
+    # Cast to avoid type errors
+    user_id_cast = cast(int, user.id)
+
+    # Update email if provided and different
+    if user_data.email and user_data.email != user.email:
+        if not check_email_available(session, user_data.email, user_id_cast):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="E-Mail-Adresse wird bereits verwendet",
+            )
+        user.email = user_data.email
+
+    # Update verification status if provided
+    if user_data.is_verified is not None:
+        user.is_verified = user_data.is_verified
+
+    # Update role if provided
+    if user_data.role_id is not None:
+        if not validate_role_exists(session, user_data.role_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Ungültige Rolle"
+            )
+
+        # Get current role assignment if any
+        current_role = session.exec(
+            select(UserRoles).where(UserRoles.user_id == user_id_cast)
+        ).first()
+
+        if current_role:
+            # Update existing role
+            if current_role.role_id != user_data.role_id:
+                current_role.role_id = user_data.role_id
+                session.add(current_role)
+        else:
+            # Create new role assignment
+            user_role = UserRoles(
+                user_id=user_id_cast,
+                role_id=user_data.role_id,
+                granted_at=datetime.now(),
+            )
+            session.add(user_role)
+
+    # Commit changes
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    # Get role name for response
+    role_query = (
+        select(Role.name)
+        .join(UserRoles)
+        .where(UserRoles.role_id == Role.id)
+        .where(UserRoles.user_id == user_id_cast)
+    )
+    role_name = session.exec(role_query).first()
+
+    return build_user_list_response(session, user, role_name)
+
+
+@router.put("/users/{user_id}/status", response_model=UserListItemResponse)
+async def update_user_status(
+    user_id: int,
+    status_data: UserStatusUpdateRequest,
+    admin_user: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> UserListItemResponse:
+    """Update user status (activate/deactivate).
+
+    Args:
+        user_id: User ID to update
+        status_data: Status data to update
+        admin_user: Admin user dependency
+        session: Database session dependency
+
+    Returns:
+        UserListItemResponse: Updated user details
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Benutzer nicht gefunden"
+        )
+
+    # Update deleted_at field
+    user.deleted_at = status_data.deleted_at
+
+    # Commit changes
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    # Get role name for response
+    role_query = (
+        select(Role.name)
+        .join(UserRoles)
+        .where(UserRoles.role_id == Role.id)
+        .where(UserRoles.user_id == user_id)
+    )
+    role_name = session.exec(role_query).first()
+
+    return build_user_list_response(session, user, role_name)
+
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: int,
+    admin_user: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> None:
+    """Permanently delete a user.
+
+    Args:
+        user_id: User ID to delete
+        admin_user: Admin user dependency
+        session: Database session dependency
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Benutzer nicht gefunden"
+        )
+
+    # Delete user roles first
+    user_roles = session.exec(
+        select(UserRoles).where(UserRoles.user_id == user_id)
+    ).all()
+
+    for role in user_roles:
+        session.delete(role)
+
+    # Delete the user
+    session.delete(user)
+    session.commit()
+
+
+@router.get("/roles", response_model=List[Role])
+async def get_roles(
+    admin_user: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> List[Role]:
+    """Get all available roles.
+
+    Args:
+        admin_user: Admin user dependency
+        session: Database session dependency
+
+    Returns:
+        List[Role]: List of all roles
+    """
+    roles = session.exec(select(Role)).all()
+    return list(roles)  # Convert to List to match return type

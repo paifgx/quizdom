@@ -1,0 +1,63 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Backend Lint
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install lint tools
+        run: |
+          pip install ruff black isort
+      - name: Ruff autofix
+        run: ruff check backend/ --fix
+      - name: Check imports
+        run: isort backend/ --check
+      - name: Check formatting
+        run: black backend/ --check
+
+      # Frontend Lint
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.12.4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Install pnpm deps
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+      - name: ESLint
+        working-directory: ./frontend
+        run: pnpm exec eslint . --max-warnings=0
+      - name: Prettier
+        working-directory: ./frontend
+        run: pnpm exec prettier --check .
