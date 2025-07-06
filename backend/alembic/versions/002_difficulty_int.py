@@ -1,6 +1,6 @@
 """Change difficulty column to Integer
 
-Revision ID: ada817a8cedb
+Revision ID: 002_difficulty_int
 Revises: 001_implement_erm
 Create Date: 2025-06-29 13:28:43.744158
 
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "ada817a8cedb"
+revision: str = "002_difficulty_int"
 down_revision: Union[str, None] = "001_implement_erm"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
