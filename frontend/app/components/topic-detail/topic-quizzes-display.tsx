@@ -34,7 +34,13 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const ErrorDisplay = ({ error, onRetry }: { error: string; onRetry: () => void }) => (
+const ErrorDisplay = ({
+  error,
+  onRetry,
+}: {
+  error: string;
+  onRetry: () => void;
+}) => (
   <div className="bg-gray-800/80 rounded-xl border border-gray-600 backdrop-blur-sm mb-6 p-6">
     <div className="text-center py-8">
       <p className="text-red-400 mb-4">{error}</p>
@@ -56,7 +62,9 @@ const GameModeSelector = ({
   onSelectMode: (mode: GameModeId) => void;
 }) => (
   <div className="bg-gray-700/50 rounded-xl p-4 border border-gray-600 mb-6">
-    <h3 className="text-lg font-semibold text-white mb-3">Spielmodus wählen:</h3>
+    <h3 className="text-lg font-semibold text-white mb-3">
+      Spielmodus wählen:
+    </h3>
     <div className="flex flex-wrap gap-3">
       {GAME_MODES.map(mode => (
         <button
@@ -103,7 +111,9 @@ const RandomQuizCard = ({ onClick }: { onClick: () => void }) => (
           <span>Gemischte Schwierigkeit</span>
         </div>
       </div>
-      <div className="text-4xl text-gray-500 group-hover:text-[#FCC822]">🎲</div>
+      <div className="text-4xl text-gray-500 group-hover:text-[#FCC822]">
+        🎲
+      </div>
     </div>
   </div>
 );
@@ -145,7 +155,9 @@ const QuizListItem = ({
           <span>{quiz.playCount}x gespielt</span>
         </div>
       </div>
-      <div className="text-2xl text-gray-500 group-hover:text-[#FCC822]">📝</div>
+      <div className="text-2xl text-gray-500 group-hover:text-[#FCC822]">
+        📝
+      </div>
     </div>
   </div>
 );

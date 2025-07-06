@@ -36,7 +36,8 @@ export function TopicQuestions({
     const keysToRemove = Object.keys(localStorage).filter(key => {
       const isTopicBookmark =
         key.startsWith('bookmarked_') && key.includes(topicId);
-      const isTopicBookmarkData = key === `bookmarked_questions_data_${topicId}`;
+      const isTopicBookmarkData =
+        key === `bookmarked_questions_data_${topicId}`;
       return isTopicBookmark || isTopicBookmarkData;
     });
 

@@ -123,7 +123,10 @@ export function QuizGameContainer({
   }, [topicTitle]);
 
   useEffect(() => {
-    console.log('[QuizGameContainer] Question index changed:', gameState.currentQuestionIndex);
+    console.log(
+      '[QuizGameContainer] Question index changed:',
+      gameState.currentQuestionIndex
+    );
     setSelectedAnswer(undefined);
     setIsAnswerDisabled(false);
   }, [gameState.currentQuestionIndex]);
@@ -132,7 +135,7 @@ export function QuizGameContainer({
     if (isAnswerDisabled || gameState.status !== 'playing') {
       console.log('[QuizGameContainer] Answer disabled or game not playing', {
         isAnswerDisabled,
-        gameStatus: gameState.status
+        gameStatus: gameState.status,
       });
       return;
     }
@@ -142,7 +145,7 @@ export function QuizGameContainer({
       answerId,
       answerIndex,
       currentPlayerId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     setSelectedAnswer(answerIndex);
@@ -178,16 +181,18 @@ export function QuizGameContainer({
           );
         }
       } else {
-        console.log(
-          '[QUIZ-GAME] Konnte topicId oder quizId nicht bestimmen:',
-          { topicId, quizId, currentQuestion }
-        );
+        console.log('[QUIZ-GAME] Konnte topicId oder quizId nicht bestimmen:', {
+          topicId,
+          quizId,
+          currentQuestion,
+        });
       }
     } else {
-      console.log(
-        '[QUIZ-GAME] currentQuestion ist nicht verfügbar:',
-        { topicId, quizId, currentQuestion }
-      );
+      console.log('[QUIZ-GAME] currentQuestion ist nicht verfügbar:', {
+        topicId,
+        quizId,
+        currentQuestion,
+      });
     }
   };
 
@@ -262,7 +267,7 @@ export function QuizGameContainer({
   console.log('[QuizGameContainer] Current question:', {
     currentQuestionIndex: gameState.currentQuestionIndex,
     currentQuestion,
-    hasQuestion: !!currentQuestion
+    hasQuestion: !!currentQuestion,
   });
 
   const quizData: QuizData | null = currentQuestion
@@ -338,9 +343,7 @@ export function QuizGameContainer({
             {/* Left Player (Competitive) or Spacer */}
             <div
               className={
-                mode === 'solo'
-                  ? 'w-1/3'
-                  : 'w-32 lg:w-40 flex-shrink-0'
+                mode === 'solo' ? 'w-1/3' : 'w-32 lg:w-40 flex-shrink-0'
               }
             >
               {(mode === 'competitive' || mode === 'solo') &&
@@ -389,9 +392,7 @@ export function QuizGameContainer({
             {/* Right Player (Competitive) or Spacer */}
             <div
               className={
-                mode === 'solo'
-                  ? 'hidden'
-                  : 'w-32 lg:w-40 flex-shrink-0'
+                mode === 'solo' ? 'hidden' : 'w-32 lg:w-40 flex-shrink-0'
               }
             >
               {mode === 'competitive' && gameState.players[1] && (

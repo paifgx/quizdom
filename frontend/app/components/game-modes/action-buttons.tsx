@@ -27,8 +27,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   primary:
     'bg-gradient-to-r from-[#FCC822] to-[#e6b41f] text-gray-900 hover:from-[#e6b41f] hover:to-[#d1a01c] transform hover:scale-105',
   secondary: 'bg-gray-700 text-gray-300 hover:bg-gray-600',
-  default:
-    'bg-gray-600 text-gray-400 cursor-not-allowed',
+  default: 'bg-gray-600 text-gray-400 cursor-not-allowed',
 };
 
 function Button({
@@ -78,8 +77,10 @@ export function ActionButtons({
   onNext,
   onBack,
 }: ActionButtonsProps) {
-  const showStartButton = canStart && (currentStep === 'mode' || currentStep === 'topic');
-  const showNextButton = currentStep === 'mode' && !!selectedMode && !preSelectedTopic;
+  const showStartButton =
+    canStart && (currentStep === 'mode' || currentStep === 'topic');
+  const showNextButton =
+    currentStep === 'mode' && !!selectedMode && !preSelectedTopic;
 
   const startButtonText = preSelectedTopic
     ? translate('actionButtons.play')
@@ -104,10 +105,7 @@ export function ActionButtons({
         </Button>
       )}
       {showNextButton && (
-        <Button
-          onClick={onNext}
-          aria-label={translate('nextButton.ariaLabel')}
-        >
+        <Button onClick={onNext} aria-label={translate('nextButton.ariaLabel')}>
           {translate('nextButton.ariaLabel')}
         </Button>
       )}

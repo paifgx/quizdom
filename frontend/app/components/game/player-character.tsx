@@ -26,7 +26,9 @@ export function PlayerCharacter({
   characterClassName,
 }: PlayerCharacterProps) {
   return (
-    <div className={`text-center flex flex-col items-center gap-6 ${className}`}>
+    <div
+      className={`text-center flex flex-col items-center gap-6 ${className}`}
+    >
       <ScoreDisplay score={player.score} />
       <CharacterDisplay
         src={avatarSrc}

@@ -277,7 +277,9 @@ function useQuestionProgression(
 
     // Prevent multiple simultaneous progressions
     if (isProgressingRef.current) {
-      console.log('[useGameState] Already progressing to next question, ignoring duplicate call');
+      console.log(
+        '[useGameState] Already progressing to next question, ignoring duplicate call'
+      );
       return;
     }
 
@@ -288,7 +290,7 @@ function useQuestionProgression(
       console.log('[useGameState] handleQuestionComplete - current state:', {
         currentQuestionIndex: prevState.currentQuestionIndex,
         totalQuestions: prevState.questions.length,
-        status: prevState.status
+        status: prevState.status,
       });
 
       const shouldEndGame = checkGameOver(prevState, mode);
@@ -303,24 +305,29 @@ function useQuestionProgression(
         console.log('[useGameState] Moving to next question in 2 seconds', {
           currentIndex: prevState.currentQuestionIndex,
           totalQuestions: prevState.questions.length,
-          willMoveTo: prevState.currentQuestionIndex + 1
+          willMoveTo: prevState.currentQuestionIndex + 1,
         });
         setTimeout(() => {
           console.log('[useGameState] Timeout fired, updating state now');
           setGameState(prev => {
             // Check if we've already progressed past this point
             if (prev.currentQuestionIndex !== prevState.currentQuestionIndex) {
-              console.log('[useGameState] Question index already changed, skipping update');
+              console.log(
+                '[useGameState] Question index already changed, skipping update'
+              );
               isProgressingRef.current = false;
               return prev;
             }
 
             const nextIndex = prev.currentQuestionIndex + 1;
-            console.log('[useGameState] Inside setState - Setting next question index:', {
-              currentIndex: prev.currentQuestionIndex,
-              nextIndex,
-              totalQuestions: prev.questions.length
-            });
+            console.log(
+              '[useGameState] Inside setState - Setting next question index:',
+              {
+                currentIndex: prev.currentQuestionIndex,
+                nextIndex,
+                totalQuestions: prev.questions.length,
+              }
+            );
             const updatedQuestions = [...prev.questions];
 
             if (nextIndex < updatedQuestions.length) {
@@ -344,7 +351,7 @@ function useQuestionProgression(
             };
             console.log('[useGameState] Returning new state:', {
               oldIndex: prev.currentQuestionIndex,
-              newIndex: newState.currentQuestionIndex
+              newIndex: newState.currentQuestionIndex,
             });
             // Reset the progressing flag after successful update
             isProgressingRef.current = false;
@@ -410,7 +417,6 @@ export function useGameState({
     setTimeRemaining
   );
 
-
   const startGame = useCallback(() => {
     setGameState(prev => {
       const updatedQuestions = [...prev.questions];
@@ -437,13 +443,18 @@ export function useGameState({
     (playerId: string, answerIndex: number, answeredAt: number) => {
       // Prevent multiple simultaneous answer processing
       if (isProcessingAnswerRef.current) {
-        console.log('[useGameState] Already processing answer, ignoring duplicate call');
+        console.log(
+          '[useGameState] Already processing answer, ignoring duplicate call'
+        );
         return;
       }
 
       const player = gameState.players.find(p => p.id === playerId);
       if (!player || player.hasAnswered) {
-        console.log('[useGameState] Player not found or already answered', { playerId, hasAnswered: player?.hasAnswered });
+        console.log('[useGameState] Player not found or already answered', {
+          playerId,
+          hasAnswered: player?.hasAnswered,
+        });
         return;
       }
 
@@ -453,7 +464,9 @@ export function useGameState({
         // Double-check inside setState to ensure we haven't already processed
         const currentPlayer = prev.players.find(p => p.id === playerId);
         if (!currentPlayer || currentPlayer.hasAnswered) {
-          console.log('[useGameState] Player already answered (inside setState)');
+          console.log(
+            '[useGameState] Player already answered (inside setState)'
+          );
           isProcessingAnswerRef.current = false;
           return prev;
         }
@@ -480,8 +493,8 @@ export function useGameState({
           shouldProgress: allAnswered || mode === 'solo',
           players: newState.players.map(p => ({
             id: p.id,
-            hasAnswered: p.hasAnswered
-          }))
+            hasAnswered: p.hasAnswered,
+          })),
         });
 
         if (allAnswered || mode === 'solo') {

@@ -186,7 +186,7 @@ export function useGameWithBackend({
           answerIndex,
           answeredAt,
           correctAnswerIndex,
-          currentQuestion
+          currentQuestion,
         });
         handleLocalAnswer(playerId, answerIndex, answeredAt);
 
