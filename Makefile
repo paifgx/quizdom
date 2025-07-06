@@ -66,13 +66,13 @@ test-frontend-coverage: ## Run frontend tests with coverage
 
 test-backend: ## Run backend tests
 	@echo "Running backend tests..."
-	@bash -c "source backend && cd backend && pytest"
+	@bash -c "cd backend && pytest"
 
 test-backend-verbose: ## Run backend tests with verbose output
-	@bash -c "source backend && cd backend && pytest -v"
+	@bash -c "cd backend && pytest -v"
 
 test-backend-coverage: ## Run backend tests with coverage
-	@bash -c "source backend && cd backend && pytest --cov=app --cov-report=html --cov-report=term"
+	@bash -c "cd backend && pytest --cov=app --cov-report=html --cov-report=term"
 
 # ======================
 # CODE QUALITY

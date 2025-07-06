@@ -7,10 +7,12 @@ from sqlmodel import Session, func, select
 
 from app.db.models import Answer, Question, Quiz, QuizQuestion, Topic
 from app.schemas.quiz_admin import (
+    Difficulty,
     QuestionCreate,
     QuestionUpdate,
     QuizBatchCreate,
     QuizCreate,
+    QuizStatus,
     QuizUpdate,
     TopicCreate,
     TopicUpdate,
@@ -236,7 +238,12 @@ class QuizAdminService:
 
     # Quiz operations
     def get_quizzes(
-        self, skip: int = 0, limit: int = 100, topic_id: Optional[int] = None
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        topic_id: Optional[int] = None,
+        status: Optional[QuizStatus] = None,
+        difficulty: Optional[Difficulty] = None,
     ) -> List[dict[str, Any]]:
         """Get all quizzes with pagination and optional topic filter."""
         # Get quizzes with question count
@@ -244,6 +251,10 @@ class QuizAdminService:
 
         if topic_id:
             statement = statement.where(Quiz.topic_id == topic_id)
+        if status:
+            statement = statement.where(Quiz.status == status)
+        if difficulty:
+            statement = statement.where(Quiz.difficulty == difficulty)
 
         quizzes = list(self.db.exec(statement).all())
 

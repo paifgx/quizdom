@@ -171,6 +171,12 @@ class QuizAdminService {
       if (filters?.search) {
         // Backend doesn't support search yet, we'll filter client-side
       }
+      if (filters?.difficulty) {
+        params.append('difficulty', filters.difficulty.toString());
+      }
+      if (filters?.status) {
+        params.append('status', filters.status);
+      }
 
       const response = await apiClient.get<BackendQuizResponse[]>(
         `/v1/admin/quizzes?${params.toString()}`,
@@ -181,7 +187,7 @@ class QuizAdminService {
 
       let quizzes = response.map(quiz => this.mapToQuizSummary(quiz));
 
-      // Apply client-side filtering for now
+      // Apply client-side filtering for search only, as others are handled by backend
       if (filters?.search) {
         const searchLower = filters.search.toLowerCase();
         quizzes = quizzes.filter(
@@ -189,16 +195,6 @@ class QuizAdminService {
             quiz.title.toLowerCase().includes(searchLower) ||
             quiz.description.toLowerCase().includes(searchLower)
         );
-      }
-
-      if (filters?.difficulty) {
-        quizzes = quizzes.filter(
-          quiz => quiz.difficulty === filters.difficulty
-        );
-      }
-
-      if (filters?.status) {
-        quizzes = quizzes.filter(quiz => quiz.status === filters.status);
       }
 
       return quizzes;

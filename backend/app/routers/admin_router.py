@@ -29,6 +29,7 @@ from app.db.helpers import (
 from app.db.models import Role, SessionPlayers, Topic, User, UserRoles
 from app.db.session import get_session
 from app.schemas.quiz_admin import (
+    Difficulty,
     ImageUploadResponse,
     QuestionCreate,
     QuestionResponse,
@@ -37,6 +38,7 @@ from app.schemas.quiz_admin import (
     QuizCreate,
     QuizDetailResponse,
     QuizResponse,
+    QuizStatus,
     QuizUpdate,
     TopicCreate,
     TopicResponse,
@@ -237,11 +239,15 @@ async def get_quizzes(
     skip: int = 0,
     limit: int = 100,
     topic_id: Optional[int] = None,
+    status: Optional[QuizStatus] = None,
+    difficulty: Optional[Difficulty] = None,
     db: Session = Depends(get_session),
 ) -> List[dict[str, Any]]:
     """Get all quizzes with optional topic filter."""
     service = QuizAdminService(db)
-    return service.get_quizzes(skip=skip, limit=limit, topic_id=topic_id)
+    return service.get_quizzes(
+        skip=skip, limit=limit, topic_id=topic_id, status=status, difficulty=difficulty
+    )
 
 
 @router.get("/quizzes/published", response_model=List[QuizResponse])
