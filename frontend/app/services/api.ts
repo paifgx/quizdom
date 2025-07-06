@@ -21,6 +21,46 @@ export const healthService = {
 };
 
 /**
+ * Maps topic titles to their corresponding image files.
+ * Returns the appropriate image path based on the topic title.
+ */
+function getTopicImage(title: string): string {
+  const titleLower = title.toLowerCase();
+
+  // Map topic titles to image files
+  if (
+    titleLower.includes('physik') ||
+    titleLower.includes('physics') ||
+    (titleLower.includes('general') && titleLower.includes('knowledge'))
+  ) {
+    return '/topics/physics.png';
+  }
+  if (
+    titleLower.includes('it') &&
+    titleLower.includes('projekt') &&
+    titleLower.includes('management')
+  ) {
+    return '/topics/it-project-management.png';
+  }
+  if (
+    (titleLower.includes('einführung') && titleLower.includes('informatik')) ||
+    (titleLower.includes('introduction') && titleLower.includes('computer')) ||
+    titleLower.includes('science')
+  ) {
+    return '/topics/introduction-computer-science.png';
+  }
+  if (titleLower.includes('geschichte') || titleLower.includes('history')) {
+    return '/topics/history.png';
+  }
+  if (titleLower.includes('mathematik') || titleLower.includes('math')) {
+    return '/topics/Math.png';
+  }
+
+  // Default fallback to book image if no specific mapping found
+  return '/badges/badge_book_1.png';
+}
+
+/**
  * Topics service - handles topic-related API calls.
  */
 export const topicsService = {
@@ -35,20 +75,55 @@ export const topicsService = {
         description?: string;
       }>
     >('/v1/admin/topics');
-    return response.map(topic => ({
-      id: topic.id.toString(),
-      title: topic.title,
-      description: topic.description || '',
-      category: 'General', // Topics don't have categories in our backend
-      totalQuestions: 0, // Would need to fetch this separately
-      completedQuestions: 0, // Not tracked in backend yet
-      image: '/badges/badge_book_1.png', // Use an actual image path instead of emoji
-      stars: 0, // Not implemented in backend yet
-      popularity: 0, // Not implemented in backend yet
-      wisecoinReward: 10, // Default reward
-      isCompleted: false, // Not tracked in backend yet
-      isFavorite: false, // Not implemented in backend yet
-    }));
+
+    // Fetch question counts for each topic
+    const topicsWithQuestionCounts = await Promise.all(
+      response.map(async topic => {
+        try {
+          const questionsResponse = await apiClient.get<Array<{ id: number }>>(
+            `/v1/admin/questions?topic_id=${topic.id}`
+          );
+          const totalQuestions = questionsResponse.length;
+
+          return {
+            id: topic.id.toString(),
+            title: topic.title,
+            description: topic.description || '',
+            category: 'General', // Topics don't have categories in our backend
+            totalQuestions,
+            completedQuestions: 0, // Not tracked in backend yet
+            image: getTopicImage(topic.title), // Use topic-specific image
+            stars: 0, // Not implemented in backend yet
+            popularity: 0, // Not implemented in backend yet
+            wisecoinReward: 10, // Default reward
+            isCompleted: false, // Not tracked in backend yet
+            isFavorite: false, // Not implemented in backend yet
+          };
+        } catch (error) {
+          console.error(
+            `Failed to fetch questions for topic ${topic.id}:`,
+            error
+          );
+          // Return topic with 0 questions if API call fails
+          return {
+            id: topic.id.toString(),
+            title: topic.title,
+            description: topic.description || '',
+            category: 'General',
+            totalQuestions: 0,
+            completedQuestions: 0,
+            image: getTopicImage(topic.title), // Use topic-specific image
+            stars: 0,
+            popularity: 0,
+            wisecoinReward: 10,
+            isCompleted: false,
+            isFavorite: false,
+          };
+        }
+      })
+    );
+
+    return topicsWithQuestionCounts;
   },
 
   /**
@@ -61,20 +136,49 @@ export const topicsService = {
         title: string;
         description?: string;
       }>(`/v1/admin/topics/${id}`);
-      return {
-        id: response.id.toString(),
-        title: response.title,
-        description: response.description || '',
-        category: 'General',
-        totalQuestions: 0,
-        completedQuestions: 0,
-        image: '/badges/badge_book_1.png',
-        stars: 0,
-        popularity: 0,
-        wisecoinReward: 10,
-        isCompleted: false,
-        isFavorite: false,
-      };
+
+      // Fetch question count for this topic
+      try {
+        const questionsResponse = await apiClient.get<Array<{ id: number }>>(
+          `/v1/admin/questions?topic_id=${response.id}`
+        );
+        const totalQuestions = questionsResponse.length;
+
+        return {
+          id: response.id.toString(),
+          title: response.title,
+          description: response.description || '',
+          category: 'General',
+          totalQuestions,
+          completedQuestions: 0,
+          image: getTopicImage(response.title), // Use topic-specific image
+          stars: 0,
+          popularity: 0,
+          wisecoinReward: 10,
+          isCompleted: false,
+          isFavorite: false,
+        };
+      } catch (error) {
+        console.error(
+          `Failed to fetch questions for topic ${response.id}:`,
+          error
+        );
+        // Return topic with 0 questions if API call fails
+        return {
+          id: response.id.toString(),
+          title: response.title,
+          description: response.description || '',
+          category: 'General',
+          totalQuestions: 0,
+          completedQuestions: 0,
+          image: getTopicImage(response.title), // Use topic-specific image
+          stars: 0,
+          popularity: 0,
+          wisecoinReward: 10,
+          isCompleted: false,
+          isFavorite: false,
+        };
+      }
     } catch {
       return null;
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { gameService } from '../../services/game';
 import { gameModes } from '../../api/data';
 import type { GameModeId, Topic } from '../../types/game';
@@ -7,7 +7,6 @@ interface AllQuizzesSelectionProps {
   selectedMode: GameModeId;
   topics: Topic[];
   onSelectQuiz: (quizId: number) => void;
-  onSelectRandomFromTopic: (topicId: string) => void;
   onBack: () => void;
 }
 
@@ -26,78 +25,74 @@ interface TopicWithQuizzes {
   quizzes: PublishedQuiz[];
 }
 
+const getDifficultyStars = (difficulty: number) => {
+  return '★'.repeat(difficulty) + '☆'.repeat(5 - difficulty);
+};
+
+const getDifficultyColor = (difficulty: number) => {
+  if (difficulty <= 2) return 'text-green-400';
+  if (difficulty <= 3) return 'text-yellow-400';
+  return 'text-red-400';
+};
+
 export function AllQuizzesSelection({
   selectedMode,
   topics,
   onSelectQuiz,
-  onSelectRandomFromTopic,
   onBack,
 }: AllQuizzesSelectionProps) {
-  const [topicsWithQuizzes, setTopicsWithQuizzes] = useState<
-    TopicWithQuizzes[]
-  >([]);
+  const [allQuizzes, setAllQuizzes] = useState<PublishedQuiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const loadQuizzes = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const quizzes = await gameService.getPublishedQuizzes();
+      setAllQuizzes(quizzes);
+    } catch (err) {
+      console.error('Failed to load quizzes:', err);
+      setError('Fehler beim Laden der Quizze');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const loadQuizzes = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch all published quizzes
-        const allQuizzes = await gameService.getPublishedQuizzes();
-
-        // Group quizzes by topic
-        const topicsMap = new Map<string, TopicWithQuizzes>();
-
-        // Initialize with all topics
-        topics.forEach(topic => {
-          topicsMap.set(topic.id, {
-            topic,
-            quizzes: [],
-          });
-        });
-
-        // Add quizzes to their respective topics
-        allQuizzes.forEach(quiz => {
-          // Convert numeric topic ID to string for comparison with frontend topic IDs
-          const topicIdStr = quiz.topicId.toString();
-          const topicEntry = topicsMap.get(topicIdStr);
-
-          if (topicEntry) {
-            topicEntry.quizzes.push(quiz);
-          }
-        });
-
-        setTopicsWithQuizzes(
-          Array.from(topicsMap.values()).filter(
-            t => t.quizzes.length > 0 || t.topic.totalQuestions > 0
-          )
-        );
-      } catch (err) {
-        console.error('Failed to load quizzes:', err);
-        setError('Fehler beim Laden der Quizze');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadQuizzes();
-  }, [topics]);
+  }, [loadQuizzes]);
 
-  const getDifficultyStars = (difficulty: number) => {
-    return '★'.repeat(difficulty) + '☆'.repeat(5 - difficulty);
-  };
+  const topicsWithQuizzes = useMemo(() => {
+    const topicsMap = new Map<string, TopicWithQuizzes>();
 
-  const getDifficultyColor = (difficulty: number) => {
-    if (difficulty <= 2) return 'text-green-400';
-    if (difficulty <= 3) return 'text-yellow-400';
-    return 'text-red-400';
-  };
+    topics.forEach(topic => {
+      topicsMap.set(topic.id, {
+        topic,
+        quizzes: [],
+      });
+    });
 
-  const modeName =
-    gameModes.find(m => m.id === selectedMode)?.name || selectedMode;
+    allQuizzes.forEach(quiz => {
+      const topicIdStr = quiz.topicId?.toString();
+
+      if (topicIdStr) {
+        const topicEntry = topicsMap.get(topicIdStr);
+        if (topicEntry) {
+          topicEntry.quizzes.push(quiz);
+        }
+      }
+    });
+
+    return Array.from(topicsMap.values()).filter(
+      t => t.quizzes.length > 0 || t.topic.totalQuestions > 0
+    );
+  }, [allQuizzes, topics]);
+
+  const modeName = useMemo(
+    () => gameModes.find(m => m.id === selectedMode)?.name || selectedMode,
+    [selectedMode]
+  );
 
   if (loading) {
     return (
@@ -113,7 +108,7 @@ export function AllQuizzesSelection({
       <div className="text-center py-8">
         <p className="text-red-400 mb-4">{error}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={loadQuizzes}
           className="px-4 py-2 bg-[#FCC822] text-gray-900 rounded-lg hover:bg-[#FCC822]/90"
         >
           Neu laden
@@ -140,37 +135,6 @@ export function AllQuizzesSelection({
             {topic.title}
           </h2>
 
-          {/* Random Questions Option for this topic */}
-          {topic.totalQuestions > 0 && (
-            <div
-              className="bg-gray-800/70 rounded-xl p-4 border-2 border-gray-600 hover:border-[#FCC822]/50 cursor-pointer transition-all duration-300 group"
-              onClick={() => onSelectRandomFromTopic(topic.id)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSelectRandomFromTopic(topic.id);
-                }
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-white mb-1 group-hover:text-[#FCC822]">
-                    Zufällige Fragen aus {topic.title}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    10 zufällig ausgewählte Fragen • Gemischte Schwierigkeit
-                  </p>
-                </div>
-                <div className="text-2xl text-gray-500 group-hover:text-[#FCC822]">
-                  🎲
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Published Quizzes for this topic */}
           {quizzes.map(quiz => (
             <div
               key={quiz.id}
@@ -223,7 +187,6 @@ export function AllQuizzesSelection({
         </div>
       )}
 
-      {/* Back button */}
       <div className="flex justify-center mt-8">
         <button
           onClick={onBack}

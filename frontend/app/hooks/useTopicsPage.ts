@@ -54,7 +54,15 @@ export function useTopicsPage({
 
   // Sync local state when topics prop changes (when API data loads)
   useEffect(() => {
-    setLocalTopics(topics);
+    // Load favorite IDs from localStorage and mark topics accordingly
+    const favoriteIds = JSON.parse(
+      localStorage.getItem('favoriteTopicIds') || '[]'
+    );
+    const topicsWithFavorites = topics.map(topic => ({
+      ...topic,
+      isFavorite: favoriteIds.includes(topic.id),
+    }));
+    setLocalTopics(topicsWithFavorites);
   }, [topics]);
 
   // Computed values
@@ -78,13 +86,21 @@ export function useTopicsPage({
     (topicId: string, event: React.MouseEvent) => {
       event.preventDefault(); // Prevent navigation when clicking favorite button
 
-      setLocalTopics(prevTopics =>
-        prevTopics.map(topic =>
+      setLocalTopics(prevTopics => {
+        const updatedTopics = prevTopics.map(topic =>
           topic.id === topicId
             ? { ...topic, isFavorite: !topic.isFavorite }
             : topic
-        )
-      );
+        );
+
+        // Update localStorage
+        const favoriteIds = updatedTopics
+          .filter(topic => topic.isFavorite)
+          .map(topic => topic.id);
+        localStorage.setItem('favoriteTopicIds', JSON.stringify(favoriteIds));
+
+        return updatedTopics;
+      });
     },
     []
   );

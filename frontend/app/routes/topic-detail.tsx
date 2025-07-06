@@ -19,6 +19,8 @@ import { useTopicDetail } from '../hooks/useTopicDetail';
 import { fetchAchievements } from '../api';
 import { useState, useEffect } from 'react';
 import type { Achievement } from '../types/topic-detail';
+import { ProgressBar } from '../components/topics/topic-card';
+import { getProgressPercentage } from '../utils/topics';
 
 export function meta() {
   return [
@@ -84,10 +86,31 @@ export default function TopicDetailPage() {
     );
   }
 
+  const progressPercentage = getProgressPercentage(
+    topic.completedQuestions,
+    topic.totalQuestions
+  );
+
   return (
     <ProtectedRoute>
       <div>
         <TopicHeader topic={topic} onToggleFavorite={toggleFavorite} />
+
+        {/* ProgressBar Bereich */}
+        <div className="w-full flex justify-center mb-8">
+          <div className="bg-gray-800/80 border border-gray-600 rounded-xl p-4 flex flex-col items-center w-full max-w-4xl">
+            <ProgressBar
+              completed={topic.completedQuestions}
+              total={topic.totalQuestions}
+              percentage={progressPercentage}
+              className="h-8 text-base w-full"
+            />
+            <div className="text-gray-300 text-sm mt-1">
+              {topic.completedQuestions} von {topic.totalQuestions} Fragen
+              abgeschlossen
+            </div>
+          </div>
+        </div>
 
         {/* Main Topic Content Container */}
         <div className="bg-gray-800/80 rounded-xl border border-gray-600 backdrop-blur-sm mb-6 flex flex-col lg:flex-row relative">

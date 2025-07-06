@@ -454,6 +454,8 @@ export default function QuizGamePage() {
                 : 'solo')
           }
           topicTitle={title}
+          topicId={topicId}
+          quizId={quizId}
           questions={questions}
           players={players}
           onGameEnd={handleGameEnd}

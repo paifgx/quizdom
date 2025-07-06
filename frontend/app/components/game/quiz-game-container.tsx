@@ -3,82 +3,50 @@
  * Integrates all game components and manages the overall game flow.
  */
 import { useState, useEffect } from 'react';
-import { QuizContainer, type QuizData } from '../nine-slice-quiz';
+import { type QuizData } from '../nine-slice-quiz';
 import { TimerBar } from './timer-bar';
-import { HeartsDisplay } from './hearts-display';
-import { ScoreDisplay } from './score-display';
 import { GameResultScreen } from './game-result';
-import { CharacterDisplay } from './character-display';
 import { useGameWithBackend } from '../../hooks/useGameWithBackend';
 import { useGameContext } from '../../contexts/GameContext';
 import type { GameResult, PlayerState, Question } from '../../types/game';
+import { usePlayerDamage } from '../../hooks/usePlayerDamage';
+import { PlayerCharacter } from './player-character';
+import { CollaborativeStats } from './collaborative-stats';
+import { CollaborativeCharacters } from './collaborative-characters';
+import { QuizContent } from './quiz-content';
 
 interface QuizGameContainerProps {
   mode: 'solo' | 'competitive' | 'collaborative';
   topicTitle: string;
+  topicId?: string;
+  quizId?: string;
   questions: Question[];
   players: PlayerState[];
   onGameEnd: (result: GameResult) => void;
   onQuit: () => void;
 }
 
+/**
+ * Main quiz game container component.
+ * Integrates all game components and manages the overall game flow.
+ */
 export function QuizGameContainer({
   mode,
   topicTitle,
+  topicId,
+  quizId,
   questions,
   players,
   onGameEnd,
   onQuit,
 }: QuizGameContainerProps) {
-  // Get sessionId from context
   const { sessionId } = useGameContext();
+  const { playerDamageStates, onHeartLoss } = usePlayerDamage(players);
 
-  const [playerDamageStates, setPlayerDamageStates] = useState<{
-    [playerId: string]: {
-      hearts: number;
-      previousHearts: number;
-      onDamage: boolean;
-    };
-  }>({});
-
-  // Initialize player damage states
-  useEffect(() => {
-    const initialStates: typeof playerDamageStates = {};
-    players.forEach(player => {
-      initialStates[player.id] = {
-        hearts: player.hearts,
-        previousHearts: player.hearts,
-        onDamage: false,
-      };
-    });
-    setPlayerDamageStates(initialStates);
-  }, [players]);
-
-  const handleHeartLoss = (playerId?: string) => {
-    // Update player damage state if specific player
-    if (playerId) {
-      setPlayerDamageStates(prev => ({
-        ...prev,
-        [playerId]: {
-          ...prev[playerId],
-          onDamage: true,
-        },
-      }));
-
-      // Clear player damage flag
-      setTimeout(() => {
-        setPlayerDamageStates(prev => ({
-          ...prev,
-          [playerId]: {
-            ...prev[playerId],
-            onDamage: false,
-          },
-        }));
-      }, 100);
-    }
+  const handlePlayAgain = () => {
+    window.location.reload();
   };
 
-  // Use the backend-integrated game hook
   const {
     gameState,
     currentQuestion,
@@ -97,22 +65,7 @@ export function QuizGameContainer({
       onGameEnd(result);
       return Promise.resolve();
     },
-    onHeartLoss: event => {
-      handleHeartLoss(event.playerId);
-
-      // Update player damage tracking
-      if (event.playerId) {
-        setPlayerDamageStates(prev => ({
-          ...prev,
-          [event.playerId!]: {
-            hearts: event.heartsRemaining,
-            previousHearts:
-              prev[event.playerId!]?.hearts || event.heartsRemaining + 1,
-            onDamage: false,
-          },
-        }));
-      }
-    },
+    onHeartLoss,
   });
 
   const [showResult, setShowResult] = useState(false);
@@ -131,7 +84,7 @@ export function QuizGameContainer({
 
   useEffect(() => {
     if (gameState.status === 'waiting') {
-      if (mode === 'competitive') {
+      if (mode === 'competitive' || mode === 'collaborative') {
         return;
       }
       startGame();
@@ -139,30 +92,29 @@ export function QuizGameContainer({
   }, [gameState.status, startGame, mode]);
 
   useEffect(() => {
-    if (mode === 'competitive' && gameState.status === 'waiting') {
+    if (
+      (mode === 'competitive' || mode === 'collaborative') &&
+      gameState.status === 'waiting'
+    ) {
       const checkPlayers = () => {
         if (gameState.players && gameState.players.length >= 2) {
           startGame();
         }
       };
 
-      // Check immediately
       checkPlayers();
 
-      // Then check periodically
       const interval = setInterval(checkPlayers, 2000);
       return () => clearInterval(interval);
     }
   }, [mode, gameState.status, gameState.players, startGame]);
 
-  // Handle game over - result is already passed through onGameOver callback
   useEffect(() => {
     if (gameState.status === 'finished' && gameResult) {
       setShowResult(true);
     }
   }, [gameState.status, gameResult]);
 
-  // Load bookmarked questions from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(`bookmarked_${topicTitle}`);
     if (stored) {
@@ -170,19 +122,78 @@ export function QuizGameContainer({
     }
   }, [topicTitle]);
 
-  // Reset answer selection on new question
   useEffect(() => {
+    console.log(
+      '[QuizGameContainer] Question index changed:',
+      gameState.currentQuestionIndex
+    );
     setSelectedAnswer(undefined);
     setIsAnswerDisabled(false);
   }, [gameState.currentQuestionIndex]);
 
   const handleAnswerSelect = (answerId: string) => {
-    if (isAnswerDisabled || gameState.status !== 'playing') return;
+    if (isAnswerDisabled || gameState.status !== 'playing') {
+      console.log('[QuizGameContainer] Answer disabled or game not playing', {
+        isAnswerDisabled,
+        gameStatus: gameState.status,
+      });
+      return;
+    }
 
     const answerIndex = parseInt(answerId);
+    console.log('[QuizGameContainer] handleAnswerSelect called', {
+      answerId,
+      answerIndex,
+      currentPlayerId,
+      timestamp: Date.now(),
+    });
+
     setSelectedAnswer(answerIndex);
     setIsAnswerDisabled(true);
+
+    // Call handleAnswer only once
     handleAnswer(currentPlayerId, answerIndex, Date.now());
+
+    if (currentQuestion) {
+      // Use topicId for topic games, quizId for quiz games
+      const gameId = topicId || quizId;
+      if (gameId) {
+        const completedKey = `completed_${gameId}`;
+        let completed: string[] = [];
+        try {
+          completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
+        } catch {
+          completed = [];
+        }
+        if (!completed.includes(currentQuestion.id)) {
+          completed.push(currentQuestion.id);
+          localStorage.setItem(completedKey, JSON.stringify(completed));
+          console.log(
+            '[QUIZ-GAME] Frage als beantwortet gespeichert:',
+            completedKey,
+            completed
+          );
+        } else {
+          console.log(
+            '[QUIZ-GAME] Frage war schon als beantwortet gespeichert:',
+            completedKey,
+            completed
+          );
+        }
+      } else {
+        console.log('[QUIZ-GAME] Konnte topicId oder quizId nicht bestimmen:', {
+          topicId,
+          quizId,
+          currentQuestion,
+        });
+      }
+    } else {
+      console.log('[QUIZ-GAME] currentQuestion ist nicht verfügbar:', {
+        topicId,
+        quizId,
+        currentQuestion,
+      });
+    }
   };
 
   const toggleBookmark = () => {
@@ -198,9 +209,31 @@ export function QuizGameContainer({
       }
       return newSet;
     });
+
+    const bookmarkedQuestionsDataKey = `bookmarked_questions_data_${topicTitle}`;
+    const existingData = localStorage.getItem(bookmarkedQuestionsDataKey);
+    const existingQuestions = existingData ? JSON.parse(existingData) : {};
+
+    const isCurrentlyBookmarked = bookmarkedQuestions.has(questionId);
+
+    if (isCurrentlyBookmarked) {
+      delete existingQuestions[questionId];
+    } else {
+      existingQuestions[questionId] = {
+        id: currentQuestion.id,
+        text: currentQuestion.text,
+        answers: currentQuestion.answers,
+        topicTitle: topicTitle,
+        bookmarkedAt: new Date().toISOString(),
+      };
+    }
+
+    localStorage.setItem(
+      bookmarkedQuestionsDataKey,
+      JSON.stringify(existingQuestions)
+    );
   };
 
-  // ESC key handler to quit game
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -212,7 +245,6 @@ export function QuizGameContainer({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [onQuit]);
 
-  // Save bookmarked questions to localStorage
   useEffect(() => {
     if (bookmarkedQuestions.size > 0) {
       localStorage.setItem(
@@ -226,13 +258,18 @@ export function QuizGameContainer({
     return (
       <GameResultScreen
         result={gameResult}
-        onPlayAgain={() => window.location.reload()}
+        onPlayAgain={handlePlayAgain}
         onGoBack={onQuit}
       />
     );
   }
 
-  // Convert question to quiz format
+  console.log('[QuizGameContainer] Current question:', {
+    currentQuestionIndex: gameState.currentQuestionIndex,
+    currentQuestion,
+    hasQuestion: !!currentQuestion,
+  });
+
   const quizData: QuizData | null = currentQuestion
     ? {
         question: currentQuestion.text,
@@ -253,7 +290,7 @@ export function QuizGameContainer({
 
   return (
     <>
-      <div className="relative min-h-screen bg-gray-900 text-white overflow-hidden">
+      <div className="relative min-h-screen text-white overflow-hidden">
         <div className="h-full flex flex-col px-4 py-8 pb-40 md:pb-8 lg:max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -276,9 +313,16 @@ export function QuizGameContainer({
                   />
                 </svg>
               </button>
-              <h1 className="text-lg font-medium hidden md:block">
-                {topicTitle}
-              </h1>
+              <div className="flex flex-col">
+                <h1 className="text-lg font-medium hidden md:block">
+                  {topicTitle}
+                </h1>
+                <div className="text-sm text-[#FCC822] font-medium">
+                  {mode === 'solo' && 'Solo Mission'}
+                  {mode === 'competitive' && 'Duell'}
+                  {mode === 'collaborative' && 'Team Battle'}
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-white/60">ESC =</span>
@@ -295,200 +339,76 @@ export function QuizGameContainer({
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 md:gap-6">
-              {/* Stats moved to player display - keeping empty for layout balance */}
+          <div className="flex items-center justify-between flex-1">
+            {/* Left Player (Competitive) or Spacer */}
+            <div
+              className={
+                mode === 'solo' ? 'w-1/3' : 'w-32 lg:w-40 flex-shrink-0'
+              }
+            >
+              {(mode === 'competitive' || mode === 'solo') &&
+                gameState.players[0] && (
+                  <PlayerCharacter
+                    player={gameState.players[0]}
+                    playerDamageStates={playerDamageStates}
+                    avatarSrc="/avatars/player_male_with_greataxe.png"
+                    alt={mode === 'solo' ? 'Dein Charakter' : 'Alex'}
+                  />
+                )}
+            </div>
+
+            {/* Middle Content (Quiz) */}
+            <div className={mode === 'solo' ? 'w-2/3' : 'flex-1 max-w-4xl'}>
               {mode === 'collaborative' && (
-                <>
-                  <ScoreDisplay
-                    score={gameState.teamScore || 0}
-                    label="TEAM SCORE"
-                  />
-                  <HeartsDisplay
-                    hearts={gameState.teamHearts || 0}
-                    maxHearts={3}
-                    isTeamHearts
-                    onHeartLoss={() => handleHeartLoss()}
-                  />
-                  <div className="hidden md:flex gap-2">
-                    {gameState.players.map(player => (
-                      <div
-                        key={player.id}
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          player.hasAnswered
-                            ? 'bg-green-600/50 text-white'
-                            : 'bg-gray-700/50 text-gray-400'
-                        }`}
-                      >
-                        {player.name}
-                      </div>
-                    ))}
-                  </div>
-                </>
+                <CollaborativeStats gameState={gameState} />
+              )}
+              <QuizContent
+                quizData={quizData}
+                selectedAnswer={
+                  selectedAnswer !== undefined
+                    ? selectedAnswer.toString()
+                    : undefined
+                }
+                onAnswerSelect={handleAnswerSelect}
+                disabled={isAnswerDisabled}
+                showCorrectAnswer={
+                  isAnswerDisabled
+                    ? {
+                        correct: currentQuestion.correctAnswer,
+                        selected: selectedAnswer,
+                      }
+                    : undefined
+                }
+                waitingForOpponent={
+                  waitingForOpponent &&
+                  (mode === 'competitive' || mode === 'collaborative')
+                }
+                isBookmarked={isBookmarked}
+                onToggleBookmark={toggleBookmark}
+                currentQuestion={currentQuestion}
+              />
+            </div>
+
+            {/* Right Player (Competitive) or Spacer */}
+            <div
+              className={
+                mode === 'solo' ? 'hidden' : 'w-32 lg:w-40 flex-shrink-0'
+              }
+            >
+              {mode === 'competitive' && gameState.players[1] && (
+                <PlayerCharacter
+                  player={gameState.players[1]}
+                  playerDamageStates={playerDamageStates}
+                  avatarSrc="/avatars/player_female_sword_magic.png"
+                  alt="Sophia"
+                />
               )}
             </div>
-
-            {mode === 'solo' && (
-              <div className="flex-shrink-0">
-                <div className="text-center flex flex-col items-center gap-8">
-                  <ScoreDisplay score={gameState.players[0].score} />
-                  <CharacterDisplay
-                    src="/avatars/player_male_with_greataxe.png"
-                    alt="Dein Charakter"
-                    hearts={gameState.players[0].hearts}
-                    previousHearts={
-                      playerDamageStates[gameState.players[0].id]
-                        ?.previousHearts
-                    }
-                    onDamage={
-                      playerDamageStates[gameState.players[0].id]?.onDamage
-                    }
-                  />
-                  <HeartsDisplay
-                    hearts={gameState.players[0].hearts}
-                    maxHearts={3}
-                    onHeartLoss={() => handleHeartLoss(gameState.players[0].id)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {mode === 'competitive' && (
-              <div className="flex-shrink-0 w-32 lg:w-40">
-                <div className="text-center flex flex-col items-center gap-6">
-                  <ScoreDisplay score={gameState.players[0].score} />
-                  <CharacterDisplay
-                    src="/avatars/player_male_with_greataxe.png"
-                    alt="Alex"
-                    className="h-full w-auto"
-                    hearts={gameState.players[0].hearts}
-                    previousHearts={
-                      playerDamageStates[gameState.players[0].id]
-                        ?.previousHearts
-                    }
-                    onDamage={
-                      playerDamageStates[gameState.players[0].id]?.onDamage
-                    }
-                  />
-                  <HeartsDisplay
-                    hearts={gameState.players[0].hearts}
-                    maxHearts={3}
-                    onHeartLoss={() => handleHeartLoss(gameState.players[0].id)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Quiz Content - Centered */}
-            <div className="flex-1 max-w-4xl">
-              <div className="relative">
-                <QuizContainer
-                  quizData={quizData}
-                  selectedAnswer={
-                    selectedAnswer !== undefined
-                      ? selectedAnswer.toString()
-                      : undefined
-                  }
-                  onAnswerSelect={handleAnswerSelect}
-                  disabled={isAnswerDisabled}
-                  showCorrectAnswer={
-                    isAnswerDisabled
-                      ? {
-                          correct: currentQuestion.correctAnswer,
-                          selected: selectedAnswer,
-                        }
-                      : undefined
-                  }
-                  waitingForOpponent={
-                    waitingForOpponent &&
-                    (mode === 'competitive' || mode === 'collaborative')
-                  }
-                />
-
-                <div className="py-4">
-                  <button
-                    onClick={toggleBookmark}
-                    className={`absolute -top-10 right-0 px-3 py-1 rounded-lg transition-all flex items-center gap-2 ${
-                      isBookmarked
-                        ? 'bg-[#FCC822]/20 border-2 border-[#FCC822]'
-                        : 'bg-gray-800/50 border-2 border-gray-600 hover:border-gray-500'
-                    }`}
-                    title={
-                      isBookmarked ? 'Markierung entfernen' : 'Frage markieren'
-                    }
-                  >
-                    <span
-                      className={`text-xs font-bold ${
-                        isBookmarked ? 'text-[#FCC822]' : 'text-gray-400'
-                      }`}
-                    >
-                      {isBookmarked ? '★' : '☆'}
-                    </span>
-                    <span
-                      className={`text-xs font-medium hidden sm:inline ${
-                        isBookmarked ? 'text-[#FCC822]' : 'text-gray-400'
-                      }`}
-                    >
-                      {isBookmarked ? 'Markiert' : 'Markieren'}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right side character for competitive mode */}
-            {mode === 'competitive' && (
-              <div className="flex-shrink-0 w-32 lg:w-40">
-                <div className="text-center flex flex-col items-center gap-6">
-                  <ScoreDisplay score={gameState.players[1].score} />
-                  <CharacterDisplay
-                    src="/avatars/player_female_sword_magic.png"
-                    alt="Sophia"
-                    className="h-full w-auto"
-                    hearts={gameState.players[1].hearts}
-                    previousHearts={
-                      playerDamageStates[gameState.players[1].id]
-                        ?.previousHearts
-                    }
-                    onDamage={
-                      playerDamageStates[gameState.players[1].id]?.onDamage
-                    }
-                  />
-                  <HeartsDisplay
-                    hearts={gameState.players[1].hearts}
-                    maxHearts={3}
-                    onHeartLoss={() => handleHeartLoss(gameState.players[1].id)}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Collaborative mode characters below */}
           {mode === 'collaborative' && (
-            <div className="flex justify-center items-end gap-4 mt-8">
-              <div className="text-center flex flex-col items-center gap-2">
-                <img
-                  src="/avatars/player_male_with_greataxe.png"
-                  alt="Alex"
-                  className="h-20 md:h-24 lg:h-28 w-auto"
-                />
-                <ScoreDisplay score={gameState.players[0].score} />
-              </div>
-              <div className="flex items-center mb-4">
-                <span className="text-[#FCC822] text-base font-bold px-2">
-                  TEAM
-                </span>
-              </div>
-              <div className="text-center flex flex-col items-center gap-2">
-                <img
-                  src="/avatars/player_female_sword_magic.png"
-                  alt="Sophia"
-                  className="h-20 md:h-24 lg:h-28 w-auto"
-                />
-                <ScoreDisplay score={gameState.players[1].score} />
-              </div>
-            </div>
+            <CollaborativeCharacters gameState={gameState} />
           )}
         </div>
       </div>
