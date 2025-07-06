@@ -51,4 +51,5 @@ export default [
   // Error pages (standalone)
   route('/403', 'routes/403.tsx'),
   route('/404', 'routes/404.tsx'),
+  route('/goodbye', 'routes/goodbye.tsx'),
 ] satisfies RouteConfig;

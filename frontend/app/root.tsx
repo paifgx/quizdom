@@ -8,6 +8,7 @@ import {
   ScrollRestoration,
   type LinksFunction,
 } from 'react-router';
+import { Toaster } from 'react-hot-toast';
 
 import { AuthProvider } from './contexts/auth';
 import { BackgroundProvider } from './contexts/background';
@@ -57,6 +58,29 @@ export default function App() {
     <AuthProvider>
       <BackgroundProvider>
         <Outlet />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#1F2937',
+              color: '#F3F4F6',
+              border: '1px solid #374151',
+            },
+            success: {
+              iconTheme: {
+                primary: '#FCC822',
+                secondary: '#061421',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#DC2626',
+                secondary: '#FFF',
+              },
+            },
+          }}
+        />
       </BackgroundProvider>
     </AuthProvider>
   );

@@ -20,7 +20,8 @@ from app.core.security import (
 )
 from app.db.models import Role, User, UserRoles
 from app.db.session import get_session
-from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse
+from app.schemas.auth import TokenResponse, UserRegisterRequest, UserResponse, UserProfileResponse, UserProfileUpdate
+from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
@@ -36,6 +37,7 @@ async def get_current_user(
 
     Validates the JWT token and returns the corresponding user.
     Used as a dependency for protected endpoints.
+    Checks if user account has been soft-deleted.
 
     Args:
         token: JWT token from Authorization header
@@ -45,7 +47,7 @@ async def get_current_user(
         User: The authenticated user
 
     Raises:
-        HTTPException: When token is invalid or user not found
+        HTTPException: When token is invalid, user not found, or account is deleted
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,6 +64,14 @@ async def get_current_user(
 
     if user is None:
         raise credentials_exception
+
+    # Check if user account has been soft-deleted
+    if user.deleted_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account wurde gelöscht",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     return user
 
@@ -146,7 +156,8 @@ def register_user(
     Raises:
         HTTPException: When registration fails
     """
-    log_operation(app_logger, "user_registration_attempt", email=user_data.email)
+    log_operation(app_logger, "user_registration_attempt",
+                  email=user_data.email)
 
     # WHY: Check for existing user to prevent duplicates
     existing_user = get_user_by_email(session, user_data.email)
@@ -197,6 +208,7 @@ def login_user(
 
     Validates credentials and returns a JWT token with user data.
     Uses OAuth2 password flow for compatibility with frontend.
+    Prevents login for soft-deleted accounts.
 
     Args:
         form_data: OAuth2 form data with username and password
@@ -206,7 +218,7 @@ def login_user(
         TokenResponse: Access token and user information
 
     Raises:
-        HTTPException: When authentication fails
+        HTTPException: When authentication fails or account is deleted
     """
     # WHY: OAuth2 form uses 'username' field for email
     user = get_user_by_email(session, form_data.username)
@@ -221,6 +233,17 @@ def login_user(
             },
         )
 
+    # Check if account has been deleted
+    if user.deleted_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account wurde gelöscht",
+            headers={
+                "WWW-Authenticate": "Bearer",
+                "X-Error-Code": "account_deleted",
+            },
+        )
+
     access_token = create_access_token(data={"sub": user.email})
 
     user_response = get_user_with_role(session, user)
@@ -232,14 +255,14 @@ def login_user(
     )
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserProfileResponse)
 def get_current_user_info(
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
-) -> UserResponse:
-    """Get current user information.
+) -> UserProfileResponse:
+    """Get current user profile information.
 
-    Returns authenticated user details for profile display.
+    Returns complete user profile with stats for display.
     Requires valid JWT token in Authorization header.
 
     Args:
@@ -247,6 +270,70 @@ def get_current_user_info(
         session: Database session dependency
 
     Returns:
-        UserResponse: User data with role information
+        UserProfileResponse: Complete user profile with stats
     """
-    return get_user_with_role(session, current_user)
+    service = AuthService(session)
+    return service.get_user_profile(current_user)
+
+
+@router.put("/me", response_model=UserProfileResponse)
+def update_current_user_profile(
+    update_data: UserProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> UserProfileResponse:
+    """Update current user profile.
+
+    Updates profile with whitelisted fields: nickname, avatar_url, bio.
+    Validates nickname uniqueness if provided.
+
+    Args:
+        update_data: Profile update data
+        current_user: Authenticated user from token
+        session: Database session dependency
+
+    Returns:
+        UserProfileResponse: Updated user profile with stats
+
+    Raises:
+        HTTPException 409: When nickname is already taken
+        HTTPException 400: When validation fails
+    """
+    if current_user.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Benutzer-ID fehlt",
+        )
+
+    service = AuthService(session)
+    return service.update_user_profile(current_user.id, update_data)
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_current_user_account(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> None:
+    """Soft delete current user account.
+
+    Marks account as deleted and revokes all refresh tokens.
+    User will be immediately logged out across all sessions.
+
+    Args:
+        current_user: Authenticated user from token
+        session: Database session dependency
+
+    Returns:
+        None (204 No Content)
+    """
+    if current_user.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Benutzer-ID fehlt",
+        )
+
+    service = AuthService(session)
+    service.soft_delete_user(current_user.id)
+
+    # TODO: Broadcast logout via WebSocket
+    # TODO: Clear Redis cache if exists
