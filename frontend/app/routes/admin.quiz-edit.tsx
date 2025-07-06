@@ -13,6 +13,7 @@ import type {
   QuizDifficulty,
   QuizSettings,
   CreateQuizBatchPayload,
+  QuizStatus,
 } from '../types/quiz';
 import { getDifficultyName } from '../utils/difficulty';
 
@@ -36,6 +37,7 @@ export default function AdminQuizEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [quizStatus, setQuizStatus] = useState<QuizStatus | null>(null);
   const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
 
@@ -123,6 +125,7 @@ export default function AdminQuizEditPage() {
 
         setSettings(quizData.settings);
         setSelectedQuestions(quizData.questions.map(q => q.id));
+        setQuizStatus(quizData.status);
       }
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -533,6 +536,35 @@ export default function AdminQuizEditPage() {
     }
   };
 
+  const handleStatusChange = async (newStatus: QuizStatus) => {
+    if (!quizId || isNewQuiz) return;
+
+    try {
+      setSaving(true);
+      setError(null);
+      let updatedQuiz;
+
+      if (newStatus === 'published') {
+        updatedQuiz = await quizAdminService.publishQuiz(quizId);
+      } else if (newStatus === 'archived') {
+        updatedQuiz = await quizAdminService.archiveQuiz(quizId);
+      } else if (newStatus === 'draft') {
+        updatedQuiz = await quizAdminService.reactivateQuiz(quizId);
+      }
+
+      if (updatedQuiz) {
+        setQuizStatus(updatedQuiz.status);
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      setError(
+        'Fehler beim Aktualisieren des Status. Bitte versuchen Sie es erneut.'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <ProtectedRoute requireAdmin>
@@ -554,8 +586,8 @@ export default function AdminQuizEditPage() {
     <ProtectedRoute requireAdmin>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/admin/quizzes')}
               className="p-2 text-gray-400 hover:text-[#FCC822] transition-colors duration-200"
@@ -572,6 +604,47 @@ export default function AdminQuizEditPage() {
                   : 'Bearbeiten Sie die Quiz-Einstellungen und Fragen.'}
               </p>
             </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            {!isNewQuiz && quizStatus === 'draft' && (
+              <button
+                onClick={() => handleStatusChange('published')}
+                disabled={saving}
+                className="btn-secondary px-4 py-2 rounded-lg font-medium"
+              >
+                Veröffentlichen
+              </button>
+            )}
+            {!isNewQuiz && quizStatus === 'published' && (
+              <button
+                onClick={() => handleStatusChange('archived')}
+                disabled={saving}
+                className="btn-secondary px-4 py-2 rounded-lg font-medium"
+              >
+                Archivieren
+              </button>
+            )}
+            {!isNewQuiz && quizStatus === 'archived' && (
+              <button
+                onClick={() => handleStatusChange('draft')}
+                disabled={saving}
+                className="btn-secondary px-4 py-2 rounded-lg font-medium"
+              >
+                Reaktivieren
+              </button>
+            )}
+            <button
+              type="submit"
+              form="quiz-form"
+              disabled={saving}
+              className="btn-gradient px-6 py-3 rounded-lg font-medium"
+            >
+              {saving
+                ? 'Speichern...'
+                : isNewQuiz
+                  ? 'Quiz erstellen'
+                  : 'Änderungen speichern'}
+            </button>
           </div>
         </div>
 
@@ -1258,7 +1331,7 @@ export default function AdminQuizEditPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-end items-center space-x-4">
             <button
               type="button"
               onClick={() => navigate('/admin/quizzes')}
@@ -1266,6 +1339,38 @@ export default function AdminQuizEditPage() {
             >
               Abbrechen
             </button>
+
+            {!isNewQuiz && quizStatus === 'draft' && (
+              <button
+                type="button"
+                onClick={() => handleStatusChange('published')}
+                disabled={saving}
+                className="btn-secondary px-6 py-3 rounded-lg font-medium"
+              >
+                Veröffentlichen
+              </button>
+            )}
+            {!isNewQuiz && quizStatus === 'published' && (
+              <button
+                type="button"
+                onClick={() => handleStatusChange('archived')}
+                disabled={saving}
+                className="btn-secondary px-6 py-3 rounded-lg font-medium"
+              >
+                Archivieren
+              </button>
+            )}
+            {!isNewQuiz && quizStatus === 'archived' && (
+              <button
+                type="button"
+                onClick={() => handleStatusChange('draft')}
+                disabled={saving}
+                className="btn-secondary px-6 py-3 rounded-lg font-medium"
+              >
+                Reaktivieren
+              </button>
+            )}
+
             <button
               type="submit"
               disabled={saving}

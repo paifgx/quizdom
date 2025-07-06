@@ -19,7 +19,6 @@ from sqlmodel import Session, col, select
 from starlette.responses import StreamingResponse
 
 from app.core.dependencies import require_admin
-from app.core.logging import app_logger, log_operation
 from app.core.security import get_password_hash
 from app.db.helpers import (
     build_user_list_response,
@@ -29,7 +28,6 @@ from app.db.helpers import (
 )
 from app.db.models import Role, SessionPlayers, Topic, User, UserRoles
 from app.db.session import get_session
-from app.routers.auth_router import get_current_user
 from app.schemas.quiz_admin import (
     ImageUploadResponse,
     QuestionCreate,
@@ -414,10 +412,11 @@ async def delete_quiz_image(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.post("/quizzes/{quiz_id}/publish")
+@router.post("/quizzes/{quiz_id}/publish", response_model=QuizDetailResponse)
 async def publish_quiz(
     quiz_id: int,
     db: Session = Depends(get_session),
+    current_user: User = Depends(require_admin),
 ) -> dict[str, Any]:
     """Publish a quiz to make it available to users."""
     service = QuizAdminService(db)
@@ -427,15 +426,16 @@ async def publish_quiz(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
             )
-        return {"message": "Quiz erfolgreich veröffentlicht", "quiz_id": quiz_id}
+        return quiz
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.post("/quizzes/{quiz_id}/archive")
+@router.post("/quizzes/{quiz_id}/archive", response_model=QuizDetailResponse)
 async def archive_quiz(
     quiz_id: int,
     db: Session = Depends(get_session),
+    current_user: User = Depends(require_admin),
 ) -> dict[str, Any]:
     """Archive a quiz to make it unavailable to users."""
     service = QuizAdminService(db)
@@ -445,7 +445,26 @@ async def archive_quiz(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
             )
-        return {"message": "Quiz erfolgreich archiviert", "quiz_id": quiz_id}
+        return quiz
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post("/quizzes/{quiz_id}/reactivate", response_model=QuizDetailResponse)
+async def reactivate_quiz(
+    quiz_id: int,
+    db: Session = Depends(get_session),
+    current_user: User = Depends(require_admin),
+) -> dict[str, Any]:
+    """Reactivate an archived quiz back to draft status."""
+    service = QuizAdminService(db)
+    try:
+        quiz = service.reactivate_quiz(quiz_id)
+        if not quiz:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Quiz nicht gefunden"
+            )
+        return quiz
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -814,15 +833,82 @@ async def delete_user(
             status_code=status.HTTP_404_NOT_FOUND, detail="Benutzer nicht gefunden"
         )
 
-    # Delete user roles first
+    # Import all models we need to delete
+    from app.db.models import (
+        AuditLogs,
+        EmailTokens,
+        LeaderboardEntry,
+        RefreshToken,
+        SessionPlayers,
+        UserBadge,
+        UserQuestionStar,
+        UserRoles,
+        Wallet,
+    )
+
+    # Delete all related records first to avoid foreign key constraints
+    # Delete user roles
     user_roles = session.exec(
         select(UserRoles).where(UserRoles.user_id == user_id)
     ).all()
-
     for role in user_roles:
         session.delete(role)
 
-    # Delete the user
+    # Delete wallet
+    wallet = session.exec(select(Wallet).where(Wallet.user_id == user_id)).first()
+    if wallet:
+        session.delete(wallet)
+
+    # Delete refresh tokens
+    refresh_tokens = session.exec(
+        select(RefreshToken).where(RefreshToken.user_id == user_id)
+    ).all()
+    for token in refresh_tokens:
+        session.delete(token)
+
+    # Delete email tokens
+    email_tokens = session.exec(
+        select(EmailTokens).where(EmailTokens.user_id == user_id)
+    ).all()
+    for token in email_tokens:
+        session.delete(token)
+
+    # Delete audit logs
+    audit_logs = session.exec(
+        select(AuditLogs).where(AuditLogs.actor_id == user_id)
+    ).all()
+    for log in audit_logs:
+        session.delete(log)
+
+    # Delete session players
+    session_players = session.exec(
+        select(SessionPlayers).where(SessionPlayers.user_id == user_id)
+    ).all()
+    for player in session_players:
+        session.delete(player)
+
+    # Delete user question stars
+    question_stars = session.exec(
+        select(UserQuestionStar).where(UserQuestionStar.user_id == user_id)
+    ).all()
+    for star in question_stars:
+        session.delete(star)
+
+    # Delete user badges
+    user_badges = session.exec(
+        select(UserBadge).where(UserBadge.user_id == user_id)
+    ).all()
+    for badge in user_badges:
+        session.delete(badge)
+
+    # Delete leaderboard entries
+    leaderboard_entries = session.exec(
+        select(LeaderboardEntry).where(LeaderboardEntry.user_id == user_id)
+    ).all()
+    for entry in leaderboard_entries:
+        session.delete(entry)
+
+    # Finally, delete the user
     session.delete(user)
     session.commit()
 

@@ -270,6 +270,9 @@ class QuizAdminService:
                 "difficulty": quiz.difficulty,
                 "time_limit_minutes": quiz.time_limit_minutes,
                 "created_at": quiz.created_at,
+                "status": quiz.status,
+                "published_at": quiz.published_at,
+                "play_count": quiz.play_count,
                 "topic": topic,
                 "question_count": question_count,
                 "has_image": quiz.image_data is not None,
@@ -328,6 +331,9 @@ class QuizAdminService:
             "difficulty": quiz.difficulty,
             "time_limit_minutes": quiz.time_limit_minutes,
             "created_at": quiz.created_at,
+            "status": quiz.status,
+            "published_at": quiz.published_at,
+            "play_count": quiz.play_count,
             "topic": topic,
             "questions": question_responses,
             "question_count": len(question_responses),
@@ -551,6 +557,21 @@ class QuizAdminService:
         from app.db.models import QuizStatus
 
         quiz.status = QuizStatus.ARCHIVED
+
+        self.db.commit()
+        self.db.refresh(quiz)
+        return self.get_quiz(quiz_id)
+
+    def reactivate_quiz(self, quiz_id: int) -> Optional[dict[str, Any]]:
+        """Reactivate an archived quiz back to draft status."""
+        quiz = self.db.get(Quiz, quiz_id)
+        if not quiz:
+            return None
+
+        from app.db.models import QuizStatus
+
+        quiz.status = QuizStatus.DRAFT
+        quiz.published_at = None  # Clear the publication date
 
         self.db.commit()
         self.db.refresh(quiz)

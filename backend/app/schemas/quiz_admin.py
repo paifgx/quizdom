@@ -5,7 +5,7 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.db.models import Difficulty
+from app.db.models import Difficulty, QuizStatus
 
 # Allowed difficulty aliases mapping (lowercase) to Difficulty enum
 _DIFFICULTY_ALIAS: dict[str, Difficulty] = {
@@ -178,6 +178,9 @@ class QuizResponse(QuizBase):
     created_at: datetime
     topic: TopicResponse
     question_count: int
+    status: QuizStatus
+    published_at: Optional[datetime] = None
+    play_count: int
     has_image: bool = False  # Indicates if quiz has an image
     model_config = ConfigDict(from_attributes=True)
 

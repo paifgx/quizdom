@@ -18,9 +18,18 @@ export function meta() {
 
 // Validation schema
 const profileSchema = z.object({
-  nickname: z.string().min(3, translate('profile.errors.nicknameMin')).max(50, translate('profile.errors.nicknameMax')).optional().or(z.literal('')),
+  nickname: z
+    .string()
+    .min(3, translate('profile.errors.nicknameMin'))
+    .max(50, translate('profile.errors.nicknameMax'))
+    .optional()
+    .or(z.literal('')),
   avatar_url: z.string().optional().or(z.literal('')),
-  bio: z.string().max(500, translate('profile.errors.bioMax')).optional().or(z.literal('')),
+  bio: z
+    .string()
+    .max(500, translate('profile.errors.bioMax'))
+    .optional()
+    .or(z.literal('')),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -61,7 +70,10 @@ export default function ProfilePage() {
       await updateProfile(updateData);
       toast.success(translate('profile.success.profileUpdated'));
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : translate('profile.errors.updateFailed');
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : translate('profile.errors.updateFailed');
 
       // Handle specific error codes
       if (errorMessage.includes('409')) {
@@ -82,7 +94,10 @@ export default function ProfilePage() {
       await deleteAccount();
       // No need to show success toast as user will be redirected
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : translate('profile.errors.deleteFailed');
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : translate('profile.errors.deleteFailed');
       toast.error(errorMessage);
       setIsDeleting(false);
     }
@@ -105,8 +120,14 @@ export default function ProfilePage() {
         <div className="bg-gray-800 bg-opacity-50 rounded-xl p-8 mb-8 text-center">
           <div className="mb-6">
             <img
-              src={watchedAvatar || user?.avatar || '/avatars/player_male_with_greataxe.png'}
-              alt={translate('profile.avatarAlt', { username: user?.nickname || user?.username || '' })}
+              src={
+                watchedAvatar ||
+                user?.avatar ||
+                '/avatars/player_male_with_greataxe.png'
+              }
+              alt={translate('profile.avatarAlt', {
+                username: user?.nickname || user?.username || '',
+              })}
               className="h-24 w-24 rounded-full mx-auto border-4 border-[#FCC822]"
             />
           </div>
@@ -127,7 +148,9 @@ export default function ProfilePage() {
             </div>
             <div className="w-px h-6 bg-gray-600"></div>
             <span className="text-gray-300">
-              {user?.role === 'admin' ? translate('profile.role.admin') : translate('profile.role.player')}
+              {user?.role === 'admin'
+                ? translate('profile.role.admin')
+                : translate('profile.role.player')}
             </span>
           </div>
         </div>
@@ -141,7 +164,10 @@ export default function ProfilePage() {
 
             {/* Nickname */}
             <div className="mb-6">
-              <label htmlFor="nickname" className="block text-gray-300 font-medium mb-2">
+              <label
+                htmlFor="nickname"
+                className="block text-gray-300 font-medium mb-2"
+              >
                 {translate('profile.fields.nickname')}
               </label>
               <input
@@ -152,7 +178,9 @@ export default function ProfilePage() {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent"
               />
               {errors.nickname && (
-                <p className="mt-2 text-red-400 text-sm">{errors.nickname.message}</p>
+                <p className="mt-2 text-red-400 text-sm">
+                  {errors.nickname.message}
+                </p>
               )}
             </div>
 
@@ -163,13 +191,18 @@ export default function ProfilePage() {
               </label>
               <AvatarPicker
                 value={watchedAvatar}
-                onChange={(avatarUrl) => setValue('avatar_url', avatarUrl, { shouldDirty: true })}
+                onChange={avatarUrl =>
+                  setValue('avatar_url', avatarUrl, { shouldDirty: true })
+                }
               />
             </div>
 
             {/* Bio */}
             <div className="mb-6">
-              <label htmlFor="bio" className="block text-gray-300 font-medium mb-2">
+              <label
+                htmlFor="bio"
+                className="block text-gray-300 font-medium mb-2"
+              >
                 {translate('profile.fields.bio')}
               </label>
               <textarea
@@ -180,10 +213,15 @@ export default function ProfilePage() {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FCC822] focus:border-transparent resize-none"
               />
               {errors.bio && (
-                <p className="mt-2 text-red-400 text-sm">{errors.bio.message}</p>
+                <p className="mt-2 text-red-400 text-sm">
+                  {errors.bio.message}
+                </p>
               )}
               <p className="mt-1 text-gray-400 text-sm">
-                {translate('profile.fields.bioHelper', { chars: String(watch('bio')?.length || 0), max: '500' })}
+                {translate('profile.fields.bioHelper', {
+                  chars: String(watch('bio')?.length || 0),
+                  max: '500',
+                })}
               </p>
             </div>
 
@@ -193,12 +231,12 @@ export default function ProfilePage() {
                 type="submit"
                 disabled={!isDirty || isUpdating}
                 className={`btn-gradient px-6 py-3 rounded-lg font-medium transition-all ${
-                  !isDirty || isUpdating
-                    ? 'opacity-50 cursor-not-allowed'
-                    : ''
+                  !isDirty || isUpdating ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
-                {isUpdating ? translate('profile.saving') : translate('profile.saveChanges')}
+                {isUpdating
+                  ? translate('profile.saving')
+                  : translate('profile.saveChanges')}
               </button>
             </div>
           </div>
@@ -226,7 +264,11 @@ export default function ProfilePage() {
           isOpen={isDeleteModalOpen}
           title={translate('profile.deleteModal.title')}
           message={translate('profile.deleteModal.message')}
-          confirmLabel={isDeleting ? translate('profile.deleteModal.deleting') : translate('profile.deleteModal.confirm')}
+          confirmLabel={
+            isDeleting
+              ? translate('profile.deleteModal.deleting')
+              : translate('profile.deleteModal.confirm')
+          }
           onConfirm={handleDeleteAccount}
           onCancel={() => setIsDeleteModalOpen(false)}
           confirmInput={{

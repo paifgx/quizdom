@@ -7,54 +7,31 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.core.security import create_access_token, get_password_hash
-from app.db.models import RefreshToken, Role, User, UserRoles, Wallet
+from app.db.models import RefreshToken, User
 from app.main import app
+from app.db.session import get_session
 
 
 @pytest.fixture
-def client():
-    """Create test client."""
-    return TestClient(app)
+def unauth_client(session: Session):
+    """Create test client without authentication override."""
+    # Save existing overrides
+    existing_overrides = app.dependency_overrides.copy()
 
+    # Clear all overrides
+    app.dependency_overrides.clear()
 
-@pytest.fixture
-def test_user(session: Session):
-    """Create a test user with authentication."""
-    user = User(
-        email="test@example.com",
-        password_hash=get_password_hash("password123"),
-        nickname="TestUser",
-        avatar_url="https://example.com/avatar.jpg",
-        bio="Test bio",
-        is_verified=True,
-        created_at=datetime.now(timezone.utc),
-    )
-    session.add(user)
-    session.commit()
-    session.refresh(user)
+    # Only set the session override
+    def get_session_override():
+        return session
 
-    # Create wallet
-    assert user.id is not None
-    wallet = Wallet(user_id=user.id, wisecoins=100)
-    session.add(wallet)
+    app.dependency_overrides[get_session] = get_session_override
 
-    # Create role
-    player_role = Role(name="player", description="Player")
-    session.add(player_role)
-    session.commit()
-    session.refresh(player_role)
+    with TestClient(app) as c:
+        yield c
 
-    # Assign role
-    assert player_role.id is not None
-    user_role = UserRoles(
-        user_id=user.id,
-        role_id=player_role.id,
-        granted_at=datetime.now(timezone.utc),
-    )
-    session.add(user_role)
-    session.commit()
-
-    return user
+    # Restore original overrides
+    app.dependency_overrides = existing_overrides
 
 
 @pytest.fixture
@@ -88,15 +65,19 @@ class TestGetProfile:
         assert data["stats"]["average_score"] == 0.0
         assert data["stats"]["total_score"] == 0
 
-    def test_get_profile_unauthenticated(self, client: TestClient):
+    def test_get_profile_unauthenticated(self, unauth_client: TestClient):
         """Test profile retrieval without authentication."""
-        response = client.get("/v1/auth/me")
+        response = unauth_client.get("/v1/auth/me")
 
         assert response.status_code == 401
         assert "detail" in response.json()
 
     def test_get_profile_deleted_user(
-        self, client: TestClient, test_user: User, auth_headers: dict, session: Session
+        self,
+        unauth_client: TestClient,
+        test_user: User,
+        auth_headers: dict,
+        session: Session,
     ):
         """Test profile retrieval for deleted user."""
         # Mark user as deleted
@@ -104,15 +85,15 @@ class TestGetProfile:
         session.add(test_user)
         session.commit()
 
-        response = client.get("/v1/auth/me", headers=auth_headers)
+        response = unauth_client.get("/v1/auth/me", headers=auth_headers)
 
         assert response.status_code == 401
         assert "Account wurde gelöscht" in response.json()["detail"]
 
-    def test_get_profile_invalid_token(self, client: TestClient):
+    def test_get_profile_invalid_token(self, unauth_client: TestClient):
         """Test profile retrieval with invalid token."""
         headers = {"Authorization": "Bearer invalid-token"}
-        response = client.get("/v1/auth/me", headers=headers)
+        response = unauth_client.get("/v1/auth/me", headers=headers)
 
         assert response.status_code == 401
 
@@ -130,8 +111,7 @@ class TestUpdateProfile:
             "bio": "New bio text",
         }
 
-        response = client.put(
-            "/v1/auth/me", json=update_data, headers=auth_headers)
+        response = client.put("/v1/auth/me", json=update_data, headers=auth_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -149,8 +129,7 @@ class TestUpdateProfile:
         """Test partial profile update."""
         update_data = {"nickname": "OnlyNickname"}
 
-        response = client.put(
-            "/v1/auth/me", json=update_data, headers=auth_headers)
+        response = client.put("/v1/auth/me", json=update_data, headers=auth_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -174,24 +153,27 @@ class TestUpdateProfile:
 
         update_data = {"nickname": "TakenNickname"}
 
-        response = client.put(
-            "/v1/auth/me", json=update_data, headers=auth_headers)
+        response = client.put("/v1/auth/me", json=update_data, headers=auth_headers)
 
         assert response.status_code == 409
         assert "Nickname bereits vergeben" in response.json()["detail"]
         assert response.headers.get("X-Error-Code") == "nickname_taken"
         assert response.headers.get("X-Error-Field") == "nickname"
 
-    def test_update_profile_unauthenticated(self, client: TestClient):
+    def test_update_profile_unauthenticated(self, unauth_client: TestClient):
         """Test profile update without authentication."""
         update_data = {"nickname": "NewNick"}
 
-        response = client.put("/v1/auth/me", json=update_data)
+        response = unauth_client.put("/v1/auth/me", json=update_data)
 
         assert response.status_code == 401
 
     def test_update_profile_deleted_user(
-        self, client: TestClient, test_user: User, auth_headers: dict, session: Session
+        self,
+        unauth_client: TestClient,
+        test_user: User,
+        auth_headers: dict,
+        session: Session,
     ):
         """Test profile update for deleted user."""
         # Mark user as deleted
@@ -201,8 +183,9 @@ class TestUpdateProfile:
 
         update_data = {"nickname": "NewNick"}
 
-        response = client.put(
-            "/v1/auth/me", json=update_data, headers=auth_headers)
+        response = unauth_client.put(
+            "/v1/auth/me", json=update_data, headers=auth_headers
+        )
 
         assert response.status_code == 401
 
@@ -216,8 +199,7 @@ class TestUpdateProfile:
             "bio": None,
         }
 
-        response = client.put(
-            "/v1/auth/me", json=update_data, headers=auth_headers)
+        response = client.put("/v1/auth/me", json=update_data, headers=auth_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -232,7 +214,11 @@ class TestDeleteProfile:
     """Test DELETE /v1/auth/me endpoint."""
 
     def test_delete_profile_success(
-        self, client: TestClient, test_user: User, auth_headers: dict, session: Session
+        self,
+        unauth_client: TestClient,
+        test_user: User,
+        auth_headers: dict,
+        session: Session,
     ):
         """Test successful profile deletion."""
         # Add refresh tokens
@@ -253,7 +239,7 @@ class TestDeleteProfile:
         session.add(token2)
         session.commit()
 
-        response = client.delete("/v1/auth/me", headers=auth_headers)
+        response = unauth_client.delete("/v1/auth/me", headers=auth_headers)
 
         assert response.status_code == 204
         assert response.content == b""  # No content
@@ -269,17 +255,21 @@ class TestDeleteProfile:
         assert token2.revoked_at is not None
 
         # Verify subsequent GET returns 401
-        response = client.get("/v1/auth/me", headers=auth_headers)
+        response = unauth_client.get("/v1/auth/me", headers=auth_headers)
         assert response.status_code == 401
 
-    def test_delete_profile_unauthenticated(self, client: TestClient):
+    def test_delete_profile_unauthenticated(self, unauth_client: TestClient):
         """Test profile deletion without authentication."""
-        response = client.delete("/v1/auth/me")
+        response = unauth_client.delete("/v1/auth/me")
 
         assert response.status_code == 401
 
     def test_delete_profile_already_deleted(
-        self, client: TestClient, test_user: User, auth_headers: dict, session: Session
+        self,
+        unauth_client: TestClient,
+        test_user: User,
+        auth_headers: dict,
+        session: Session,
     ):
         """Test deletion of already deleted profile."""
         # Mark user as deleted
@@ -287,16 +277,20 @@ class TestDeleteProfile:
         session.add(test_user)
         session.commit()
 
-        response = client.delete("/v1/auth/me", headers=auth_headers)
+        response = unauth_client.delete("/v1/auth/me", headers=auth_headers)
 
         assert response.status_code == 401
 
     def test_delete_profile_subsequent_login_fails(
-        self, client: TestClient, test_user: User, auth_headers: dict, session: Session
+        self,
+        unauth_client: TestClient,
+        test_user: User,
+        auth_headers: dict,
+        session: Session,
     ):
         """Test that login fails after account deletion."""
         # Delete the account
-        response = client.delete("/v1/auth/me", headers=auth_headers)
+        response = unauth_client.delete("/v1/auth/me", headers=auth_headers)
         assert response.status_code == 204
 
         # Try to login
@@ -305,7 +299,7 @@ class TestDeleteProfile:
             "password": "password123",
         }
 
-        response = client.post(
+        response = unauth_client.post(
             "/v1/auth/login",
             data=login_data,
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -319,26 +313,28 @@ class TestEndToEndFlow:
     """Test complete user profile flow."""
 
     def test_complete_profile_flow(
-        self, client: TestClient, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        unauth_client: TestClient,
+        test_user: User,
+        auth_headers: dict,
     ):
         """Test complete flow: get -> update -> delete."""
         # 1. Get initial profile
         response = client.get("/v1/auth/me", headers=auth_headers)
         assert response.status_code == 200
-        initial_data = response.json()
 
         # 2. Update profile
         update_data = {
-            "nickname": "UpdatedUser",
+            "nickname": "UpdatedNickname",
             "avatar_url": "https://example.com/updated.jpg",
             "bio": "Updated bio",
         }
-        response = client.put(
-            "/v1/auth/me", json=update_data, headers=auth_headers)
+        response = client.put("/v1/auth/me", json=update_data, headers=auth_headers)
         assert response.status_code == 200
         updated_data = response.json()
 
-        assert updated_data["nickname"] == "UpdatedUser"
+        assert updated_data["nickname"] == "UpdatedNickname"
         assert updated_data["avatar_url"] == "https://example.com/updated.jpg"
         assert updated_data["bio"] == "Updated bio"
 
@@ -348,9 +344,9 @@ class TestEndToEndFlow:
         assert response.json() == updated_data
 
         # 4. Delete profile
-        response = client.delete("/v1/auth/me", headers=auth_headers)
+        response = unauth_client.delete("/v1/auth/me", headers=auth_headers)
         assert response.status_code == 204
 
         # 5. Verify deletion
-        response = client.get("/v1/auth/me", headers=auth_headers)
+        response = unauth_client.get("/v1/auth/me", headers=auth_headers)
         assert response.status_code == 401

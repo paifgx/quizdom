@@ -50,7 +50,9 @@ describe('ConfirmModal', () => {
 
   it('should call onCancel when clicking outside modal', async () => {
     const onCancel = vi.fn();
-    const { container } = render(<ConfirmModal {...defaultProps} onCancel={onCancel} />);
+    const { container } = render(
+      <ConfirmModal {...defaultProps} onCancel={onCancel} />
+    );
 
     const backdrop = container.querySelector('.fixed.inset-0');
     if (backdrop) {
@@ -148,7 +150,9 @@ describe('AvatarPicker', () => {
     await userEvent.click(avatarButtons[1]); // Click second avatar
 
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith('/avatars/player_female_with_sword.png');
+    expect(onChange).toHaveBeenCalledWith(
+      '/avatars/player_female_with_sword.png'
+    );
   });
 
   it('should apply custom className', () => {
@@ -165,7 +169,10 @@ describe('AvatarPicker', () => {
 
     const avatarButtons = screen.getAllByRole('button');
     avatarButtons.forEach((button, index) => {
-      expect(button).toHaveAttribute('aria-label', `Select avatar ${index + 1}`);
+      expect(button).toHaveAttribute(
+        'aria-label',
+        `Select avatar ${index + 1}`
+      );
     });
   });
 });

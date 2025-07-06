@@ -88,7 +88,9 @@ describe('AuthService', () => {
         nickname: 'ExistingNickname',
       };
 
-      vi.mocked(apiClient.put).mockRejectedValue(new Error('HTTP 409: Conflict'));
+      vi.mocked(apiClient.put).mockRejectedValue(
+        new Error('HTTP 409: Conflict')
+      );
 
       await expect(authService.updateProfile(updateData)).rejects.toThrow();
       expect(localStorageMock.setItem).not.toHaveBeenCalled();
@@ -99,7 +101,9 @@ describe('AuthService', () => {
         nickname: 'NewNickname',
       };
 
-      vi.mocked(apiClient.put).mockRejectedValue(new TypeError('Failed to fetch'));
+      vi.mocked(apiClient.put).mockRejectedValue(
+        new TypeError('Failed to fetch')
+      );
 
       await expect(authService.updateProfile(updateData)).rejects.toThrow(
         'Network error: Could not connect to authentication server'
@@ -115,25 +119,33 @@ describe('AuthService', () => {
     });
 
     it('should delete account and logout successfully', async () => {
-      vi.mocked(apiClient.delete).mockResolvedValue({ message: 'Account deleted' });
+      vi.mocked(apiClient.delete).mockResolvedValue({
+        message: 'Account deleted',
+      });
 
       await authService.deleteAccount();
 
       expect(apiClient.delete).toHaveBeenCalledWith('/v1/auth/me', {
         headers: { Authorization: `Bearer ${mockToken}` },
       });
-      expect(sessionStorageMock.removeItem).toHaveBeenCalledWith('quizdom_access_token');
+      expect(sessionStorageMock.removeItem).toHaveBeenCalledWith(
+        'quizdom_access_token'
+      );
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('quizdom_user');
     });
 
     it('should handle delete account errors', async () => {
-      vi.mocked(apiClient.delete).mockRejectedValue(new Error('HTTP 401: Unauthorized'));
+      vi.mocked(apiClient.delete).mockRejectedValue(
+        new Error('HTTP 401: Unauthorized')
+      );
 
       await expect(authService.deleteAccount()).rejects.toThrow();
     });
 
     it('should handle network errors during account deletion', async () => {
-      vi.mocked(apiClient.delete).mockRejectedValue(new TypeError('Failed to fetch'));
+      vi.mocked(apiClient.delete).mockRejectedValue(
+        new TypeError('Failed to fetch')
+      );
 
       await expect(authService.deleteAccount()).rejects.toThrow(
         'Network error: Could not connect to authentication server'

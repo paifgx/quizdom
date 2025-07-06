@@ -48,7 +48,8 @@ def require_admin(
             detail="Administrator-Zugriff erforderlich",
             headers={
                 "X-Error-Code": "admin_required",
-                "X-Error-Hint": "Sie benötigen Administrator-Rechte für diese Operation",
+                # TODO: Investigate unicode issue in test client headers
+                "X-Error-Hint": "Sie benoetigen Administrator-Rechte fuer diese Operation",
             },
         )
 

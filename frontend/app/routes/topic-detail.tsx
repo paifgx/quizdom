@@ -42,10 +42,15 @@ export function meta() {
 export default function TopicDetailPage() {
   const { topicId } = useParams();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const { topic, toggleFavorite, handleBack, navigateToGameModes } =
-    useTopicDetail({ topicId });
+  const {
+    topic,
+    isLoading,
+    error,
+    toggleFavorite,
+    handleBack,
+    navigateToGameModes,
+  } = useTopicDetail({ topicId });
 
   // Load achievements data
   useEffect(() => {
@@ -55,8 +60,6 @@ export default function TopicDetailPage() {
         setAchievements(achievementsData);
       } catch {
         // Error intentionally ignored
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -78,10 +81,39 @@ export default function TopicDetailPage() {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <ProtectedRoute>
         <TopicDetailSkeleton />
+      </ProtectedRoute>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <div className="text-center text-white py-8">
+          <h1 className="text-2xl font-bold mb-4">
+            Fehler beim Laden des Themas
+          </h1>
+          <p className="text-gray-300">
+            Das Thema konnte nicht geladen werden. Bitte versuchen Sie es später
+            erneut.
+          </p>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (!topic) {
+    return (
+      <ProtectedRoute>
+        <div className="text-center text-white py-8">
+          <h1 className="text-2xl font-bold mb-4">Thema nicht gefunden</h1>
+          <p className="text-gray-300">
+            Das angeforderte Thema konnte nicht gefunden werden.
+          </p>
+        </div>
       </ProtectedRoute>
     );
   }

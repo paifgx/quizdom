@@ -24,6 +24,7 @@ install-frontend: ## Install frontend dependencies
 install-backend: ## Install backend dependencies
 	@echo "Installing backend dependencies..."
 	cd backend && pip install -r requirements.txt
+	cd backend && pip install -e ".[dev]"
 
 # ======================
 # DEVELOPMENT
@@ -65,13 +66,13 @@ test-frontend-coverage: ## Run frontend tests with coverage
 
 test-backend: ## Run backend tests
 	@echo "Running backend tests..."
-	cd backend && pytest
+	@bash -c "source backend && cd backend && pytest"
 
 test-backend-verbose: ## Run backend tests with verbose output
-	cd backend && pytest -v
+	@bash -c "source backend && cd backend && pytest -v"
 
 test-backend-coverage: ## Run backend tests with coverage
-	cd backend && pytest --cov=app --cov-report=html --cov-report=term
+	@bash -c "source backend && cd backend && pytest --cov=app --cov-report=html --cov-report=term"
 
 # ======================
 # CODE QUALITY
@@ -88,7 +89,7 @@ lint-frontend-fix: ## Fix frontend linting issues
 
 lint-backend: ## Run backend linting
 	@echo "Linting backend..."
-	cd backend && flake8 .
+	cd backend && python -m ruff check .
 
 format: format-frontend format-backend ## Format code for both frontend and backend
 
@@ -101,12 +102,11 @@ format-frontend-check: ## Check frontend code formatting
 
 format-backend: ## Format backend code
 	@echo "Formatting backend code..."
-	cd backend && black .
-	cd backend && isort .
+	cd backend && python -m ruff format .
 
 format-backend-check: ## Check backend code formatting
-	cd backend && black --check .
-	cd backend && isort --check-only .
+	cd backend && python -m ruff check .
+	cd backend && python -m ruff format --check .
 
 typecheck: ## Run TypeScript type checking
 	@echo "Running TypeScript type checking..."

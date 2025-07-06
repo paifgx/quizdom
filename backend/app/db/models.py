@@ -131,8 +131,7 @@ class AuditLogs(SQLModel, table=True):
     actor_id: int = Field(foreign_key="user.id", index=True)
     target_id: Optional[int] = None  # ID of the affected entity
     action: str  # e.g., "user.create", "quiz.delete", etc.
-    meta: Optional[dict[str, Any]] = Field(
-        default=None, sa_column=Column(JSON))
+    meta: Optional[dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -163,8 +162,7 @@ class GameSession(SQLModel, table=True):
     # Track source of questions
     quiz_id: Optional[int] = Field(default=None, foreign_key="quiz.id")
     topic_id: Optional[int] = Field(default=None, foreign_key="topic.id")
-    question_ids: Optional[list[int]] = Field(
-        default=None, sa_column=Column(JSON))
+    question_ids: Optional[list[int]] = Field(default=None, sa_column=Column(JSON))
     current_question_index: int = Field(default=0)
     started_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None

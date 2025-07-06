@@ -12,7 +12,11 @@ export interface AvatarPickerProps {
  * Displays a grid of available avatars for user selection.
  * Highlights the currently selected avatar.
  */
-export function AvatarPicker({ value, onChange, className = '' }: AvatarPickerProps) {
+export function AvatarPicker({
+  value,
+  onChange,
+  className = '',
+}: AvatarPickerProps) {
   const availableAvatars = [
     '/avatars/player_male_with_greataxe.png',
     '/avatars/player_female_with_sword.png',

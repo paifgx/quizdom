@@ -2,9 +2,8 @@
 
 from datetime import datetime
 from typing import Optional
-from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, HttpUrl
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserRegisterRequest(BaseModel):
@@ -17,8 +16,7 @@ class UserRegisterRequest(BaseModel):
 class UserStats(BaseModel):
     """User statistics for profile display."""
 
-    quizzes_completed: int = Field(
-        0, description="Number of quizzes completed")
+    quizzes_completed: int = Field(0, description="Number of quizzes completed")
     average_score: float = Field(0.0, description="Average quiz score")
     total_score: int = Field(0, description="Total score earned")
 
@@ -28,8 +26,7 @@ class UserResponse(BaseModel):
 
     id: int = Field(..., description="User ID")
     email: str = Field(..., description="User email address")
-    is_verified: bool = Field(...,
-                              description="Whether user email is verified")
+    is_verified: bool = Field(..., description="Whether user email is verified")
     role_id: Optional[int] = Field(None, description="User role ID")
     role_name: Optional[str] = Field(None, description="User role name")
 
@@ -69,5 +66,4 @@ class AuthErrorResponse(BaseModel):
 
     detail: str = Field(..., description="Error message")
     code: str = Field(..., description="Error code")
-    field: Optional[str] = Field(
-        None, description="Field that caused the error")
+    field: Optional[str] = Field(None, description="Field that caused the error")
