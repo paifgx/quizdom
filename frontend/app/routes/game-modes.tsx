@@ -93,6 +93,10 @@ export default function GameModesPage() {
 
   // Override mode selection to show quiz selection immediately
   const handleModeSelect = (modeId: GameModeId) => {
+    if (modeId === 'competitive') {
+      navigate('/duell');
+      return;
+    }
     setSelectedMode(modeId);
     setShowAllQuizzes(true);
   };
