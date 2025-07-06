@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ProtectedRoute } from '../components/auth/protected-route';
+import { StatusActionButtons } from '../components/admin';
 import { quizAdminService } from '../services/quiz-admin';
 import {
   questionAdminService,
@@ -606,33 +607,12 @@ export default function AdminQuizEditPage() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            {!isNewQuiz && quizStatus === 'draft' && (
-              <button
-                onClick={() => handleStatusChange('published')}
-                disabled={saving}
-                className="btn-secondary px-4 py-2 rounded-lg font-medium"
-              >
-                Veröffentlichen
-              </button>
-            )}
-            {!isNewQuiz && quizStatus === 'published' && (
-              <button
-                onClick={() => handleStatusChange('archived')}
-                disabled={saving}
-                className="btn-secondary px-4 py-2 rounded-lg font-medium"
-              >
-                Archivieren
-              </button>
-            )}
-            {!isNewQuiz && quizStatus === 'archived' && (
-              <button
-                onClick={() => handleStatusChange('draft')}
-                disabled={saving}
-                className="btn-secondary px-4 py-2 rounded-lg font-medium"
-              >
-                Reaktivieren
-              </button>
-            )}
+            <StatusActionButtons
+              isNewQuiz={isNewQuiz}
+              quizStatus={quizStatus}
+              saving={saving}
+              handleStatusChange={handleStatusChange}
+            />
             <button
               type="submit"
               form="quiz-form"
@@ -1340,36 +1320,12 @@ export default function AdminQuizEditPage() {
               Abbrechen
             </button>
 
-            {!isNewQuiz && quizStatus === 'draft' && (
-              <button
-                type="button"
-                onClick={() => handleStatusChange('published')}
-                disabled={saving}
-                className="btn-secondary px-6 py-3 rounded-lg font-medium"
-              >
-                Veröffentlichen
-              </button>
-            )}
-            {!isNewQuiz && quizStatus === 'published' && (
-              <button
-                type="button"
-                onClick={() => handleStatusChange('archived')}
-                disabled={saving}
-                className="btn-secondary px-6 py-3 rounded-lg font-medium"
-              >
-                Archivieren
-              </button>
-            )}
-            {!isNewQuiz && quizStatus === 'archived' && (
-              <button
-                type="button"
-                onClick={() => handleStatusChange('draft')}
-                disabled={saving}
-                className="btn-secondary px-6 py-3 rounded-lg font-medium"
-              >
-                Reaktivieren
-              </button>
-            )}
+            <StatusActionButtons
+              isNewQuiz={isNewQuiz}
+              quizStatus={quizStatus}
+              saving={saving}
+              handleStatusChange={handleStatusChange}
+            />
 
             <button
               type="submit"
