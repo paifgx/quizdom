@@ -23,16 +23,13 @@ def upgrade() -> None:
     # Add columns to track quiz or topic source
     op.add_column(
         "gamesession",
-        sa.Column("quiz_id", sa.Integer(),
-                  sa.ForeignKey("quiz.id"), nullable=True),
+        sa.Column("quiz_id", sa.Integer(), sa.ForeignKey("quiz.id"), nullable=True),
     )
     op.add_column(
         "gamesession",
-        sa.Column("topic_id", sa.Integer(),
-                  sa.ForeignKey("topic.id"), nullable=True),
+        sa.Column("topic_id", sa.Integer(), sa.ForeignKey("topic.id"), nullable=True),
     )
-    op.add_column("gamesession", sa.Column(
-        "question_ids", sa.JSON(), nullable=True))
+    op.add_column("gamesession", sa.Column("question_ids", sa.JSON(), nullable=True))
     op.add_column(
         "gamesession",
         sa.Column(
@@ -43,15 +40,12 @@ def upgrade() -> None:
     # Add quiz status fields
     op.add_column(
         "quiz",
-        sa.Column("status", sa.String(20),
-                  nullable=False, server_default="draft"),
+        sa.Column("status", sa.String(20), nullable=False, server_default="draft"),
     )
-    op.add_column("quiz", sa.Column(
-        "published_at", sa.DateTime(), nullable=True))
+    op.add_column("quiz", sa.Column("published_at", sa.DateTime(), nullable=True))
     op.add_column(
         "quiz",
-        sa.Column("play_count", sa.Integer(),
-                  nullable=False, server_default="0"),
+        sa.Column("play_count", sa.Integer(), nullable=False, server_default="0"),
     )
 
     # Create indexes
