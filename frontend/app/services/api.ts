@@ -21,6 +21,46 @@ export const healthService = {
 };
 
 /**
+ * Maps topic titles to their corresponding image files.
+ * Returns the appropriate image path based on the topic title.
+ */
+function getTopicImage(title: string): string {
+  const titleLower = title.toLowerCase();
+
+  // Map topic titles to image files
+  if (
+    titleLower.includes('physik') ||
+    titleLower.includes('physics') ||
+    (titleLower.includes('general') && titleLower.includes('knowledge'))
+  ) {
+    return '/topics/physics.png';
+  }
+  if (
+    titleLower.includes('it') &&
+    titleLower.includes('projekt') &&
+    titleLower.includes('management')
+  ) {
+    return '/topics/it-project-management.png';
+  }
+  if (
+    (titleLower.includes('einführung') && titleLower.includes('informatik')) ||
+    (titleLower.includes('introduction') && titleLower.includes('computer')) ||
+    titleLower.includes('science')
+  ) {
+    return '/topics/introduction-computer-science.png';
+  }
+  if (titleLower.includes('geschichte') || titleLower.includes('history')) {
+    return '/topics/history.png';
+  }
+  if (titleLower.includes('mathematik') || titleLower.includes('math')) {
+    return '/topics/Math.png';
+  }
+
+  // Default fallback to book image if no specific mapping found
+  return '/badges/badge_book_1.png';
+}
+
+/**
  * Topics service - handles topic-related API calls.
  */
 export const topicsService = {
@@ -52,7 +92,7 @@ export const topicsService = {
             category: 'General', // Topics don't have categories in our backend
             totalQuestions,
             completedQuestions: 0, // Not tracked in backend yet
-            image: '/badges/badge_book_1.png', // Use an actual image path instead of emoji
+            image: getTopicImage(topic.title), // Use topic-specific image
             stars: 0, // Not implemented in backend yet
             popularity: 0, // Not implemented in backend yet
             wisecoinReward: 10, // Default reward
@@ -72,7 +112,7 @@ export const topicsService = {
             category: 'General',
             totalQuestions: 0,
             completedQuestions: 0,
-            image: '/badges/badge_book_1.png',
+            image: getTopicImage(topic.title), // Use topic-specific image
             stars: 0,
             popularity: 0,
             wisecoinReward: 10,
@@ -111,7 +151,7 @@ export const topicsService = {
           category: 'General',
           totalQuestions,
           completedQuestions: 0,
-          image: '/badges/badge_book_1.png',
+          image: getTopicImage(response.title), // Use topic-specific image
           stars: 0,
           popularity: 0,
           wisecoinReward: 10,
@@ -131,7 +171,7 @@ export const topicsService = {
           category: 'General',
           totalQuestions: 0,
           completedQuestions: 0,
-          image: '/badges/badge_book_1.png',
+          image: getTopicImage(response.title), // Use topic-specific image
           stars: 0,
           popularity: 0,
           wisecoinReward: 10,

@@ -118,10 +118,16 @@ export default function HomePage() {
           topics={filteredFavoriteTopics}
           onToggleFavorite={toggleFavorite}
           isLoading={isTopicsLoading}
+          showEmptyState={false}
         />
 
         {!isTopicsLoading && favoriteTopics.length === 0 && (
           <div className="text-center py-8 sm:py-12">
+            <img
+              src="/badges/badge_book_1.png"
+              alt="No favorites"
+              className="h-16 w-16 mx-auto mb-4 opacity-50"
+            />
             <p className="text-gray-400 text-base sm:text-lg mb-2">
               {translate('topics.noFavoriteTopics') || 'Noch keine Favoriten'}
             </p>

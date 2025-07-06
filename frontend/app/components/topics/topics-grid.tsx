@@ -8,6 +8,7 @@ interface TopicsGridProps {
   topics: GameTopic[];
   onToggleFavorite: (topicId: string, event: MouseEvent) => void;
   isLoading?: boolean;
+  showEmptyState?: boolean;
 }
 
 /**
@@ -19,17 +20,19 @@ interface TopicsGridProps {
  * @param props.topics - Array of topics to display
  * @param props.onToggleFavorite - Callback for favorite toggle actions
  * @param props.isLoading - Whether topics are currently loading
+ * @param props.showEmptyState - Whether to show empty state when no topics are available
  */
 export function TopicsGrid({
   topics,
   onToggleFavorite,
   isLoading = false,
+  showEmptyState = true,
 }: TopicsGridProps) {
   if (isLoading) {
     return <TopicsPageGridSkeleton count={9} />;
   }
 
-  if (topics.length === 0) {
+  if (topics.length === 0 && showEmptyState) {
     return <EmptyTopicsState />;
   }
 
