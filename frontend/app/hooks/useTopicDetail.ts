@@ -155,7 +155,6 @@ export function useTopicDetail({
     const loadTopicData = async () => {
       try {
         if (!topicId) return;
-
         const topicData = await topicsService.getById(topicId);
         if (topicData) {
           // Load bookmarked questions from localStorage
@@ -169,21 +168,31 @@ export function useTopicDetail({
             bookmarkedQuestionsData,
             topicData.title
           );
-
-          // Load favorite status from localStorage
           const favoriteIds = JSON.parse(
             localStorage.getItem('favoriteTopicIds') || '[]'
           );
           const isFavorite = favoriteIds.includes(topicData.id);
-
-          // Convert GameTopic to TopicDetailData format
+          const completedKey = `completed_${topicData.id}`;
+          const completed = JSON.parse(
+            localStorage.getItem(completedKey) || '[]'
+          );
+          console.log(
+            '[TOPIC DETAIL] Fortschritt geladen:',
+            completedKey,
+            completed,
+            '(',
+            completed.length,
+            '/',
+            topicData.totalQuestions,
+            ')'
+          );
           const topicDetailData: TopicDetailData = {
             id: topicData.id,
             title: topicData.title,
             description: topicData.description,
             image: topicData.image,
             totalQuestions: topicData.totalQuestions,
-            completedQuestions: topicData.completedQuestions,
+            completedQuestions: completed.length,
             bookmarkedQuestions: bookmarkedQuestionIds.length,
             stars: topicData.stars,
             questions: bookmarkedQuestions, // Use bookmarked questions from localStorage
@@ -196,8 +205,10 @@ export function useTopicDetail({
         // Error intentionally ignored
       }
     };
-
     loadTopicData();
+    const onFocus = () => loadTopicData();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, [topicId]);
 
   /**

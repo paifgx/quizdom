@@ -65,10 +65,22 @@ export function useHomePage({
           );
 
           // Mark topics as favorite based on localStorage
-          const topicsWithFavorites = allTopics.map(topic => ({
-            ...topic,
-            isFavorite: favoriteIds.includes(topic.id),
-          }));
+          const topicsWithFavorites = allTopics.map(topic => {
+            const completedKey = `completed_${topic.id}`;
+            let completed: string[] = [];
+            try {
+              completed = JSON.parse(
+                localStorage.getItem(completedKey) || '[]'
+              );
+            } catch {
+              completed = [];
+            }
+            return {
+              ...topic,
+              isFavorite: favoriteIds.includes(topic.id),
+              completedQuestions: completed.length,
+            };
+          });
 
           const favorites = topicsWithFavorites.filter(
             topic => topic.isFavorite

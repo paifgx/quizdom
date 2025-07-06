@@ -357,6 +357,34 @@ export default function QuizPage() {
     }
   };
 
+  const handleAnswerSelect = (answerId: string) => {
+    setSelectedAnswer(answerId);
+    if (question && topicId) {
+      const completedKey = `completed_${topicId}`;
+      let completed: string[] = [];
+      try {
+        completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
+      } catch {
+        completed = [];
+      }
+      if (!completed.includes(question.id)) {
+        completed.push(question.id);
+        localStorage.setItem(completedKey, JSON.stringify(completed));
+        console.log(
+          '[QUIZ] Frage als beantwortet gespeichert:',
+          completedKey,
+          completed
+        );
+      } else {
+        console.log(
+          '[QUIZ] Frage war schon als beantwortet gespeichert:',
+          completedKey,
+          completed
+        );
+      }
+    }
+  };
+
   useEffect(() => {
     setSelectedAnswer(undefined);
 
@@ -522,7 +550,7 @@ export default function QuizPage() {
       <QuizContainer
         quizData={quizData}
         selectedAnswer={selectedAnswer}
-        onAnswerSelect={setSelectedAnswer}
+        onAnswerSelect={handleAnswerSelect}
         showCorrectAnswer={{
           correct: correctIndex,
           selected: selectedAnswer

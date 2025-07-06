@@ -16,6 +16,7 @@ import type { GameResult, PlayerState, Question } from '../../types/game';
 interface QuizGameContainerProps {
   mode: 'solo' | 'competitive' | 'collaborative';
   topicTitle: string;
+  topicId?: string;
   questions: Question[];
   players: PlayerState[];
   onGameEnd: (result: GameResult) => void;
@@ -25,6 +26,7 @@ interface QuizGameContainerProps {
 export function QuizGameContainer({
   mode,
   topicTitle,
+  topicId,
   questions,
   players,
   onGameEnd,
@@ -183,6 +185,37 @@ export function QuizGameContainer({
     setSelectedAnswer(answerIndex);
     setIsAnswerDisabled(true);
     handleAnswer(currentPlayerId, answerIndex, Date.now());
+
+    // Fortschritt im LocalStorage speichern
+    if (topicId && currentQuestion) {
+      const completedKey = `completed_${topicId}`;
+      let completed: string[] = [];
+      try {
+        completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
+      } catch {
+        completed = [];
+      }
+      if (!completed.includes(currentQuestion.id)) {
+        completed.push(currentQuestion.id);
+        localStorage.setItem(completedKey, JSON.stringify(completed));
+        console.log(
+          '[QUIZ-GAME] Frage als beantwortet gespeichert:',
+          completedKey,
+          completed
+        );
+      } else {
+        console.log(
+          '[QUIZ-GAME] Frage war schon als beantwortet gespeichert:',
+          completedKey,
+          completed
+        );
+      }
+    } else {
+      console.log(
+        '[QUIZ-GAME] Konnte topicId oder currentQuestion nicht bestimmen:',
+        { topicId, currentQuestion }
+      );
+    }
   };
 
   const toggleBookmark = () => {
