@@ -181,6 +181,13 @@ export function useGameWithBackend({
 
         // Just pass the basic information to handle local answer
         // The local game state will now use the updated correctAnswer
+        console.log('[useGameWithBackend] Calling handleLocalAnswer', {
+          playerId,
+          answerIndex,
+          answeredAt,
+          correctAnswerIndex,
+          currentQuestion
+        });
         handleLocalAnswer(playerId, answerIndex, answeredAt);
 
         // Track that we answered (handled by polling now)

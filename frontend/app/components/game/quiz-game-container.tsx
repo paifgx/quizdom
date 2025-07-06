@@ -19,6 +19,7 @@ interface QuizGameContainerProps {
   mode: 'solo' | 'competitive' | 'collaborative';
   topicTitle: string;
   topicId?: string;
+  quizId?: string;
   questions: Question[];
   players: PlayerState[];
   onGameEnd: (result: GameResult) => void;
@@ -33,6 +34,7 @@ export function QuizGameContainer({
   mode,
   topicTitle,
   topicId,
+  quizId,
   questions,
   players,
   onGameEnd,
@@ -121,45 +123,70 @@ export function QuizGameContainer({
   }, [topicTitle]);
 
   useEffect(() => {
+    console.log('[QuizGameContainer] Question index changed:', gameState.currentQuestionIndex);
     setSelectedAnswer(undefined);
     setIsAnswerDisabled(false);
   }, [gameState.currentQuestionIndex]);
 
   const handleAnswerSelect = (answerId: string) => {
-    if (isAnswerDisabled || gameState.status !== 'playing') return;
+    if (isAnswerDisabled || gameState.status !== 'playing') {
+      console.log('[QuizGameContainer] Answer disabled or game not playing', {
+        isAnswerDisabled,
+        gameStatus: gameState.status
+      });
+      return;
+    }
 
     const answerIndex = parseInt(answerId);
+    console.log('[QuizGameContainer] handleAnswerSelect called', {
+      answerId,
+      answerIndex,
+      currentPlayerId,
+      timestamp: Date.now()
+    });
+
     setSelectedAnswer(answerIndex);
     setIsAnswerDisabled(true);
+
+    // Call handleAnswer only once
     handleAnswer(currentPlayerId, answerIndex, Date.now());
 
-    if (topicId && currentQuestion) {
-      const completedKey = `completed_${topicId}`;
-      let completed: string[] = [];
-      try {
-        completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
-      } catch {
-        completed = [];
-      }
-      if (!completed.includes(currentQuestion.id)) {
-        completed.push(currentQuestion.id);
-        localStorage.setItem(completedKey, JSON.stringify(completed));
-        console.log(
-          '[QUIZ-GAME] Frage als beantwortet gespeichert:',
-          completedKey,
-          completed
-        );
+    if (currentQuestion) {
+      // Use topicId for topic games, quizId for quiz games
+      const gameId = topicId || quizId;
+      if (gameId) {
+        const completedKey = `completed_${gameId}`;
+        let completed: string[] = [];
+        try {
+          completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
+        } catch {
+          completed = [];
+        }
+        if (!completed.includes(currentQuestion.id)) {
+          completed.push(currentQuestion.id);
+          localStorage.setItem(completedKey, JSON.stringify(completed));
+          console.log(
+            '[QUIZ-GAME] Frage als beantwortet gespeichert:',
+            completedKey,
+            completed
+          );
+        } else {
+          console.log(
+            '[QUIZ-GAME] Frage war schon als beantwortet gespeichert:',
+            completedKey,
+            completed
+          );
+        }
       } else {
         console.log(
-          '[QUIZ-GAME] Frage war schon als beantwortet gespeichert:',
-          completedKey,
-          completed
+          '[QUIZ-GAME] Konnte topicId oder quizId nicht bestimmen:',
+          { topicId, quizId, currentQuestion }
         );
       }
     } else {
       console.log(
-        '[QUIZ-GAME] Konnte topicId oder currentQuestion nicht bestimmen:',
-        { topicId, currentQuestion }
+        '[QUIZ-GAME] currentQuestion ist nicht verfügbar:',
+        { topicId, quizId, currentQuestion }
       );
     }
   };
@@ -231,6 +258,12 @@ export function QuizGameContainer({
       />
     );
   }
+
+  console.log('[QuizGameContainer] Current question:', {
+    currentQuestionIndex: gameState.currentQuestionIndex,
+    currentQuestion,
+    hasQuestion: !!currentQuestion
+  });
 
   const quizData: QuizData | null = currentQuestion
     ? {
