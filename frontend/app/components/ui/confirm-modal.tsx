@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { translate } from '../../utils/translations';
 
 export interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
   message: string;
   confirmLabel: string;
+  cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
   confirmButtonClass?: string;
@@ -25,6 +27,7 @@ export function ConfirmModal({
   title,
   message,
   confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   confirmButtonClass = 'bg-red-600 hover:bg-red-700',
@@ -102,7 +105,7 @@ export function ConfirmModal({
             onClick={onCancel}
             className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
           >
-            Abbrechen
+            {cancelLabel ?? translate('common.cancel')}
           </button>
           <button
             ref={confirmButtonRef}

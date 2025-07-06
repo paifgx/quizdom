@@ -106,7 +106,7 @@ export default function ProfilePage() {
           <div className="mb-6">
             <img
               src={watchedAvatar || user?.avatar || '/avatars/player_male_with_greataxe.png'}
-              alt={user?.username}
+              alt={translate('profile.avatarAlt', { username: user?.nickname || user?.username || '' })}
               className="h-24 w-24 rounded-full mx-auto border-4 border-[#FCC822]"
             />
           </div>

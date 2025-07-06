@@ -111,15 +111,23 @@ describe('AvatarPicker', () => {
     onChange: vi.fn(),
   };
 
+  // Define the expected avatars to match the component's availableAvatars array
+  const expectedAvatars = [
+    '/avatars/player_male_with_greataxe.png',
+    '/avatars/player_female_with_sword.png',
+    '/avatars/ai_assistant_wizard.png',
+    '/avatars/player_male_with_bow.png',
+  ];
+
   it('should render all available avatars', () => {
     render(<AvatarPicker {...defaultProps} />);
 
     const avatarButtons = screen.getAllByRole('button');
-    expect(avatarButtons).toHaveLength(4);
+    expect(avatarButtons).toHaveLength(expectedAvatars.length);
 
     // Check that all avatar images are rendered
     const avatarImages = screen.getAllByRole('img');
-    expect(avatarImages).toHaveLength(4);
+    expect(avatarImages).toHaveLength(expectedAvatars.length);
   });
 
   it('should highlight the selected avatar', () => {
