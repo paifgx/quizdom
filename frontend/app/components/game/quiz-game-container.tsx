@@ -313,7 +313,7 @@ export function QuizGameContainer({
 
   return (
     <>
-      <div className="relative min-h-screen bg-gray-900 text-white overflow-hidden">
+      <div className="relative min-h-screen text-white overflow-hidden">
         <div className="h-full flex flex-col px-4 py-8 pb-40 md:pb-8 lg:max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -336,9 +336,16 @@ export function QuizGameContainer({
                   />
                 </svg>
               </button>
-              <h1 className="text-lg font-medium hidden md:block">
-                {topicTitle}
-              </h1>
+              <div className="flex flex-col">
+                <h1 className="text-lg font-medium hidden md:block">
+                  {topicTitle}
+                </h1>
+                <div className="text-sm text-[#FCC822] font-medium">
+                  {mode === 'solo' && 'Solo Mission'}
+                  {mode === 'competitive' && 'Duell'}
+                  {mode === 'collaborative' && 'Team Battle'}
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-white/60">ESC =</span>
