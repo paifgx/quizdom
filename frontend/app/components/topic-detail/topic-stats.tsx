@@ -16,13 +16,9 @@ import { getDifficultyName } from '../../utils/topics';
  */
 export function TopicStats({ topic }: TopicStatsProps) {
   return (
-    <div className="flex flex-col items-start lg:items-end space-y-2">
+    <div className="flex flex-col items-start lg:items-end space-y-4 w-full">
       <DifficultyStars stars={topic.stars} />
       <DifficultyText stars={topic.stars} />
-      <CompletionStatus
-        completed={topic.completedQuestions}
-        total={topic.totalQuestions}
-      />
       <WisecoinReward reward={topic.wisecoinReward} />
     </div>
   );
@@ -71,28 +67,6 @@ function DifficultyText({ stars }: DifficultyTextProps) {
   return (
     <div className="text-sm text-gray-400">
       Schwierigkeit: {getDifficultyName(stars)}
-    </div>
-  );
-}
-
-interface CompletionStatusProps {
-  /** Number of completed questions */
-  completed: number;
-  /** Total number of questions */
-  total: number;
-}
-
-/**
- * Completion status component displaying progress information.
- * Shows completed vs total questions count.
- *
- * @param props - Completion properties including counts
- * @returns JSX element for completion status
- */
-function CompletionStatus({ completed, total }: CompletionStatusProps) {
-  return (
-    <div className="text-sm text-gray-400">
-      {completed}/{total} Fragen
     </div>
   );
 }
