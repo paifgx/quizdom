@@ -60,6 +60,7 @@ export function useGameWithBackend({
     timeRemaining,
     startGame,
     handleAnswer: handleLocalAnswer,
+    updatePlayerStats,
   } = useGameState({
     mode,
     questions,
@@ -492,6 +493,9 @@ export function useGameWithBackend({
               hasAnswered: true, // Mark as answered since state changed
             };
 
+            // Update the game state with the new player stats
+            updatePlayerStats(frontendPlayerId, backendPlayer.score, backendPlayer.hearts);
+
             // Trigger heart loss callback if hearts decreased
             if (
               hasHeartsChanged &&
@@ -594,6 +598,7 @@ export function useGameWithBackend({
     onHeartLoss,
     handleLocalAnswer,
     updatePlayers,
+    updatePlayerStats,
   ]);
 
   return {
