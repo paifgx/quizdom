@@ -15,6 +15,102 @@ import { CollaborativeStats } from './collaborative-stats';
 import { CollaborativeCharacters } from './collaborative-characters';
 import { QuizContent } from './quiz-content';
 
+const getBookmarkedIdsKey = (topicTitle: string) => `bookmarked_${topicTitle}`;
+const getBookmarkedDataKey = (topicTitle: string) =>
+  `bookmarked_questions_data_${topicTitle}`;
+
+function useBookmarks(topicTitle: string, currentQuestion: Question | null) {
+  const [bookmarkedQuestionIds, setBookmarkedQuestionIds] = useState<
+    Set<string>
+  >(new Set());
+
+  useEffect(() => {
+    const key = getBookmarkedIdsKey(topicTitle);
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      try {
+        setBookmarkedQuestionIds(new Set(JSON.parse(stored)));
+      } catch (e) {
+        console.error('Failed to parse bookmarked questions:', e);
+        setBookmarkedQuestionIds(new Set());
+      }
+    }
+  }, [topicTitle]);
+
+  useEffect(() => {
+    const key = getBookmarkedIdsKey(topicTitle);
+    localStorage.setItem(
+      key,
+      JSON.stringify(Array.from(bookmarkedQuestionIds))
+    );
+  }, [bookmarkedQuestionIds, topicTitle]);
+
+  const toggleBookmark = () => {
+    if (!currentQuestion) {
+      return;
+    }
+
+    const questionId = currentQuestion.id;
+    const dataKey = getBookmarkedDataKey(topicTitle);
+    const isBookmarked = bookmarkedQuestionIds.has(questionId);
+
+    // Update the set of bookmarked IDs
+    setBookmarkedQuestionIds(prev => {
+      const newSet = new Set(prev);
+      if (isBookmarked) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
+
+    // Update the full bookmark data in localStorage
+    try {
+      const existingData = localStorage.getItem(dataKey);
+      const bookmarks = existingData ? JSON.parse(existingData) : {};
+      if (isBookmarked) {
+        delete bookmarks[questionId];
+      } else {
+        bookmarks[questionId] = {
+          ...currentQuestion,
+          topicTitle: topicTitle,
+          bookmarkedAt: new Date().toISOString(),
+        };
+      }
+      localStorage.setItem(dataKey, JSON.stringify(bookmarks));
+    } catch (e) {
+      console.error('Failed to update bookmark data:', e);
+    }
+  };
+
+  const isBookmarked = currentQuestion
+    ? bookmarkedQuestionIds.has(currentQuestion.id)
+    : false;
+
+  return { isBookmarked, toggleBookmark };
+}
+
+function useCompletedQuestions(gameId: string | undefined) {
+  const markAsCompleted = (question: Question) => {
+    if (!gameId) return;
+
+    const key = `completed_${gameId}`;
+    try {
+      const completedRaw = localStorage.getItem(key) || '[]';
+      const completed: string[] = JSON.parse(completedRaw);
+      if (!completed.includes(question.id)) {
+        completed.push(question.id);
+        localStorage.setItem(key, JSON.stringify(completed));
+      }
+    } catch (e) {
+      console.error('Failed to update completed questions:', e);
+    }
+  };
+
+  return { markAsCompleted };
+}
+
 interface QuizGameContainerProps {
   mode: 'solo' | 'competitive' | 'collaborative';
   topicTitle: string;
@@ -43,6 +139,8 @@ export function QuizGameContainer({
   const { sessionId } = useGameContext();
   const { playerDamageStates, onHeartLoss } = usePlayerDamage(players);
 
+  // Reloads the page to restart the game. This is a simple approach,
+  // but a better UX could be achieved by resetting state without a full reload.
   const handlePlayAgain = () => {
     window.location.reload();
   };
@@ -74,9 +172,13 @@ export function QuizGameContainer({
     undefined
   );
   const [isAnswerDisabled, setIsAnswerDisabled] = useState(false);
-  const [bookmarkedQuestions, setBookmarkedQuestions] = useState<Set<string>>(
-    new Set()
+
+  const gameId = topicId || quizId;
+  const { isBookmarked, toggleBookmark } = useBookmarks(
+    topicTitle,
+    currentQuestion
   );
+  const { markAsCompleted } = useCompletedQuestions(gameId);
 
   // In multiplayer modes, the backend determines which player is submitting based on auth token
   // We just need to pass any valid player ID for the frontend state management
@@ -116,138 +218,28 @@ export function QuizGameContainer({
   }, [gameState.status, gameResult]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(`bookmarked_${topicTitle}`);
-    if (stored) {
-      setBookmarkedQuestions(new Set(JSON.parse(stored)));
-    }
-  }, [topicTitle]);
-
-  useEffect(() => {
-    console.log(
-      '[QuizGameContainer] Question index changed:',
-      gameState.currentQuestionIndex
-    );
     setSelectedAnswer(undefined);
     setIsAnswerDisabled(false);
   }, [gameState.currentQuestionIndex]);
 
   const handleAnswerSelect = async (answerId: string) => {
     if (isAnswerDisabled || gameState.status !== 'playing') {
-      console.log('[QuizGameContainer] Answer disabled or game not playing', {
-        isAnswerDisabled,
-        gameStatus: gameState.status,
-      });
       return;
     }
 
     const answerIndex = parseInt(answerId);
-    console.log('[QuizGameContainer] handleAnswerSelect called', {
-      answerId,
-      answerIndex,
-      currentPlayerId,
-      timestamp: Date.now(),
-    });
-
     setSelectedAnswer(answerIndex);
     setIsAnswerDisabled(true);
 
-    // Call handleAnswer only once, warte auf Rückmeldung
     await handleAnswer(currentPlayerId, answerIndex, Date.now());
 
-    // result kann undefined sein, wenn handleAnswer keine Rückgabe hat
-    // Wir prüfen, ob die Antwort korrekt war
-    let isCorrect = false;
-    if (
-      currentQuestion &&
-      typeof currentQuestion.correctAnswer !== 'undefined'
-    ) {
-      isCorrect = answerIndex === currentQuestion.correctAnswer;
-    }
-
     if (currentQuestion) {
-      // Use topicId for topic games, quizId for quiz games
-      const gameId = topicId || quizId;
-      if (gameId) {
-        if (isCorrect) {
-          const completedKey = `completed_${gameId}`;
-          let completed: string[] = [];
-          try {
-            completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
-          } catch {
-            completed = [];
-          }
-          if (!completed.includes(currentQuestion.id)) {
-            completed.push(currentQuestion.id);
-            localStorage.setItem(completedKey, JSON.stringify(completed));
-            console.log(
-              '[QUIZ-GAME] Frage als korrekt beantwortet gespeichert:',
-              completedKey,
-              completed
-            );
-          } else {
-            console.log(
-              '[QUIZ-GAME] Frage war schon als korrekt beantwortet gespeichert:',
-              completedKey,
-              completed
-            );
-          }
-        } else {
-          console.log(
-            '[QUIZ-GAME] Antwort war falsch, Frage wird nicht als abgeschlossen gespeichert.'
-          );
-        }
-      } else {
-        console.log('[QUIZ-GAME] Konnte topicId oder quizId nicht bestimmen:', {
-          topicId,
-          quizId,
-          currentQuestion,
-        });
+      const isCorrect = answerIndex === currentQuestion.correctAnswer;
+      if (isCorrect) {
+        // Use topicId for topic games, quizId for quiz games
+        markAsCompleted(currentQuestion);
       }
-    } else {
-      console.log('[QUIZ-GAME] currentQuestion ist nicht verfügbar:', {
-        topicId,
-        quizId,
-        currentQuestion,
-      });
     }
-  };
-
-  const toggleBookmark = () => {
-    if (!currentQuestion) return;
-
-    const questionId = currentQuestion.id;
-    setBookmarkedQuestions(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(questionId)) {
-        newSet.delete(questionId);
-      } else {
-        newSet.add(questionId);
-      }
-      return newSet;
-    });
-
-    const bookmarkedQuestionsDataKey = `bookmarked_questions_data_${topicTitle}`;
-    const existingData = localStorage.getItem(bookmarkedQuestionsDataKey);
-    const existingQuestions = existingData ? JSON.parse(existingData) : {};
-
-    const isCurrentlyBookmarked = bookmarkedQuestions.has(questionId);
-
-    if (isCurrentlyBookmarked) {
-      delete existingQuestions[questionId];
-    } else {
-      existingQuestions[questionId] = {
-        id: currentQuestion.id,
-        text: currentQuestion.text,
-        answers: currentQuestion.answers,
-        topicTitle: topicTitle,
-        bookmarkedAt: new Date().toISOString(),
-      };
-    }
-
-    localStorage.setItem(
-      bookmarkedQuestionsDataKey,
-      JSON.stringify(existingQuestions)
-    );
   };
 
   useEffect(() => {
@@ -261,15 +253,6 @@ export function QuizGameContainer({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [onQuit]);
 
-  useEffect(() => {
-    if (bookmarkedQuestions.size > 0) {
-      localStorage.setItem(
-        `bookmarked_${topicTitle}`,
-        JSON.stringify(Array.from(bookmarkedQuestions))
-      );
-    }
-  }, [bookmarkedQuestions, topicTitle]);
-
   if (showResult && gameResult) {
     return (
       <GameResultScreen
@@ -280,12 +263,6 @@ export function QuizGameContainer({
     );
   }
 
-  console.log('[QuizGameContainer] Current question:', {
-    currentQuestionIndex: gameState.currentQuestionIndex,
-    currentQuestion,
-    hasQuestion: !!currentQuestion,
-  });
-
   const quizData: QuizData | null = currentQuestion
     ? {
         question: currentQuestion.text,
@@ -295,10 +272,6 @@ export function QuizGameContainer({
         })),
       }
     : null;
-
-  const isBookmarked = currentQuestion
-    ? bookmarkedQuestions.has(currentQuestion.id)
-    : false;
 
   if (!quizData) {
     return <div>Lade Quiz...</div>;
