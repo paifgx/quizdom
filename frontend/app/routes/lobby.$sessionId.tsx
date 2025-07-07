@@ -11,7 +11,12 @@ import { connect, WebSocketClient, ConnectionStatus } from '../services/ws';
 import { useAuthenticatedGame } from '../hooks/useAuthenticatedGame';
 import type { PlayerMeta } from '../services/game';
 import type { User } from '../services/auth';
-import type { AnyGameEvent, PlayerReadyEvent, SessionCountdownEvent, PlayerJoinedEvent } from '../services/ws';
+import type {
+  AnyGameEvent,
+  PlayerReadyEvent,
+  SessionCountdownEvent,
+  PlayerJoinedEvent,
+} from '../services/ws';
 
 export function meta() {
   return [
@@ -157,14 +162,16 @@ export default function LobbyPage() {
             const playerReadyEvent = event as PlayerReadyEvent;
             // Update player ready status
             if (playerReadyEvent.payload?.players) {
-              const updatedPlayers = playerReadyEvent.payload.players.map((p) => ({
-                id: p.id,
-                name: p.name,
-                score: p.score || 0,
-                hearts: p.hearts || 3,
-                isHost: p.is_host,
-                ready: p.ready || false,
-              }));
+              const updatedPlayers = playerReadyEvent.payload.players.map(
+                p => ({
+                  id: p.id,
+                  name: p.name,
+                  score: p.score || 0,
+                  hearts: p.hearts || 3,
+                  isHost: p.is_host,
+                  ready: p.ready || false,
+                })
+              );
               setPlayers(updatedPlayers);
 
               // Update current user ready status
@@ -181,14 +188,22 @@ export default function LobbyPage() {
           case 'session-countdown': {
             const countdownEvent = event as SessionCountdownEvent;
             // Start countdown overlay
-            if (countdownEvent.payload?.seconds && countdownEvent.payload?.start_at) {
+            if (
+              countdownEvent.payload?.seconds &&
+              countdownEvent.payload?.start_at
+            ) {
               setCountdownOverlay(true);
 
               // Calculate actual countdown based on server time
-              const serverStartTime = new Date(countdownEvent.payload.start_at).getTime();
+              const serverStartTime = new Date(
+                countdownEvent.payload.start_at
+              ).getTime();
               const now = Date.now();
               const elapsed = Math.max(0, (now - serverStartTime) / 1000);
-              const remaining = Math.max(0, countdownEvent.payload.seconds - elapsed);
+              const remaining = Math.max(
+                0,
+                countdownEvent.payload.seconds - elapsed
+              );
 
               // Start countdown
               let currentSeconds = Math.ceil(remaining);
@@ -212,9 +227,7 @@ export default function LobbyPage() {
             setCountdownOverlay(false);
             setSessionStatus('waiting');
             // Reset all players' ready status
-            setPlayers(prev =>
-              prev.map(p => ({ ...p, ready: false }))
-            );
+            setPlayers(prev => prev.map(p => ({ ...p, ready: false })));
             setCurrentUserReady(false);
             break;
 
@@ -231,7 +244,7 @@ export default function LobbyPage() {
             const playerJoinedEvent = event as PlayerJoinedEvent;
             // New player joined
             if (playerJoinedEvent.payload?.players) {
-              const players = playerJoinedEvent.payload.players.map((p) => ({
+              const players = playerJoinedEvent.payload.players.map(p => ({
                 id: p.id,
                 name: p.name,
                 score: p.score || 0,
