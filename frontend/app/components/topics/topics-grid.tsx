@@ -57,7 +57,7 @@ function EmptyTopicsState() {
   return (
     <div className="text-center py-12">
       <img
-        src="/badges/badge_book_1.png"
+        src="/topics/general.png"
         alt="No topics"
         className="h-16 w-16 mx-auto mb-4 opacity-50"
       />

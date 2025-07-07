@@ -35,6 +35,7 @@ The following environment variables can be configured:
 - `CORS_ALLOWED_ORIGINS`: Comma-separated list of allowed frontend origins for CORS (optional, defaults to localhost development URLs)
 
 Example for production:
+
 ```bash
 export CORS_ALLOWED_ORIGINS="https://your-frontend-domain.com,https://www.your-frontend-domain.com"
 ```

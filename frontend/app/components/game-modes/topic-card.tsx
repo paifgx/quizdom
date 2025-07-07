@@ -62,7 +62,7 @@ function TopicImage({ topic }: TopicImageProps) {
         alt={topic.title}
         className="w-full h-full object-cover"
         onError={e => {
-          e.currentTarget.src = '/badges/badge_book_1.png';
+          e.currentTarget.src = '/topics/general.png';
         }}
       />
 

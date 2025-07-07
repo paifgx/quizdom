@@ -137,8 +137,28 @@ interface BookmarkedQuestionData {
   correctAnswerId?: string;
 }
 
+function useCompletedQuestions(topicId: string | undefined) {
+  const markAsCompleted = (questionId: string) => {
+    if (!topicId) return;
+
+    const completedKey = `completed_${topicId}`;
+    try {
+      const completedRaw = localStorage.getItem(completedKey) || '[]';
+      const completed: string[] = JSON.parse(completedRaw);
+      if (!completed.includes(questionId)) {
+        completed.push(questionId);
+        localStorage.setItem(completedKey, JSON.stringify(completed));
+      }
+    } catch (e) {
+      console.error('Failed to update completed questions:', e);
+    }
+  };
+
+  return { markAsCompleted };
+}
+
 /**
- * Creates TopicQuestion objects from bookmarked question data
+ * Creates TopicQuestion objects from bookmarked question data.
  */
 function createTopicQuestionsFromBookmarks(
   bookmarkedQuestionIds: string[],
@@ -149,24 +169,13 @@ function createTopicQuestionsFromBookmarks(
     const questionData = bookmarkedQuestionsData[questionId];
 
     if (questionData) {
-      // Validate and convert answers to correct format
-      const validatedAnswers = questionData.answers.map((answer, index) => {
-        if (typeof answer === 'string') {
-          // Old format: answer is a string
-          return {
-            id: (index + 1).toString(),
-            text: answer,
-          };
-        } else {
-          // New format: answer is an object
-          return {
-            id: answer.id,
-            text: answer.text,
-          };
-        }
-      });
+      // Handles both old (string-based) and new (object-based) answer formats.
+      const validatedAnswers = questionData.answers.map((answer, i) =>
+        typeof answer === 'string'
+          ? { id: (i + 1).toString(), text: answer }
+          : { id: answer.id, text: answer.text }
+      );
 
-      // Use the actual question data
       return {
         id: questionData.id,
         number: index + 1,
@@ -178,30 +187,31 @@ function createTopicQuestionsFromBookmarks(
         isCompleted: false,
         difficulty: 2, // Default difficulty
       };
-    } else {
-      // Fallback for missing data
-      return {
-        id: questionId,
-        number: index + 1,
-        title: `Markierte Frage ${index + 1}`,
-        questionText: `Diese markierte Frage aus "${topicTitle}" konnte nicht geladen werden.`,
-        answers: [
-          { id: '1', text: 'Antwort A' },
-          { id: '2', text: 'Antwort B' },
-          { id: '3', text: 'Antwort C' },
-          { id: '4', text: 'Antwort D' },
-        ],
-        correctAnswerId: '1',
-        isBookmarked: true,
-        isCompleted: false,
-        difficulty: 2,
-      };
     }
+    // Fallback for missing data.
+    return {
+      id: questionId,
+      number: index + 1,
+      title: `Markierte Frage ${index + 1}`,
+      questionText: `Diese markierte Frage aus "${topicTitle}" konnte nicht geladen werden.`,
+      answers: [
+        { id: '1', text: 'Antwort A' },
+        { id: '2', text: 'Antwort B' },
+        { id: '3', text: 'Antwort C' },
+        { id: '4', text: 'Antwort D' },
+      ],
+      correctAnswerId: '1',
+      isBookmarked: true,
+      isCompleted: false,
+      difficulty: 2,
+    };
   });
 }
 
 /**
- * Finds bookmarked questions data by checking all possible topic titles
+ * Finds bookmarked questions data by checking all possible topic titles.
+ * @note This is inefficient as it scans all of localStorage. A better
+ * implementation would use a predictable key or a single entry for all bookmarks.
  */
 function findBookmarkedQuestionsData(_topicId: string): {
   questionIds: string[];
@@ -213,7 +223,6 @@ function findBookmarkedQuestionsData(_topicId: string): {
     key => key.startsWith('bookmarked_') && !key.includes('questions_data')
   );
 
-  // Try to find matching data
   for (const key of bookmarkedKeys) {
     const topicTitle = key.replace('bookmarked_', '');
     const dataKey = `bookmarked_questions_data_${topicTitle}`;
@@ -236,7 +245,7 @@ function findBookmarkedQuestionsData(_topicId: string): {
 }
 
 /**
- * Loads questions from backend and sets correctAnswerId properly
+ * Loads questions from the backend and maps them to the TopicQuestion format.
  */
 async function loadQuestionsFromBackend(
   topicId: string
@@ -246,20 +255,17 @@ async function loadQuestionsFromBackend(
     const topicQuestions = questions.filter(q => q.topicId === topicId);
 
     return topicQuestions.map(q => {
-      // Find the correct answer
       const correctAnswer = q.answers.find(a => a.isCorrect);
-      const correctAnswerId = correctAnswer?.id || '1';
-
       return {
         id: q.id,
-        number: 1, // We don't have number in backend
+        number: 1, // Not provided by backend.
         title: q.content,
         questionText: q.content,
         answers: q.answers.map(a => ({
           id: a.id,
           text: a.content,
         })),
-        correctAnswerId: correctAnswerId,
+        correctAnswerId: correctAnswer?.id || '1',
         isBookmarked: false,
         isCompleted: false,
         difficulty: q.difficulty,
@@ -278,6 +284,7 @@ async function loadQuestionsFromBackend(
 export default function QuizPage() {
   const { topicId, questionId } = useParams();
   const navigate = useNavigate();
+  const { markAsCompleted } = useCompletedQuestions(topicId);
 
   const [question, setQuestion] = useState<TopicQuestion | null>(null);
   const [bookmarkedQuestions, setBookmarkedQuestions] = useState<
@@ -290,12 +297,10 @@ export default function QuizPage() {
   );
 
   const toggleBookmark = () => {
-    if (!question) return;
+    if (!question || !topicId) return;
 
-    // Find the topic title from localStorage
-    const { topicTitle } = findBookmarkedQuestionsData(topicId!);
+    const { topicTitle } = findBookmarkedQuestionsData(topicId);
 
-    // Get current bookmarked questions
     const bookmarkedKey = `bookmarked_${topicTitle}`;
     const bookmarkedDataKey = `bookmarked_questions_data_${topicTitle}`;
 
@@ -319,7 +324,6 @@ export default function QuizPage() {
         JSON.stringify(currentBookmarkedData)
       );
 
-      // Navigate to next bookmarked question or back to topic
       const currentIndex = bookmarkedQuestions.findIndex(
         q => q.id === question.id
       );
@@ -328,15 +332,13 @@ export default function QuizPage() {
         bookmarkedQuestions[currentIndex - 1];
 
       if (nextQuestion) {
-        // Navigate to next/previous bookmarked question
         navigate(`/topics/${topicId}/questions/${nextQuestion.id}`);
       } else {
-        // No more bookmarked questions, go back to topic
         navigate(`/topics/${topicId}`);
       }
     } else {
       // Add bookmark
-      const newBookmarked = [...currentBookmarked, question.id];
+      const newBookmarkedIds = [...currentBookmarked, question.id];
       currentBookmarkedData[question.id] = {
         id: question.id,
         text: question.questionText,
@@ -346,42 +348,23 @@ export default function QuizPage() {
         correctAnswerId: question.correctAnswerId,
       };
 
-      localStorage.setItem(bookmarkedKey, JSON.stringify(newBookmarked));
+      localStorage.setItem(bookmarkedKey, JSON.stringify(newBookmarkedIds));
       localStorage.setItem(
         bookmarkedDataKey,
         JSON.stringify(currentBookmarkedData)
       );
 
-      // Refresh the page to reflect changes
-      window.location.reload();
+      // Update state to avoid page reload
+      setQuestion(prev => (prev ? { ...prev, isBookmarked: true } : null));
+      const newBookmarkedQuestion = { ...question, isBookmarked: true };
+      setBookmarkedQuestions(prev => [...prev, newBookmarkedQuestion]);
     }
   };
 
   const handleAnswerSelect = (answerId: string) => {
     setSelectedAnswer(answerId);
-    if (question && topicId) {
-      const completedKey = `completed_${topicId}`;
-      let completed: string[] = [];
-      try {
-        completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
-      } catch {
-        completed = [];
-      }
-      if (!completed.includes(question.id)) {
-        completed.push(question.id);
-        localStorage.setItem(completedKey, JSON.stringify(completed));
-        console.log(
-          '[QUIZ] Frage als beantwortet gespeichert:',
-          completedKey,
-          completed
-        );
-      } else {
-        console.log(
-          '[QUIZ] Frage war schon als beantwortet gespeichert:',
-          completedKey,
-          completed
-        );
-      }
+    if (question && question.correctAnswerId === answerId) {
+      markAsCompleted(question.id);
     }
   };
 
@@ -394,7 +377,6 @@ export default function QuizPage() {
       try {
         setLoading(true);
 
-        // Load bookmarked questions from localStorage (try to find any available data)
         const {
           questionIds: bookmarkedQuestionIds,
           questionData: bookmarkedQuestionsData,
@@ -406,69 +388,37 @@ export default function QuizPage() {
           actualTopicTitle
         );
 
-        // For bookmarked questions, prioritize localStorage data
         const currentQ = bookmarkedQuestions.find(q => q.id === questionId);
 
-        console.log('Looking for question:', questionId);
-        console.log('Bookmarked questions:', bookmarkedQuestions);
-        console.log('Found in bookmarked:', currentQ);
-
         if (!currentQ) {
-          // If not found in bookmarked questions, try backend questions
-          console.log(
-            'Question not found in bookmarked, loading from backend...'
-          );
           const backendQuestions = await loadQuestionsFromBackend(topicId);
-          console.log('Backend questions:', backendQuestions);
           const backendQ = backendQuestions.find(q => q.id === questionId);
-          console.log('Found in backend:', backendQ);
           if (!backendQ) {
             throw new Error('Question not found in topic data');
           }
-          // Check if this backend question is bookmarked
           const isBackendQuestionBookmarked =
             bookmarkedQuestionIds.includes(questionId);
-          const backendQuestionWithBookmark = {
+          setQuestion({
             ...backendQ,
             isBookmarked: isBackendQuestionBookmarked,
-          };
-          console.log(
-            'Setting question from backend:',
-            backendQuestionWithBookmark
-          );
-          setQuestion(backendQuestionWithBookmark);
+          });
           setBookmarkedQuestions(bookmarkedQuestions);
-          setCurrentQuestionIndex(-1); // Not in bookmarked questions
+          setCurrentQuestionIndex(-1);
         } else {
-          // Question found in bookmarked, but check if correctAnswerId is correct
-          console.log('Setting question from bookmarked:', currentQ);
-          // If correctAnswerId is '1' (default), try to get correct one from backend
+          // If the correct answer isn't set, try to fetch it from the backend.
           if (currentQ.correctAnswerId === '1') {
-            console.log('CorrectAnswerId is default, updating from backend...');
             const backendQuestions = await loadQuestionsFromBackend(topicId);
             const backendQ = backendQuestions.find(q => q.id === questionId);
-            console.log('Backend question for update:', backendQ);
             if (backendQ && backendQ.correctAnswerId !== '1') {
-              console.log(
-                'Updating correctAnswerId from backend:',
-                backendQ.correctAnswerId
-              );
-              const updatedQuestion = {
+              setQuestion({
                 ...currentQ,
                 correctAnswerId: backendQ.correctAnswerId,
                 answers: backendQ.answers,
-              };
-              console.log('Updated question:', updatedQuestion);
-              setQuestion(updatedQuestion);
+              });
             } else {
-              console.log('No update needed or backend question not found');
               setQuestion(currentQ);
             }
           } else {
-            console.log(
-              'CorrectAnswerId is already correct:',
-              currentQ.correctAnswerId
-            );
             setQuestion(currentQ);
           }
           setBookmarkedQuestions(bookmarkedQuestions);
@@ -524,18 +474,10 @@ export default function QuizPage() {
     answers: question.answers,
   };
 
-  // Index der richtigen Antwort ermitteln
   const correctIndex = question.answers.findIndex(
     a => a.id === question.correctAnswerId
   );
 
-  // Debug-Ausgaben
-  console.log('Question:', question);
-  console.log('Correct Answer ID:', question.correctAnswerId);
-  console.log('Answers:', question.answers);
-  console.log('Correct Index:', correctIndex);
-
-  // Get topic title from bookmarked questions data
   const { topicTitle } = findBookmarkedQuestionsData(topicId!);
 
   return (

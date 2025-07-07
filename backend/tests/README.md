@@ -7,12 +7,14 @@ This document outlines the testing framework for the Quizdom backend application
 The test suite is organized into two main categories:
 
 ### 1. Unit Tests (`tests/unit/`)
+
 - Test individual components in isolation
 - Focus on game logic, services, and utility functions
 - No database or external dependencies
 - Fast execution
 
 ### 2. Integration Tests (`tests/integration/`)
+
 - Test interactions between components
 - Database operations with SQLite in-memory database
 - API endpoint testing via FastAPI TestClient
