@@ -15,7 +15,7 @@ from fastapi import (
 from sqlmodel import Session, select
 
 from app.core.security import verify_token
-from app.db.models import GameSession, SessionPlayers, User
+from app.db.models import GameSession, GameStatus, SessionPlayers, User
 from app.db.session import get_session
 from app.services.game_service import GameService
 
@@ -209,19 +209,31 @@ async def websocket_endpoint(
 
     keep_alive_task = asyncio.create_task(_keep_alive())
 
-    # Send session-start event
-    await websocket.send_json(
-        {
-            "event": "session-start",
-            "payload": {
-                "mode": session.mode.value,
-                "question_count": (
-                    len(session.question_ids) if session.question_ids else 0
-                ),
-                "current_question": session.current_question_index,
-            },
-        }
-    )
+    # Send session-start event only if session is ACTIVE
+    if session.status == GameStatus.ACTIVE:
+        await websocket.send_json(
+            {
+                "event": "session-start",
+                "payload": {
+                    "mode": session.mode.value,
+                    "question_count": (
+                        len(session.question_ids) if session.question_ids else 0
+                    ),
+                    "current_question": session.current_question_index,
+                },
+            }
+        )
+    else:
+        # For waiting sessions, send session status
+        await websocket.send_json(
+            {
+                "event": "session-status",
+                "payload": {
+                    "status": session.status.value,
+                    "mode": session.mode.value,
+                },
+            }
+        )
 
     # If other players are already connected, notify them
     connected_users = manager.get_connected_users(session_id)
@@ -256,9 +268,11 @@ async def websocket_endpoint(
     # Initialize game service
     game_service = GameService(db)
 
-    # Send initial question if available and index valid
-    if session.question_ids and 0 <= session.current_question_index < len(
-        session.question_ids
+    # Send initial question only if session is ACTIVE
+    if (
+        session.status == GameStatus.ACTIVE
+        and session.question_ids
+        and 0 <= session.current_question_index < len(session.question_ids)
     ):
         try:
             question_data = game_service.get_question_data(

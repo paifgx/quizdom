@@ -186,30 +186,11 @@ export function QuizGameContainer({
 
   useEffect(() => {
     if (gameState.status === 'waiting') {
-      if (mode === 'competitive' || mode === 'collaborative') {
-        return;
-      }
+      // Start the game immediately - for multiplayer modes coming from lobby,
+      // the backend session is already active
       startGame();
     }
-  }, [gameState.status, startGame, mode]);
-
-  useEffect(() => {
-    if (
-      (mode === 'competitive' || mode === 'collaborative') &&
-      gameState.status === 'waiting'
-    ) {
-      const checkPlayers = () => {
-        if (gameState.players && gameState.players.length >= 2) {
-          startGame();
-        }
-      };
-
-      checkPlayers();
-
-      const interval = setInterval(checkPlayers, 2000);
-      return () => clearInterval(interval);
-    }
-  }, [mode, gameState.status, gameState.players, startGame]);
+  }, [gameState.status, startGame]);
 
   useEffect(() => {
     if (gameState.status === 'finished' && gameResult) {

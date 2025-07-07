@@ -27,6 +27,8 @@ class GameMode(str, Enum):
 class GameStatus(str, Enum):
     """Status of a game session."""
 
+    WAITING = "waiting"
+    COUNTDOWN = "countdown"
     ACTIVE = "active"
     PAUSED = "paused"
     FINISHED = "finished"
@@ -164,9 +166,10 @@ class GameSession(SQLModel, table=True):
     topic_id: Optional[int] = Field(default=None, foreign_key="topic.id")
     question_ids: Optional[list[int]] = Field(default=None, sa_column=Column(JSON))
     current_question_index: int = Field(default=0)
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: Optional[datetime] = Field(default=None)
     updated_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
+    countdown_started_at: Optional[datetime] = None
 
 
 class SessionPlayers(SQLModel, table=True):
@@ -176,6 +179,7 @@ class SessionPlayers(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", primary_key=True)
     hearts_left: int = Field(default=3)
     score: int = Field(default=0)
+    ready: bool = Field(default=False)
 
 
 class Topic(SQLModel, table=True):

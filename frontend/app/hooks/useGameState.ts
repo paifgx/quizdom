@@ -571,6 +571,25 @@ export function useGameState({
     };
   }, [isTimerRunning, timeRemaining, handleTimeout]);
 
+  // Function to update player stats from external sources (e.g., backend polling)
+  const updatePlayerStats = useCallback(
+    (playerId: string, score: number, hearts: number) => {
+      setGameState(prev => ({
+        ...prev,
+        players: prev.players.map(p =>
+          p.id === playerId
+            ? {
+                ...p,
+                score,
+                hearts,
+              }
+            : p
+        ),
+      }));
+    },
+    []
+  );
+
   return {
     gameState,
     currentQuestion,
@@ -578,5 +597,6 @@ export function useGameState({
     isTimerRunning,
     startGame,
     handleAnswer,
+    updatePlayerStats,
   };
 }
