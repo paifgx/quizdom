@@ -494,7 +494,11 @@ export function useGameWithBackend({
             };
 
             // Update the game state with the new player stats
-            updatePlayerStats(frontendPlayerId, backendPlayer.score, backendPlayer.hearts);
+            updatePlayerStats(
+              frontendPlayerId,
+              backendPlayer.score,
+              backendPlayer.hearts
+            );
 
             // Trigger heart loss callback if hearts decreased
             if (

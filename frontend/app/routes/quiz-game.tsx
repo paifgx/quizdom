@@ -329,8 +329,6 @@ export default function QuizGamePage() {
     initializeNewGame,
   ]);
 
-
-
   const handleGameEnd = async (_result: GameResult) => {
     // Complete the game session but don't navigate yet
     if (sessionId) {

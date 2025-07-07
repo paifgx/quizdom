@@ -10,6 +10,8 @@ import { authService } from '../services/auth';
 import { connect, WebSocketClient, ConnectionStatus } from '../services/ws';
 import { useAuthenticatedGame } from '../hooks/useAuthenticatedGame';
 import type { PlayerMeta } from '../services/game';
+import type { User } from '../services/auth';
+import type { AnyGameEvent, PlayerReadyEvent, SessionCountdownEvent, PlayerJoinedEvent } from '../services/ws';
 
 export function meta() {
   return [
@@ -44,7 +46,7 @@ export default function LobbyPage() {
   const [_sessionMode, setSessionMode] = useState<string>('');
   const [quizId, setQuizId] = useState<number | null>(null);
   const [topicId, setTopicId] = useState<number | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   // Get current user safely (avoid SSR issues)
   useEffect(() => {
@@ -126,7 +128,13 @@ export default function LobbyPage() {
 
   // Setup WebSocket connection
   useEffect(() => {
-    if (!sessionId || !sessionStatus || sessionStatus === 'active' || typeof window === 'undefined' || !isAuthenticated) {
+    if (
+      !sessionId ||
+      !sessionStatus ||
+      sessionStatus === 'active' ||
+      typeof window === 'undefined' ||
+      !isAuthenticated
+    ) {
       return;
     }
 
@@ -139,92 +147,105 @@ export default function LobbyPage() {
     });
 
     // Handle WebSocket messages
-    const unsubscribeMessage = client.onMessage((event: any) => {
+    const unsubscribeMessage = client.onMessage((event: AnyGameEvent) => {
       console.log('WebSocket event:', event);
 
       // Check if it's a WebSocket event with event/payload structure
-      if (!event.event) {
-        return;
-      }
+      if ('event' in event && event.event) {
+        switch (event.event) {
+          case 'player-ready': {
+            const playerReadyEvent = event as PlayerReadyEvent;
+            // Update player ready status
+            if (playerReadyEvent.payload?.players) {
+              const updatedPlayers = playerReadyEvent.payload.players.map((p) => ({
+                id: p.id,
+                name: p.name,
+                score: p.score || 0,
+                hearts: p.hearts || 3,
+                isHost: p.is_host,
+                ready: p.ready || false,
+              }));
+              setPlayers(updatedPlayers);
 
-      switch (event.event) {
-        case 'player-ready':
-          // Update player ready status
-          if (event.payload?.players) {
-            const updatedPlayers = event.payload.players.map((p: any) => ({
-              id: p.id,
-              name: p.name,
-              score: p.score || 0,
-              hearts: p.hearts || 3,
-              isHost: p.is_host || p.isHost,
-              ready: p.ready || false,
-            }));
-            setPlayers(updatedPlayers);
-
-            // Update current user ready status
-            const currentPlayerData = updatedPlayers.find(
-              (p: LobbyPlayer) => p.id === currentUserId
-            );
-            if (currentPlayerData) {
-              setCurrentUserReady(currentPlayerData.ready);
-            }
-          }
-          break;
-
-        case 'session-countdown':
-          // Start countdown overlay
-          if (event.payload?.seconds && event.payload?.start_at) {
-            setCountdownOverlay(true);
-
-            // Calculate actual countdown based on server time
-            const serverStartTime = new Date(event.payload.start_at).getTime();
-            const now = Date.now();
-            const elapsed = Math.max(0, (now - serverStartTime) / 1000);
-            const remaining = Math.max(0, event.payload.seconds - elapsed);
-
-            // Start countdown
-            let currentSeconds = Math.ceil(remaining);
-            setCountdownSeconds(currentSeconds);
-
-            const interval = setInterval(() => {
-              currentSeconds -= 1;
-              if (currentSeconds <= 0) {
-                clearInterval(interval);
-                setCountdownSeconds(0);
-              } else {
-                setCountdownSeconds(currentSeconds);
+              // Update current user ready status
+              const currentPlayerData = updatedPlayers.find(
+                (p: LobbyPlayer) => p.id === currentUserId
+              );
+              if (currentPlayerData) {
+                setCurrentUserReady(currentPlayerData.ready);
               }
-            }, 1000);
+            }
+            break;
           }
-          break;
 
-        case 'session-paused':
-          // Host paused the countdown
-          setCountdownOverlay(false);
-          setSessionStatus('waiting');
-          // Reset all players' ready status
-          setPlayers(prev =>
-            prev.map(p => ({ ...p, ready: false }))
-          );
-          setCurrentUserReady(false);
-          break;
+          case 'session-countdown': {
+            const countdownEvent = event as SessionCountdownEvent;
+            // Start countdown overlay
+            if (countdownEvent.payload?.seconds && countdownEvent.payload?.start_at) {
+              setCountdownOverlay(true);
 
-        case 'session-start':
-          // Game is starting, navigate to game
-          if (quizId) {
-            navigate(`/quiz/${quizId}/quiz-game?sessionId=${sessionId}`);
-          } else if (topicId) {
-            navigate(`/topics/${topicId}/quiz-game?sessionId=${sessionId}`);
+              // Calculate actual countdown based on server time
+              const serverStartTime = new Date(countdownEvent.payload.start_at).getTime();
+              const now = Date.now();
+              const elapsed = Math.max(0, (now - serverStartTime) / 1000);
+              const remaining = Math.max(0, countdownEvent.payload.seconds - elapsed);
+
+              // Start countdown
+              let currentSeconds = Math.ceil(remaining);
+              setCountdownSeconds(currentSeconds);
+
+              const interval = setInterval(() => {
+                currentSeconds -= 1;
+                if (currentSeconds <= 0) {
+                  clearInterval(interval);
+                  setCountdownSeconds(0);
+                } else {
+                  setCountdownSeconds(currentSeconds);
+                }
+              }, 1000);
+            }
+            break;
           }
-          break;
 
-        case 'player-joined':
-          // New player joined
-          if (event.payload?.players) {
-            setPlayers(event.payload.players);
+          case 'session-paused':
+            // Host paused the countdown
+            setCountdownOverlay(false);
+            setSessionStatus('waiting');
+            // Reset all players' ready status
+            setPlayers(prev =>
+              prev.map(p => ({ ...p, ready: false }))
+            );
+            setCurrentUserReady(false);
+            break;
+
+          case 'session-start':
+            // Game is starting, navigate to game
+            if (quizId) {
+              navigate(`/quiz/${quizId}/quiz-game?sessionId=${sessionId}`);
+            } else if (topicId) {
+              navigate(`/topics/${topicId}/quiz-game?sessionId=${sessionId}`);
+            }
+            break;
+
+          case 'player-joined': {
+            const playerJoinedEvent = event as PlayerJoinedEvent;
+            // New player joined
+            if (playerJoinedEvent.payload?.players) {
+              const players = playerJoinedEvent.payload.players.map((p) => ({
+                id: p.id,
+                name: p.name,
+                score: p.score || 0,
+                hearts: p.hearts || 3,
+                isHost: p.is_host,
+                ready: false,
+              }));
+              setPlayers(players);
+            }
+            break;
           }
-          break;
+        }
       }
+      // Game events (with 'type' property) are handled elsewhere
     });
 
     return () => {
@@ -232,7 +253,15 @@ export default function LobbyPage() {
       unsubscribeMessage();
       client.close();
     };
-  }, [sessionId, sessionStatus, navigate, currentUserId, quizId, topicId, isAuthenticated]);
+  }, [
+    sessionId,
+    sessionStatus,
+    navigate,
+    currentUserId,
+    quizId,
+    topicId,
+    isAuthenticated,
+  ]);
 
   // Fallback polling for session status
   useEffect(() => {
@@ -327,16 +356,16 @@ export default function LobbyPage() {
                 connectionStatus === ConnectionStatus.CONNECTED
                   ? 'bg-green-500'
                   : connectionStatus === ConnectionStatus.RECONNECTING
-                  ? 'bg-yellow-500'
-                  : 'bg-red-500'
+                    ? 'bg-yellow-500'
+                    : 'bg-red-500'
               }`}
             />
             <span className="text-sm text-gray-400">
               {connectionStatus === ConnectionStatus.CONNECTED
                 ? 'Verbunden'
                 : connectionStatus === ConnectionStatus.RECONNECTING
-                ? 'Verbindung wird wiederhergestellt...'
-                : 'Nicht verbunden'}
+                  ? 'Verbindung wird wiederhergestellt...'
+                  : 'Nicht verbunden'}
             </span>
           </div>
         </div>
@@ -356,15 +385,15 @@ export default function LobbyPage() {
                   <h3 className="text-lg font-semibold">
                     {player.name}
                     {player.isHost && (
-                      <span className="ml-2 text-sm text-[#FCC822]">(Host)</span>
+                      <span className="ml-2 text-sm text-[#FCC822]">
+                        (Host)
+                      </span>
                     )}
                     {player.id === currentUserId && (
                       <span className="ml-2 text-sm text-gray-400">(Du)</span>
                     )}
                   </h3>
-                  <p className="text-sm text-gray-400">
-                    Spieler {index + 1}
-                  </p>
+                  <p className="text-sm text-gray-400">Spieler {index + 1}</p>
                 </div>
               </div>
               <div
@@ -396,8 +425,8 @@ export default function LobbyPage() {
               currentUserReady
                 ? 'bg-gray-600 hover:bg-gray-700 text-white'
                 : players.length < 2
-                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                : 'bg-[#FCC822] hover:bg-[#e0b01d] text-gray-900'
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-[#FCC822] hover:bg-[#e0b01d] text-gray-900'
             }`}
           >
             {currentUserReady ? 'Nicht bereit' : 'Bereit'}
@@ -421,7 +450,9 @@ export default function LobbyPage() {
       {countdownOverlay && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-8 text-white">Spiel startet in</h2>
+            <h2 className="text-4xl font-bold mb-8 text-white">
+              Spiel startet in
+            </h2>
             <div className="text-9xl font-bold text-[#FCC822] animate-pulse">
               {countdownSeconds > 0 ? countdownSeconds : 'GO!'}
             </div>

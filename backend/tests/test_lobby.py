@@ -7,7 +7,7 @@ from fastapi import status
 from sqlmodel import Session, select
 
 from app.core.config import settings
-from app.db.models import GameSession, GameStatus, SessionPlayers
+from app.db.models import GameStatus, SessionPlayers
 
 
 @pytest.mark.asyncio
@@ -54,6 +54,7 @@ async def test_ready_toggle(client, auth_headers, test_game_session_comp, db: Se
             SessionPlayers.session_id == test_game_session_comp.id
         )
     ).first()
+    assert player is not None
     assert player.ready is True
 
     # Toggle ready back to false

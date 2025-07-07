@@ -15,7 +15,7 @@ export function CountdownOverlay({
   startAt,
   seconds = 5,
   onComplete,
-  onCancel
+  onCancel,
 }: CountdownOverlayProps) {
   const [currentSeconds, setCurrentSeconds] = useState(seconds);
   const [displayText, setDisplayText] = useState(seconds.toString());
@@ -62,9 +62,7 @@ export function CountdownOverlay({
         <div
           className={`text-9xl font-bold text-[#FCC822] transition-all duration-300 ${
             currentSeconds <= 3 ? 'animate-pulse' : ''
-          } ${
-            displayText === 'GO!' ? 'scale-125 animate-bounce' : ''
-          }`}
+          } ${displayText === 'GO!' ? 'scale-125 animate-bounce' : ''}`}
         >
           {displayText}
         </div>

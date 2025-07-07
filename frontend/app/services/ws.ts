@@ -60,9 +60,9 @@ export interface CompleteEvent {
 }
 
 // New lobby-related events
-export interface BaseWebSocketEvent {
+export interface BaseWebSocketEvent<T = unknown> {
   event: string;
-  payload?: any;
+  payload?: T;
 }
 
 export interface PlayerReadyEvent extends BaseWebSocketEvent {
@@ -115,7 +115,13 @@ export interface PlayerJoinedEvent extends BaseWebSocketEvent {
 }
 
 export type GameEvent = QuestionEvent | AnswerEvent | CompleteEvent;
-export type WebSocketEvent = BaseWebSocketEvent | PlayerReadyEvent | SessionCountdownEvent | SessionPausedEvent | SessionStartEvent | PlayerJoinedEvent;
+export type WebSocketEvent =
+  | BaseWebSocketEvent
+  | PlayerReadyEvent
+  | SessionCountdownEvent
+  | SessionPausedEvent
+  | SessionStartEvent
+  | PlayerJoinedEvent;
 
 export type AnyGameEvent = GameEvent | WebSocketEvent;
 
@@ -188,10 +194,14 @@ export class WebSocketClient {
           // Check if it's a lobby/server event or a game event
           if (data.event) {
             // It's a WebSocketEvent with event/payload structure
-            this.onMessageCallbacks.forEach(callback => callback(data as any));
+            this.onMessageCallbacks.forEach(callback =>
+              callback(data as AnyGameEvent)
+            );
           } else if (data.type) {
             // It's a GameEvent with type structure
-            this.onMessageCallbacks.forEach(callback => callback(data as GameEvent));
+            this.onMessageCallbacks.forEach(callback =>
+              callback(data as GameEvent)
+            );
           }
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error);

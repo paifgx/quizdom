@@ -309,9 +309,13 @@ class GameService {
           ready: boolean;
           is_host: boolean;
         }>;
-      }>(`/v1/game/session/${sessionIdInt}/ready`, {}, {
-        headers: this.getAuthHeaders(),
-      });
+      }>(
+        `/v1/game/session/${sessionIdInt}/ready`,
+        {},
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
 
       return {
         ready: response.ready,
@@ -345,9 +349,13 @@ class GameService {
       const response = await apiClient.post<{
         success: boolean;
         status: string;
-      }>(`/v1/game/session/${sessionIdInt}/pause`, {}, {
-        headers: this.getAuthHeaders(),
-      });
+      }>(
+        `/v1/game/session/${sessionIdInt}/pause`,
+        {},
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
 
       return response;
     } catch (error) {
