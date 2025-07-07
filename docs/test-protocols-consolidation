@@ -104,3 +104,254 @@ Tatsächliches Ergebnis:
 downloadable font: rejected by sanitizer (font-family: "Tiny5" style:normal weight:400 stretch:100 src index:0) source: https://fonts.googleapis.com/css2?family=Tiny5
 
 Zeitstempel: 07.05.2025, 17:39
+
+---
+
+### Test-ID:
+
+Test Case: SCRUM-251
+Test Execution: SCRUM-662
+
+### Testziel:
+
+Verhalten testen, wenn gesperrtes Konto weiteren Login versucht.
+
+### Testvoraussetzungen:
+
+Benutzer frederikgasch@outlook.com existiert ✅
+
+Konto nach 3 Fehlversuchen gesperrt ❌
+
+Reset-Mail mit 1-Stunden-Token bereits gesendet ❌
+
+failedLoginCount = 3, lockUntil gesetzt
+
+### Testdaten (optional):
+
+**Genutzte Benutzerdaten:**
+
+frederikgasch@outlook.com
+
+Korrektes Passwort
+
+ValidPass456!
+
+Falsches Passwort
+
+WrongPass123!
+
+### Systemumgebung:
+
+**Browser (inkl. Version):**
+
+Google Chrome, Version 138.0.7204.51 (Offizieller Build) (arm64)
+
+Extensions: iCloud-Passwörter
+
+**VPN:**
+kein VPN
+
+**Internetverbindung:**
+WLAN
+
+**OS:**
+macOS Sequoia 15.5
+
+**Genutzte URL:**
+https://web--quizdom-frontend--w2tmyjb84mwm.code.run/
+
+**Session ID:**
+
+**Browser-Logs (optional):**
+
+### Testschritte:
+
+1. Öffne Login-Formular und gib korrektes Passwort ein, sende ab
+2. Wiederhole Schritt 1 mit falschem Passwort
+3. Prüfe Audit-Log und Monitoring
+
+### Erwartetes Ergebnis:
+
+1. Öffne Login-Formular und gib korrektes Passwort ein, sende ab
+   → Meldung „Anmeldung aktuell nicht möglich“ (HTTP 403)
+   → Konto bleibt gesperrt
+   → failedLoginCount bleibt 3
+
+2. Wiederhole Schritt 1 mit falschem Passwort
+   → Gleiche Meldung
+   → Kein zusätzlicher Fehlversuch wird gezählt
+   → Keine weitere Mail wird gesendet
+
+3. Prüfe Audit-Log und Monitoring
+   → Einträge „Login versucht während Sperre“ vorhanden
+   → Metrik lockedLoginAttempts_total erhöht sich um 2
+
+### Tatsächliches Ergebnis:
+
+Test konnte nicht ausgeführt werden, weil Preconditions nicht erfüllt werden.
+Konto wurde nicht nach drei Fehlversuchen gesperrt.
+Es wurde keine E-Mail versandt.
+
+### Status:
+
+Blocked
+
+### Tester/in:
+
+Frederik Martin Gasch
+
+### Zeitstempel:
+
+07.07.2025; 13:00 Uhr
+
+### Anmerkungen:
+
+---
+
+### Test-ID:
+
+Test Case: SCRUM-546
+Test Execution: SCRUM-656
+
+### Testziel:
+
+Confirm the presence of the user removal function as admin
+
+### Testvoraussetzungen:
+
+### Testdaten (optional):
+
+**Genutzte Benutzerdaten:**
+
+admin@quizdom.de
+
+admin123
+
+### Systemumgebung:
+
+**Browser (inkl. Version):**
+
+Google Chrome, Version 138.0.7204.51 (Offizieller Build) (arm64)
+
+Extensions: iCloud-Passwörter
+
+**VPN:**
+kein VPN
+
+**Internetverbindung:**
+WLAN
+
+**OS:**
+macOS Sequoia 15.5
+
+**Genutzte URL:**
+https://web--quizdom-frontend--w2tmyjb84mwm.code.run/
+
+**Session ID:**
+
+**Browser-Logs (optional):**
+
+### Testschritte:
+
+1. Log In als Admin
+2. Navigation zu Benutzer
+3. Suche nach individuellem "Löschen"-Button für User
+
+### Erwartetes Ergebnis:
+
+Es gibt einen "Löschen"-Button für User.
+
+### Tatsächliches Ergebnis:
+
+Es gibt einen "Löschen"-Button für User.
+
+### Status:
+
+Passed
+
+### Tester/in:
+
+Frederik Martin Gasch
+
+### Zeitstempel:
+
+07.07.2025; 14:12 Uhr
+
+### Anmerkungen:
+
+---
+
+### Test-ID:
+
+Test Case: SCRUM-544
+Test Execution: SCRUM-656
+
+### Testziel:
+
+Validate immediate deactivation upon user removal
+
+### Testvoraussetzungen:
+
+Es existiert ein löschbarer Benutzer (frederikgasch@outlook.com, ValidPass456!)
+
+### Testdaten (optional):
+
+**Genutzte Benutzerdaten:**
+
+admin@quizdom.de
+
+admin123
+
+### Systemumgebung:
+
+**Browser (inkl. Version):**
+
+Google Chrome, Version 138.0.7204.51 (Offizieller Build) (arm64)
+
+Extensions: iCloud-Passwörter
+
+**VPN:**
+kein VPN
+
+**Internetverbindung:**
+WLAN
+
+**OS:**
+macOS Sequoia 15.5
+
+**Genutzte URL:**
+https://web--quizdom-frontend--w2tmyjb84mwm.code.run/
+
+**Session ID:**
+
+**Browser-Logs (optional):**
+
+### Testschritte:
+
+1. Log In als Admin
+2. Navigation zu Benutzer
+3. Suche nach individuellem "Löschen"-Button für User
+4. Klicken des "Löschen"-Button für User
+5. Log In als gelöschter Benutzer versuchen
+
+### Erwartetes Ergebnis:
+
+Der Nutzer wird gelöscht und kann sich nicht mehr einloggen.
+
+### Tatsächliches Ergebnis:
+
+Der Nutzer wird gelöscht und kann sich nicht mehr einloggen. Allerdings erscheint eine Fehlermeldung nach Löschen des Benutzers: "Failed to execute 'ison' on 'Response': Unexpected end of JSOM input"
+
+### Status:
+
+Passed with Restrictions
+
+### Tester/in:
+
+Frederik Martin Gasch
+
+### Zeitstempel:
+
+07.07.2025; 14:18 Uhr
+
+### Anmerkungen:
