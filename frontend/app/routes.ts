@@ -32,6 +32,7 @@ export default [
       id: 'quiz-quiz-game',
     }),
     route('/join/:sessionId', 'routes/join.$sessionId.tsx'),
+    route('/lobby/:sessionId', 'routes/lobby.$sessionId.tsx'),
     route('/topics', 'routes/topics.tsx'),
     route('/game-modes', 'routes/game-modes.tsx'),
     route('/progress', 'routes/progress.tsx'),

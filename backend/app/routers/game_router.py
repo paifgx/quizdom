@@ -16,7 +16,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from starlette import status
 
-from app.db.models import GameSession, Quiz, SessionPlayers, Topic, User
+from app.core.config import settings
+from app.db.models import GameSession, GameStatus, Quiz, SessionPlayers, Topic, User
 from app.db.session import get_session
 from app.routers.auth_router import get_current_user
 from app.schemas.game import (
@@ -718,3 +719,267 @@ async def get_session_status(
         "total_questions": len(session.question_ids) if session.question_ids else 0,
         "player_count": len(players),
     }
+
+
+@router.put("/session/{session_id}/ready")
+async def set_ready_status(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> Dict[str, Any]:
+    """Toggle ready status for a player in the lobby.
+
+    This endpoint:
+    - Toggles the ready status of the current player
+    - Sends a WebSocket event to all players with the updated ready list
+    - If both players are ready, starts a 5-second countdown
+    - After countdown, starts the actual game
+
+    Args:
+        session_id: ID of the game session
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        Dict with updated ready status and player list
+
+    Raises:
+        HTTPException:
+            - 404: Session not found
+            - 403: User not in session
+            - 409: Session not in WAITING status
+            - 501: Feature not enabled
+    """
+    from app.routers.ws_router import manager
+    import asyncio
+
+    # Check if lobby feature is enabled
+    if not settings.enable_lobby:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Lobby-Feature ist nicht aktiviert",
+        )
+
+    # Get session
+    session = db.get(GameSession, session_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Spielsitzung nicht gefunden",
+        )
+
+    # Check if session is in WAITING status
+    if session.status != GameStatus.WAITING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Sitzung ist nicht im Wartemodus",
+        )
+
+    # Get current player
+    player_stmt = (
+        select(SessionPlayers)
+        .where(SessionPlayers.session_id == session_id)
+        .where(SessionPlayers.user_id == current_user.id)
+    )
+    player = db.exec(player_stmt).first()
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nicht Teil dieser Spielsitzung",
+        )
+
+    # Toggle ready status
+    player.ready = not player.ready
+    db.add(player)
+    db.commit()
+
+    # Get all players
+    all_players_stmt = select(SessionPlayers).where(
+        SessionPlayers.session_id == session_id
+    )
+    all_players = list(db.exec(all_players_stmt).all())
+
+    # Get player details with ready status
+    player_details = []
+    for idx, p in enumerate(all_players):
+        user = db.get(User, p.user_id)
+        if user:
+            player_details.append({
+                "id": str(user.id),
+                "name": user.nickname or user.email.split("@")[0],
+                "ready": p.ready,
+                "is_host": idx == 0,
+            })
+
+    # Send WebSocket event to all players
+    await manager.broadcast(
+        {"event": "player-ready", "payload": {"players": player_details}},
+        session_id,
+    )
+
+    # Check if both players are ready and we have exactly 2 players
+    if len(all_players) == 2 and all(p.ready for p in all_players):
+        # Start countdown
+        session.status = GameStatus.COUNTDOWN
+        session.countdown_started_at = datetime.utcnow()
+        db.add(session)
+        db.commit()
+
+        # Send countdown event
+        await manager.broadcast(
+            {
+                "event": "session-countdown",
+                "payload": {
+                    "seconds": 5,
+                    "start_at": session.countdown_started_at.isoformat(),
+                },
+            },
+            session_id,
+        )
+
+        # Start async task for countdown
+        async def countdown_task():
+            await asyncio.sleep(5)
+
+            # Re-fetch session to check if it's still in countdown
+            db_countdown = Session(bind=db.get_bind())
+            try:
+                session_check = db_countdown.get(GameSession, session_id)
+
+                if session_check and session_check.status == GameStatus.COUNTDOWN:
+                    # Start the game
+                    session_check.status = GameStatus.ACTIVE
+                    session_check.started_at = datetime.utcnow()
+                    db_countdown.add(session_check)
+                    db_countdown.commit()
+
+                    # Send session-start event
+                    await manager.broadcast(
+                        {"event": "session-start", "payload": {"started_at": session_check.started_at.isoformat()}},
+                        session_id,
+                    )
+
+                    # Re-fetch players inside the new session to avoid using detached instances
+                    all_players_stmt = select(SessionPlayers).where(
+                        SessionPlayers.session_id == session_id
+                    )
+                    all_players_in_task = list(db_countdown.exec(all_players_stmt).all())
+
+                    # Send first question
+                    if all_players_in_task:
+                        game_service = GameService(db_countdown)
+                        try:
+                            # Get any user from the session to fetch question data
+                            first_player = all_players_in_task[0]
+                            user_for_question = db_countdown.get(User, first_player.user_id)
+
+                            if user_for_question and session_check.question_ids:
+                                question_data = game_service.get_question_data(
+                                    session_id=session_id,
+                                    question_index=0,
+                                    user=user_for_question,
+                                )
+
+                                await manager.broadcast(
+                                    {"event": "question", "payload": question_data, "index": 0},
+                                    session_id,
+                                )
+                        except Exception as e:
+                            print(f"Error sending first question: {e}")
+            finally:
+                db_countdown.close()
+
+        # Run countdown task in background
+        asyncio.create_task(countdown_task())
+
+    return {
+        "ready": player.ready,
+        "players": player_details,
+    }
+
+
+@router.post("/session/{session_id}/pause")
+async def pause_countdown(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> Dict[str, Any]:
+    """Pause the countdown (host only).
+
+    This endpoint:
+    - Can only be called by the session host
+    - Only works during COUNTDOWN status
+    - Resets status to WAITING
+    - Resets all players' ready status
+    - Cancels the countdown task
+
+    Args:
+        session_id: ID of the game session
+        current_user: Authenticated user (must be host)
+        db: Database session
+
+    Returns:
+        Dict with success status
+
+    Raises:
+        HTTPException:
+            - 404: Session not found
+            - 403: User not host
+            - 409: Session not in COUNTDOWN status
+            - 501: Feature not enabled
+    """
+    from app.routers.ws_router import manager
+
+    # Check if lobby feature is enabled
+    if not settings.enable_lobby:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Lobby-Feature ist nicht aktiviert",
+        )
+
+    # Get session
+    session = db.get(GameSession, session_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Spielsitzung nicht gefunden",
+        )
+
+    # Check if session is in COUNTDOWN status
+    if session.status != GameStatus.COUNTDOWN:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Sitzung ist nicht im Countdown-Modus",
+        )
+
+    # Check if user is the host (first player)
+    players_stmt = select(SessionPlayers).where(
+        SessionPlayers.session_id == session_id
+    )
+    players = list(db.exec(players_stmt).all())
+
+    if not players or players[0].user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nur der Host kann den Countdown stoppen",
+        )
+
+    # Reset session status
+    session.status = GameStatus.WAITING
+    session.countdown_started_at = None
+    db.add(session)
+
+    # Reset all players' ready status
+    for player in players:
+        player.ready = False
+        db.add(player)
+
+    db.commit()
+
+    # Send paused event
+    await manager.broadcast(
+        {"event": "session-paused", "payload": {"status": "waiting"}},
+        session_id,
+    )
+
+    return {"success": True, "status": "waiting"}

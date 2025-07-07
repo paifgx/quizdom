@@ -289,6 +289,74 @@ class GameService {
   }
 
   /**
+   * Toggle ready status for a player in the lobby.
+   */
+  async toggleReady(sessionId: string): Promise<{
+    ready: boolean;
+    players: PlayerMeta[];
+  }> {
+    try {
+      const sessionIdInt = parseInt(sessionId);
+      if (isNaN(sessionIdInt)) {
+        throw new Error('Ungültige Sitzungs-ID');
+      }
+
+      const response = await apiClient.put<{
+        ready: boolean;
+        players: Array<{
+          id: string;
+          name: string;
+          ready: boolean;
+          is_host: boolean;
+        }>;
+      }>(`/v1/game/session/${sessionIdInt}/ready`, {}, {
+        headers: this.getAuthHeaders(),
+      });
+
+      return {
+        ready: response.ready,
+        players: response.players.map(player => ({
+          id: player.id,
+          name: player.name,
+          score: 0,
+          hearts: 3,
+          isHost: player.is_host,
+        })),
+      };
+    } catch (error) {
+      console.error('Failed to toggle ready:', error);
+      throw new Error('Fehler beim Setzen des Bereit-Status.');
+    }
+  }
+
+  /**
+   * Pause the countdown (host only).
+   */
+  async pauseCountdown(sessionId: string): Promise<{
+    success: boolean;
+    status: string;
+  }> {
+    try {
+      const sessionIdInt = parseInt(sessionId);
+      if (isNaN(sessionIdInt)) {
+        throw new Error('Ungültige Sitzungs-ID');
+      }
+
+      const response = await apiClient.post<{
+        success: boolean;
+        status: string;
+      }>(`/v1/game/session/${sessionIdInt}/pause`, {}, {
+        headers: this.getAuthHeaders(),
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Failed to pause countdown:', error);
+      throw new Error('Fehler beim Stoppen des Countdowns.');
+    }
+  }
+
+  /**
    * Get a specific question from the game session.
    */
   async getQuestion(

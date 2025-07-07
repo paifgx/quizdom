@@ -16,16 +16,14 @@ const WS_BASE_URL = import.meta.env.PROD
         );
       }
       // Convert HTTP URL to WebSocket URL (http -> ws, https -> wss)
-      return (
-        apiUrl.replace(
-          /^https?:/,
-          apiUrl.startsWith('https:') ? 'wss:' : 'ws:'
-        ) + '/ws'
+      return apiUrl.replace(
+        /^https?:/,
+        apiUrl.startsWith('https:') ? 'wss:' : 'ws:'
       );
     })()
   : import.meta.env.MODE === 'test'
-    ? 'ws://localhost:8000/ws' // Mock URL for tests
-    : 'ws://localhost:8000/ws'; // Development URL
+    ? 'ws://localhost:8000' // Mock URL for tests
+    : 'ws://localhost:8000'; // Development URL
 
 // Connection status
 export enum ConnectionStatus {
@@ -61,7 +59,65 @@ export interface CompleteEvent {
   scores: Record<string, number>;
 }
 
+// New lobby-related events
+export interface BaseWebSocketEvent {
+  event: string;
+  payload?: any;
+}
+
+export interface PlayerReadyEvent extends BaseWebSocketEvent {
+  event: 'player-ready';
+  payload: {
+    players: Array<{
+      id: string;
+      name: string;
+      score: number;
+      hearts: number;
+      is_host: boolean;
+      ready: boolean;
+    }>;
+  };
+}
+
+export interface SessionCountdownEvent extends BaseWebSocketEvent {
+  event: 'session-countdown';
+  payload: {
+    seconds: number;
+    start_at: string;
+  };
+}
+
+export interface SessionPausedEvent extends BaseWebSocketEvent {
+  event: 'session-paused';
+  payload: {
+    status: string;
+  };
+}
+
+export interface SessionStartEvent extends BaseWebSocketEvent {
+  event: 'session-start';
+  payload: {
+    started_at: string;
+  };
+}
+
+export interface PlayerJoinedEvent extends BaseWebSocketEvent {
+  event: 'player-joined';
+  payload: {
+    players: Array<{
+      id: string;
+      name: string;
+      score: number;
+      hearts: number;
+      is_host: boolean;
+    }>;
+  };
+}
+
 export type GameEvent = QuestionEvent | AnswerEvent | CompleteEvent;
+export type WebSocketEvent = BaseWebSocketEvent | PlayerReadyEvent | SessionCountdownEvent | SessionPausedEvent | SessionStartEvent | PlayerJoinedEvent;
+
+export type AnyGameEvent = GameEvent | WebSocketEvent;
 
 // WebSocket options
 interface WebSocketOptions {
@@ -90,7 +146,7 @@ export class WebSocketClient {
   // Event callbacks
   private onStatusChangeCallbacks: Array<(status: ConnectionStatus) => void> =
     [];
-  private onMessageCallbacks: Array<(event: GameEvent) => void> = [];
+  private onMessageCallbacks: Array<(event: AnyGameEvent) => void> = [];
   private onErrorCallbacks: Array<(error: Event) => void> = [];
 
   constructor(sessionId: string, options: WebSocketOptions = {}) {
@@ -112,8 +168,11 @@ export class WebSocketClient {
 
     this.setStatus(ConnectionStatus.CONNECTING);
 
-    const token = localStorage.getItem('token');
-    const url = `${WS_BASE_URL}/${this.sessionId}?token=${token}`;
+    const token =
+      typeof window !== 'undefined'
+        ? sessionStorage.getItem('quizdom_access_token')
+        : null;
+    const url = `${WS_BASE_URL}/v1/game/session/${this.sessionId}/ws?token=${token}`;
 
     try {
       this.ws = new WebSocket(url);
@@ -125,8 +184,15 @@ export class WebSocketClient {
 
       this.ws.onmessage = event => {
         try {
-          const data = JSON.parse(event.data) as GameEvent;
-          this.onMessageCallbacks.forEach(callback => callback(data));
+          const data = JSON.parse(event.data);
+          // Check if it's a lobby/server event or a game event
+          if (data.event) {
+            // It's a WebSocketEvent with event/payload structure
+            this.onMessageCallbacks.forEach(callback => callback(data as any));
+          } else if (data.type) {
+            // It's a GameEvent with type structure
+            this.onMessageCallbacks.forEach(callback => callback(data as GameEvent));
+          }
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error);
         }
@@ -226,7 +292,7 @@ export class WebSocketClient {
   /**
    * Register message callback.
    */
-  onMessage(callback: (event: GameEvent) => void): () => void {
+  onMessage(callback: (event: AnyGameEvent) => void): () => void {
     this.onMessageCallbacks.push(callback);
     return () => {
       this.onMessageCallbacks = this.onMessageCallbacks.filter(

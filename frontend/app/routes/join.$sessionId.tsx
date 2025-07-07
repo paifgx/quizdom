@@ -36,22 +36,22 @@ export default function JoinSessionPage() {
         // Try to join the session
         const sessionInfo = await gameService.joinSession(sessionId);
 
-        // Redirect to quiz game with sessionId
-        // Use the quiz_id or topic_id from the response to determine the correct route
-
-        if (sessionInfo.quizId) {
-          // This is a quiz-based game
-          navigate(
-            `/quiz/${sessionInfo.quizId}/quiz-game?sessionId=${sessionId}`
-          );
-        } else if (sessionInfo.topicId) {
-          // This is a topic-based game
-          navigate(
-            `/topics/${sessionInfo.topicId}/quiz-game?sessionId=${sessionId}`
-          );
+        // Redirect to lobby for multiplayer games
+        if (sessionInfo.mode === 'comp' || sessionInfo.mode === 'collab') {
+          navigate(`/lobby/${sessionId}`);
         } else {
-          // Fallback if neither is present (shouldn't happen)
-          throw new Error('Session hat keine gültige Quiz- oder Themen-ID');
+          // For solo mode, go directly to game (shouldn't happen for join links)
+          if (sessionInfo.quizId) {
+            navigate(
+              `/quiz/${sessionInfo.quizId}/quiz-game?sessionId=${sessionId}`
+            );
+          } else if (sessionInfo.topicId) {
+            navigate(
+              `/topics/${sessionInfo.topicId}/quiz-game?sessionId=${sessionId}`
+            );
+          } else {
+            throw new Error('Session hat keine gültige Quiz- oder Themen-ID');
+          }
         }
       } catch (err) {
         setError(

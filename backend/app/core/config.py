@@ -6,6 +6,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql://postgres:postgres@localhost:5432/quizdom"
     secret_key: str = "your-secret-key-change-in-production"
+    enable_lobby: bool = True
 
     model_config = SettingsConfigDict(env_file=".env")
 

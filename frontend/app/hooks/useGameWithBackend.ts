@@ -14,7 +14,7 @@ import type {
   GameResult,
   GameModeId,
 } from '../types/game';
-import type { GameEvent } from '../services/ws';
+import type { AnyGameEvent } from '../services/ws';
 
 interface UseGameWithBackendProps {
   mode: GameModeId;
@@ -90,45 +90,62 @@ export function useGameWithBackend({
 
   // WebSocket event handler
   const handleWebSocketEvent = useCallback(
-    (event: GameEvent) => {
+    (event: AnyGameEvent) => {
       console.log('WebSocket event received:', event);
 
-      switch (event.type) {
-        case 'question':
-          // Update current question if it's different from local state
-          if (gameState.currentQuestionIndex !== event.index) {
-            console.log('Question update from server:', event);
-            // Reset waiting state when new question arrives
+      if ('type' in event) {
+        // This is a GameEvent
+        switch (event.type) {
+          case 'question':
+            // Update current question if it's different from local state
+            if (gameState.currentQuestionIndex !== event.index) {
+              console.log('Question update from server:', event);
+              // Reset waiting state when new question arrives
+              setWaitingForOpponent(false);
+            }
+            break;
+
+          case 'answer':
+            // Update player scores and status
+            console.log('Answer update from server:', event);
+
+            // Track that this player has answered
+            // Check if this is competitive mode and both players might have answered
+            if (mode === 'competitive') {
+              // Both players have answered, stop waiting
+              setWaitingForOpponent(false);
+            }
+
+            // If this is not our answer, update the other player's state
+            if (event.playerId !== players[0].id) {
+              // Update other player's score
+              handleLocalAnswer(event.playerId, 0, Date.now()); // We don't know the actual answer index
+            }
+            break;
+
+          case 'complete':
+            // Complete the game with final scores
+            console.log('Game complete from server:', event);
             setWaitingForOpponent(false);
-          }
-          break;
-
-        case 'answer':
-          // Update player scores and status
-          console.log('Answer update from server:', event);
-
-          // Track that this player has answered
-          // Check if this is competitive mode and both players might have answered
-          if (mode === 'competitive') {
-            // Both players have answered, stop waiting
-            setWaitingForOpponent(false);
-          }
-
-          // If this is not our answer, update the other player's state
-          if (event.playerId !== players[0].id) {
-            // Update other player's score
-            handleLocalAnswer(event.playerId, 0, Date.now()); // We don't know the actual answer index
-          }
-          break;
-
-        case 'complete':
-          // Complete the game with final scores
-          console.log('Game complete from server:', event);
-          setWaitingForOpponent(false);
-          break;
-
-        default:
-          console.warn('Unknown WebSocket event:', event);
+            break;
+        }
+      } else if ('event' in event) {
+        // This is a WebSocketEvent
+        switch (event.event) {
+          case 'server-ping':
+            // Ignore keep-alive pings
+            break;
+          case 'session-start':
+          case 'player-joined':
+          case 'question':
+          case 'answer-result':
+          case 'session-complete':
+            // These are handled by the game logic, log them for debugging
+            console.log('Game event from server:', event);
+            break;
+          default:
+            console.warn('Unknown WebSocket event:', event);
+        }
       }
     },
     [gameState.currentQuestionIndex, mode, players, handleLocalAnswer]

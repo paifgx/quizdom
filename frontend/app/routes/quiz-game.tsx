@@ -43,8 +43,6 @@ export default function QuizGamePage() {
   const [title, setTitle] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionMeta, setSessionMeta] = useState<SessionMeta | null>(null);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [waitingForPlayers, setWaitingForPlayers] = useState(false);
 
   // Function to convert backend player data to frontend player state
   const convertPlayersData = useCallback(
@@ -164,10 +162,10 @@ export default function QuizGamePage() {
       console.log('Session ID:', sessionIdStr);
       setSessionId(sessionIdStr);
 
-      // If this is a competitive game, show invite modal
-      if (mode === 'competitive') {
-        setShowInviteModal(true);
-        setWaitingForPlayers(true);
+      // If this is a competitive or collaborative game, redirect to lobby
+      if (mode === 'competitive' || mode === 'collaborative') {
+        navigate(`/lobby/${sessionIdStr}`);
+        return;
       }
 
       // Initialize players based on the game mode
@@ -331,40 +329,7 @@ export default function QuizGamePage() {
     initializeNewGame,
   ]);
 
-  // Poll for players in competitive mode
-  useEffect(() => {
-    if (!waitingForPlayers || !sessionId || mode !== 'competitive') {
-      return;
-    }
 
-    const checkPlayers = async () => {
-      try {
-        const status = await gameService.getSessionStatus(sessionId);
-        console.log('Session status:', status);
-
-        // Check if we have enough players (2 for competitive)
-        if (status.playerCount >= 2) {
-          console.log('All players joined, closing invite modal');
-          setShowInviteModal(false);
-          setWaitingForPlayers(false);
-
-          // Update players with the joined players
-          const playerStates = convertPlayersData(status.players);
-          setPlayers(playerStates);
-        }
-      } catch (error) {
-        console.error('Failed to check session status:', error);
-      }
-    };
-
-    // Check immediately
-    checkPlayers();
-
-    // Then check every 2 seconds
-    const interval = setInterval(checkPlayers, 2000);
-
-    return () => clearInterval(interval);
-  }, [waitingForPlayers, sessionId, mode, convertPlayersData]);
 
   const handleGameEnd = async (_result: GameResult) => {
     // Complete the game session but don't navigate yet
@@ -462,63 +427,6 @@ export default function QuizGamePage() {
           onQuit={handleQuit}
         />
       </GameProvider>
-
-      {showInviteModal && sessionId && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700 shadow-2xl">
-            <div className="text-center mb-6">
-              <div className="text-[#FCC822] text-4xl mb-2">🎮</div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Multiplayer-Spiel erstellt!
-              </h2>
-              <p className="text-gray-300">
-                Teile diesen Link mit deinem Gegner, um das Spiel zu starten.
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-gray-400 text-sm mb-2">
-                Einladungslink
-              </label>
-              <div className="flex">
-                <input
-                  type="text"
-                  value={`${window.location.origin}/join/${sessionId}`}
-                  readOnly
-                  className="flex-1 px-3 py-2 rounded-l-lg bg-gray-900 text-white border-r-0 border border-gray-700 focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/join/${sessionId}`
-                    );
-                  }}
-                  className="px-4 py-2 rounded-r-lg font-medium bg-[#FCC822] hover:bg-[#e0b01d] text-gray-900"
-                >
-                  Kopieren
-                </button>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <button
-                onClick={() => {
-                  setShowInviteModal(false);
-                  setWaitingForPlayers(false);
-                }}
-                className="px-5 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
-              >
-                Spiel starten
-              </button>
-
-              <div className="text-gray-400 text-sm flex items-center">
-                <span>Warte auf Mitspieler...</span>
-                <div className="ml-2 w-4 h-4 rounded-full border-2 border-t-transparent border-[#FCC822] animate-spin"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
