@@ -65,7 +65,7 @@ function TopicBanner({ topic, onToggleFavorite }: TopicBannerProps) {
         alt={topic.title}
         className="h-full w-full object-cover"
         onError={e => {
-          e.currentTarget.src = '/badges/badge_book_1.png';
+          e.currentTarget.src = '/topics/general.png';
         }}
       />
 

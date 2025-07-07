@@ -149,7 +149,7 @@ export default function TopicDetailPage() {
           {/* Topic Image */}
           <div className="flex-shrink-0">
             <img
-              src={topic.image}
+              src={"/topics/general.png"}
               alt={topic.title}
               className="h-48 w-full lg:h-full lg:w-64 object-cover rounded-t-xl lg:rounded-l-xl lg:rounded-t-none border-b-2 lg:border-b-0 lg:border-r-2 border-[#FCC822]"
             />

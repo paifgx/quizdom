@@ -57,7 +57,7 @@ function getTopicImage(title: string): string {
   }
 
   // Default fallback to book image if no specific mapping found
-  return '/badges/badge_book_1.png';
+  return '/topics/general.png';
 }
 
 /**

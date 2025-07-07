@@ -128,7 +128,7 @@ export default function HomePage() {
           favoriteTopics.length > 0 && (
             <div className="text-center py-8 sm:py-12">
               <img
-                src="/badges/badge_book_1.png"
+                src="/topics/general.png"
                 alt="No search results"
                 className="h-16 w-16 mx-auto mb-4 opacity-50"
               />
@@ -146,7 +146,7 @@ export default function HomePage() {
         {!isTopicsLoading && favoriteTopics.length === 0 && (
           <div className="text-center py-8 sm:py-12">
             <img
-              src="/badges/badge_book_1.png"
+              src="/topics/general.png"
               alt="No favorites"
               className="h-16 w-16 mx-auto mb-4 opacity-50"
             />
