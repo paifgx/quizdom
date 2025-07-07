@@ -360,27 +360,32 @@ export default function QuizPage() {
   const handleAnswerSelect = (answerId: string) => {
     setSelectedAnswer(answerId);
     if (question && topicId) {
-      const completedKey = `completed_${topicId}`;
-      let completed: string[] = [];
-      try {
-        completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
-      } catch {
-        completed = [];
-      }
-      if (!completed.includes(question.id)) {
-        completed.push(question.id);
-        localStorage.setItem(completedKey, JSON.stringify(completed));
-        console.log(
-          '[QUIZ] Frage als beantwortet gespeichert:',
-          completedKey,
-          completed
-        );
+      // Nur speichern, wenn die Antwort korrekt ist
+      if (answerId === question.correctAnswerId) {
+        const completedKey = `completed_${topicId}`;
+        let completed: string[] = [];
+        try {
+          completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
+        } catch {
+          completed = [];
+        }
+        if (!completed.includes(question.id)) {
+          completed.push(question.id);
+          localStorage.setItem(completedKey, JSON.stringify(completed));
+          console.log(
+            '[QUIZ] Frage als korrekt beantwortet gespeichert:',
+            completedKey,
+            completed
+          );
+        } else {
+          console.log(
+            '[QUIZ] Frage war schon als korrekt beantwortet gespeichert:',
+            completedKey,
+            completed
+          );
+        }
       } else {
-        console.log(
-          '[QUIZ] Frage war schon als beantwortet gespeichert:',
-          completedKey,
-          completed
-        );
+        console.log('[QUIZ] Antwort war falsch, Frage wird nicht als abgeschlossen gespeichert.');
       }
     }
   };

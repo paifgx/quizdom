@@ -131,7 +131,7 @@ export function QuizGameContainer({
     setIsAnswerDisabled(false);
   }, [gameState.currentQuestionIndex]);
 
-  const handleAnswerSelect = (answerId: string) => {
+  const handleAnswerSelect = async (answerId: string) => {
     if (isAnswerDisabled || gameState.status !== 'playing') {
       console.log('[QuizGameContainer] Answer disabled or game not playing', {
         isAnswerDisabled,
@@ -151,34 +151,45 @@ export function QuizGameContainer({
     setSelectedAnswer(answerIndex);
     setIsAnswerDisabled(true);
 
-    // Call handleAnswer only once
-    handleAnswer(currentPlayerId, answerIndex, Date.now());
+    // Call handleAnswer only once, warte auf Rückmeldung
+    await handleAnswer(currentPlayerId, answerIndex, Date.now());
+
+    // result kann undefined sein, wenn handleAnswer keine Rückgabe hat
+    // Wir prüfen, ob die Antwort korrekt war
+    let isCorrect = false;
+    if (currentQuestion && typeof currentQuestion.correctAnswer !== 'undefined') {
+      isCorrect = answerIndex === currentQuestion.correctAnswer;
+    }
 
     if (currentQuestion) {
       // Use topicId for topic games, quizId for quiz games
       const gameId = topicId || quizId;
       if (gameId) {
-        const completedKey = `completed_${gameId}`;
-        let completed: string[] = [];
-        try {
-          completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
-        } catch {
-          completed = [];
-        }
-        if (!completed.includes(currentQuestion.id)) {
-          completed.push(currentQuestion.id);
-          localStorage.setItem(completedKey, JSON.stringify(completed));
-          console.log(
-            '[QUIZ-GAME] Frage als beantwortet gespeichert:',
-            completedKey,
-            completed
-          );
+        if (isCorrect) {
+          const completedKey = `completed_${gameId}`;
+          let completed: string[] = [];
+          try {
+            completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
+          } catch {
+            completed = [];
+          }
+          if (!completed.includes(currentQuestion.id)) {
+            completed.push(currentQuestion.id);
+            localStorage.setItem(completedKey, JSON.stringify(completed));
+            console.log(
+              '[QUIZ-GAME] Frage als korrekt beantwortet gespeichert:',
+              completedKey,
+              completed
+            );
+          } else {
+            console.log(
+              '[QUIZ-GAME] Frage war schon als korrekt beantwortet gespeichert:',
+              completedKey,
+              completed
+            );
+          }
         } else {
-          console.log(
-            '[QUIZ-GAME] Frage war schon als beantwortet gespeichert:',
-            completedKey,
-            completed
-          );
+          console.log('[QUIZ-GAME] Antwort war falsch, Frage wird nicht als abgeschlossen gespeichert.');
         }
       } else {
         console.log('[QUIZ-GAME] Konnte topicId oder quizId nicht bestimmen:', {
