@@ -670,9 +670,9 @@ export default function UserManual() {
                     <h3 className="text-xl font-semibold text-white mb-3">
                       {translate('userManual.playWithFriends')}
                     </h3>
-                    <div className="bg-amber-900 bg-opacity-30 border border-amber-600 rounded-lg p-4">
+                    <div className="bg-amber-900 bg-opacity-30 border border-emerald-600 rounded-lg p-4">
                       <p className="text-amber-300 font-medium mb-2">
-                        Die kurze Antwort: Jein.
+                        Ja, das geht!
                       </p>
                       <p className="text-gray-200 leading-relaxed">
                         {translate('userManual.playWithFriendsDesc')}

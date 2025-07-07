@@ -380,7 +380,7 @@ export const translations = {
     // Gameplay Section: Play with friends
     playWithFriends: 'Kann ich in QUIZDOM auch gegen meine Freunde spielen?',
     playWithFriendsDesc:
-      'In dieser prototypischen Umsetzung wird der andere Spieler für den Collaborative Mode oder den Competitive Mode zufällig aus den Spielern ausgewählt, die gerade online sind und dasselbe Thema im selben Spielmodus spielen wollen.',
+      'So geht es: starte den Spielmodus Duell oder Team Battle. Du landest in der Lobby für das Spiel. Kopiere den Link in deinem Browser und schicke ihn deiner Freundin oder deinem Freund. Sobald diese/r auf den Link geklickt hat, tritt er deiner Lobby bei. Wenn ihr dann beide auf "Bereit" klickt, könnt ihr sofort zusammen spielen! 👩🏽‍🤝‍👨🏼',
 
     questionTypes: 'Welche Fragetypen gibt es in QUIZDOM?',
     questionTypesDesc:

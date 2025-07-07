@@ -191,8 +191,8 @@ Die Bepunktung ist abhängig davon, wie schnell ihr es schafft zu antworten.
 
 `relates to SCRUM-190 && SCRUM-159 && SCRUM-179`
 
-Die kurze Anwort: Jein.
-In dieser prototypischen Umsetzung wird der bzw. die andere Spieler:in für den _Collaborative Mode_ oder den _Competitive Mode_ zufällig aus den Spieler:innen ausgewählt, die gerade online sind und dasselbe Thema/ Fach im selben Spielmodus spielen wollen. Du kannst dir deine:n Mitstreiter:in bzw. deine:n Gegner:in also nicht selbst aussuchen. Mit etwas "Glück" kann es jedoch sein, dass euch der Zufall beide für dasselbe Spiel auswählt.
+Ja, so geht es: starte den Spielmodus Duell oder Team Battle. Du landest in der Lobby für das Spiel. Kopiere den Link in deinem Browser und schicke ihn deiner Freundin oder deinem Freund.
+Sobald diese/r auf den Link geklickt hat, tritt er deiner Lobby bei. Wenn ihr dann beide auf "Bereit" klickt, könnt ihr sofort zusammen spielen! 👩🏽‍🤝‍👨🏼
 
 ---
 
