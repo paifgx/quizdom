@@ -30,7 +30,7 @@ To maintain a clean and linear migration history, please follow these rules imme
 
 1.  **Sequential Naming**: The auto-generated file will have a random hash. **Rename it** to follow a sequential numeric prefix (e.g., `006_your_description.py`). Find the last number in this directory and increment it.
 2.  **Update Revision ID**: Open the new file and change the `revision` variable to match the file's new prefix (e.g., `revision: str = "006_your_description"`).
-3.  **Check the Revision Chain**: Ensure the `down_revision` variable correctly points to the `revision` ID of the *previous* migration file. Alembic should set this correctly, but it is essential to verify.
+3.  **Check the Revision Chain**: Ensure the `down_revision` variable correctly points to the `revision` ID of the _previous_ migration file. Alembic should set this correctly, but it is essential to verify.
 4.  **Keep Docstrings Clean**: For clarity, update the `Revises:` field in the top-level docstring to match the `down_revision` ID.
 
 ## Applying and Reverting Migrations

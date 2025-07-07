@@ -385,7 +385,9 @@ export default function QuizPage() {
           );
         }
       } else {
-        console.log('[QUIZ] Antwort war falsch, Frage wird nicht als abgeschlossen gespeichert.');
+        console.log(
+          '[QUIZ] Antwort war falsch, Frage wird nicht als abgeschlossen gespeichert.'
+        );
       }
     }
   };

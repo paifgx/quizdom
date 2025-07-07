@@ -157,7 +157,10 @@ export function QuizGameContainer({
     // result kann undefined sein, wenn handleAnswer keine Rückgabe hat
     // Wir prüfen, ob die Antwort korrekt war
     let isCorrect = false;
-    if (currentQuestion && typeof currentQuestion.correctAnswer !== 'undefined') {
+    if (
+      currentQuestion &&
+      typeof currentQuestion.correctAnswer !== 'undefined'
+    ) {
       isCorrect = answerIndex === currentQuestion.correctAnswer;
     }
 
@@ -189,7 +192,9 @@ export function QuizGameContainer({
             );
           }
         } else {
-          console.log('[QUIZ-GAME] Antwort war falsch, Frage wird nicht als abgeschlossen gespeichert.');
+          console.log(
+            '[QUIZ-GAME] Antwort war falsch, Frage wird nicht als abgeschlossen gespeichert.'
+          );
         }
       } else {
         console.log('[QUIZ-GAME] Konnte topicId oder quizId nicht bestimmen:', {
