@@ -269,8 +269,10 @@ async def websocket_endpoint(
     game_service = GameService(db)
 
     # Send initial question only if session is ACTIVE
-    if session.status == GameStatus.ACTIVE and session.question_ids and 0 <= session.current_question_index < len(
-        session.question_ids
+    if (
+        session.status == GameStatus.ACTIVE
+        and session.question_ids
+        and 0 <= session.current_question_index < len(session.question_ids)
     ):
         try:
             question_data = game_service.get_question_data(

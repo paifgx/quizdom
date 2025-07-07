@@ -123,7 +123,11 @@ class GameService:
             game_mode = GameMode(mode_str)
 
         # Set initial status based on mode
-        initial_status = GameStatus.WAITING if game_mode in [GameMode.COMP, GameMode.COLLAB] else GameStatus.ACTIVE
+        initial_status = (
+            GameStatus.WAITING
+            if game_mode in [GameMode.COMP, GameMode.COLLAB]
+            else GameStatus.ACTIVE
+        )
 
         # Create game session
         session = GameSession(
@@ -132,7 +136,9 @@ class GameService:
             quiz_id=quiz_id,
             question_ids=[q.id for q in questions if q.id is not None],
             current_question_index=0,
-            started_at=None if initial_status == GameStatus.WAITING else datetime.utcnow(),
+            started_at=(
+                None if initial_status == GameStatus.WAITING else datetime.utcnow()
+            ),
             updated_at=datetime.utcnow(),
         )
         self.db.add(session)
@@ -231,7 +237,11 @@ class GameService:
             game_mode = mode
 
         # Set initial status based on mode
-        initial_status = GameStatus.WAITING if game_mode in [GameMode.COMP, GameMode.COLLAB] else GameStatus.ACTIVE
+        initial_status = (
+            GameStatus.WAITING
+            if game_mode in [GameMode.COMP, GameMode.COLLAB]
+            else GameStatus.ACTIVE
+        )
 
         # Create game session
         session = GameSession(
@@ -240,7 +250,9 @@ class GameService:
             topic_id=topic_id,
             question_ids=[q.id for q in questions if q.id is not None],
             current_question_index=0,
-            started_at=None if initial_status == GameStatus.WAITING else datetime.utcnow(),
+            started_at=(
+                None if initial_status == GameStatus.WAITING else datetime.utcnow()
+            ),
             updated_at=datetime.utcnow(),
         )
         self.db.add(session)
@@ -333,7 +345,9 @@ class GameService:
 
         # For competitive and collaborative, limit to 2 players
         if len(current_players) >= 2:
-            raise ValueError("Dieses Spiel ist bereits voll (maximal 2 Spieler erlaubt)")
+            raise ValueError(
+                "Dieses Spiel ist bereits voll (maximal 2 Spieler erlaubt)"
+            )
 
         # Add user to session
         if user.id is None:

@@ -805,12 +805,14 @@ async def set_ready_status(
     for idx, p in enumerate(all_players):
         user = db.get(User, p.user_id)
         if user:
-            player_details.append({
-                "id": str(user.id),
-                "name": user.nickname or user.email.split("@")[0],
-                "ready": p.ready,
-                "is_host": idx == 0,
-            })
+            player_details.append(
+                {
+                    "id": str(user.id),
+                    "name": user.nickname or user.email.split("@")[0],
+                    "ready": p.ready,
+                    "is_host": idx == 0,
+                }
+            )
 
     # Send WebSocket event to all players
     await manager.broadcast(
@@ -856,7 +858,12 @@ async def set_ready_status(
 
                     # Send session-start event
                     await manager.broadcast(
-                        {"event": "session-start", "payload": {"started_at": session_check.started_at.isoformat()}},
+                        {
+                            "event": "session-start",
+                            "payload": {
+                                "started_at": session_check.started_at.isoformat()
+                            },
+                        },
                         session_id,
                     )
 
@@ -864,7 +871,9 @@ async def set_ready_status(
                     all_players_stmt = select(SessionPlayers).where(
                         SessionPlayers.session_id == session_id
                     )
-                    all_players_in_task = list(db_countdown.exec(all_players_stmt).all())
+                    all_players_in_task = list(
+                        db_countdown.exec(all_players_stmt).all()
+                    )
 
                     # Send first question
                     if all_players_in_task:
@@ -872,7 +881,9 @@ async def set_ready_status(
                         try:
                             # Get any user from the session to fetch question data
                             first_player = all_players_in_task[0]
-                            user_for_question = db_countdown.get(User, first_player.user_id)
+                            user_for_question = db_countdown.get(
+                                User, first_player.user_id
+                            )
 
                             if user_for_question and session_check.question_ids:
                                 question_data = game_service.get_question_data(
@@ -882,7 +893,11 @@ async def set_ready_status(
                                 )
 
                                 await manager.broadcast(
-                                    {"event": "question", "payload": question_data, "index": 0},
+                                    {
+                                        "event": "question",
+                                        "payload": question_data,
+                                        "index": 0,
+                                    },
                                     session_id,
                                 )
                         except Exception as e:
@@ -954,9 +969,7 @@ async def pause_countdown(
         )
 
     # Check if user is the host (first player)
-    players_stmt = select(SessionPlayers).where(
-        SessionPlayers.session_id == session_id
-    )
+    players_stmt = select(SessionPlayers).where(SessionPlayers.session_id == session_id)
     players = list(db.exec(players_stmt).all())
 
     if not players or players[0].user_id != current_user.id:

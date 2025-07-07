@@ -201,7 +201,7 @@ async def test_session_activates_after_countdown(
         user_id=2,  # Different user ID
         hearts_left=3,
         score=0,
-        ready=False
+        ready=False,
     )
     db.add(player2)
     db.commit()
