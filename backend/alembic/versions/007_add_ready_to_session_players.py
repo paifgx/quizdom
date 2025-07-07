@@ -7,9 +7,9 @@ Create Date: 2024-01-01 00:00:01.000000
 """
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '007_add_ready_to_session_players'

@@ -750,8 +750,9 @@ async def set_ready_status(
             - 409: Session not in WAITING status
             - 501: Feature not enabled
     """
-    from app.routers.ws_router import manager
     import asyncio
+
+    from app.routers.ws_router import manager
 
     # Check if lobby feature is enabled
     if not settings.enable_lobby:

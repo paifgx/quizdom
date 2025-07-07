@@ -1,12 +1,13 @@
 """Tests for lobby functionality."""
 
 import asyncio
+
 import pytest
 from fastapi import status
 from sqlmodel import Session, select
 
-from app.db.models import GameSession, GameStatus, SessionPlayers
 from app.core.config import settings
+from app.db.models import GameSession, GameStatus, SessionPlayers
 
 
 @pytest.mark.asyncio
