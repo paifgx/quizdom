@@ -83,3 +83,8 @@ backups/
 # Misc
 .mypy_cache/
 .ruff_cache/
+
+.cursor/rules/todo2-overview.mdc
+.cursor/rules/todo2.mdc
+.cursor/mcp.json
+.todo2/

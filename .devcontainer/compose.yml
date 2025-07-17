@@ -8,9 +8,12 @@ services:
       - "8080:8000"
       - "5173:5173"
     depends_on:
-      - db
-      - redis
-      - pgadmin
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      pgadmin:
+        condition: service_started
     networks:
       - quizdom-network
     environment:
@@ -35,11 +38,11 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d quizdom"]
-      interval: 10s
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d quizdom" ]
+      interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 5s
     restart: unless-stopped
     networks:
       - quizdom-network
@@ -54,10 +57,11 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 5s
     restart: unless-stopped
     networks:
       - quizdom-network
@@ -93,4 +97,4 @@ volumes:
 networks:
   quizdom-network:
     driver: bridge
-    name: quizdom-dev-network
+    name: quizdom-network
